@@ -110,7 +110,7 @@ namespace Iris.NET
         public delegate void ExceptionHandler(Exception ex);
         public event ExceptionHandler OnException;
 
-        public delegate void LogHandler(string message);
+        public delegate void LogHandler(string log);
         public event LogHandler OnLog;
         #endregion
 
