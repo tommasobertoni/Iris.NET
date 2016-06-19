@@ -16,9 +16,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Nodes\AbstractIrisListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nodes\IrisNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisError.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisPacket.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisPacket.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisSubscribe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisSystem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisUnsubscribe.cs" />
   </ItemGroup>
 </Project>

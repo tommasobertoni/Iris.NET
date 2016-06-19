@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Iris.NET
 {
+    [Serializable]
     public class IrisError : IrisPacket
     {
         internal IrisError(Guid publisherId) : base(publisherId) { }

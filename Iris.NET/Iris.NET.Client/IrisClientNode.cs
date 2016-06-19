@@ -17,7 +17,7 @@ namespace Iris.NET.Client
         {
             if (IsConnected)
                 return false;
-
+            
             _socket = new TcpClient(config.Hostname, config.Port);
             _networkStream = _socket.GetStream();
             _subscriptionsListener = new IrisClientListener(_networkStream, config.MessageFailureAttempts);
@@ -32,6 +32,7 @@ namespace Iris.NET.Client
             var stream = packet.SerializeToMemoryStream();
             var rowData = stream.ToArray();
             _networkStream.Write(rowData, 0, rowData.Length);
+            _networkStream.Flush();
         }
 
         public override void Dispose()

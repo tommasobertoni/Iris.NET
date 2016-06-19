@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}</ProjectGuid>
+    <ProjectGuid>{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Iris.NET.Client.ConsoleApplicationTest</RootNamespace>
-    <AssemblyName>Iris.NET.Client.ConsoleApplicationTest</AssemblyName>
+    <RootNamespace>Iris.NET.Server.ConsoleApplicationTest</RootNamespace>
+    <AssemblyName>Iris.NET.Server.ConsoleApplicationTest</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -44,9 +44,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Iris.NET.Client\Iris.NET.Client.csproj">
-      <Project>{f9c1a457-5a5f-4eea-8076-af6038f4c646}</Project>
-      <Name>Iris.NET.Client</Name>
+    <ProjectReference Include="..\Iris.NET.Server\Iris.NET.Server.csproj">
+      <Project>{856716e0-8895-410b-aeec-88a27bdecd75}</Project>
+      <Name>Iris.NET.Server</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

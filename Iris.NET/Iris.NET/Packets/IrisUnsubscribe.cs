@@ -5,9 +5,9 @@ using System.Text;
 namespace Iris.NET
 {
     [Serializable]
-    internal class IrisSubscribe : IrisSystem
+    internal class IrisUnsubscribe : IrisSystem
     {
-        internal IrisSubscribe(Guid publisherId, string channel) : base(publisherId)
+        internal IrisUnsubscribe(Guid publisherId, string channel) : base(publisherId)
         {
             Channel = channel;
         }

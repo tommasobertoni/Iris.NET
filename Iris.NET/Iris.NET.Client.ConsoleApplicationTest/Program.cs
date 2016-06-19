@@ -15,14 +15,17 @@ namespace Iris.NET.Client.ConsoleApplicationTest
         static void Main(string[] args)
         {
             string mainChannel = "main";
-
             File.Delete(logFileName);
+
+            Console.WriteLine($"{typeof(Program).Namespace}");
+            Console.Write("Press Enter to start");
+            Console.ReadLine();
             Console.WriteLine("Main started\n\n");
 
             IrisClientNode client = new IrisClientNode();
             IrisClientConfig config = new IrisClientConfig()
             {
-                Hostname = "localhost",
+                Hostname = "127.0.0.1",
                 Port = 22000
             };
             Console.WriteLine($"Client and config created {client.ClientId}-{config.Hostname}:{config.Port}\n");
@@ -58,7 +61,9 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 Console.WriteLine("Write your message:");
                 client.SendAsync(mainChannel, Console.ReadLine());
                 Thread.Sleep(1000);
-                Console.WriteLine("...everything ok?\n");
+                Console.Write("...everything ok?");
+                Console.ReadLine();
+                Console.WriteLine();
             }
             catch (Exception ex)
             {

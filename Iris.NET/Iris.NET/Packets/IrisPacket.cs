@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Iris.NET
 {
+    [Serializable]
     public class IrisPacket
     {
         internal IrisPacket(Guid publisherId)

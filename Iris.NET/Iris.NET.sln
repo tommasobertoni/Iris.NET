@@ -11,12 +11,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Client", "Iris.NET
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Server", "Iris.NET.Server\Iris.NET.Server.csproj", "{856716E0-8895-410B-AEEC-88A27BDECD75}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Client.ConsoleApplicationTest", "Iris.NET.Client.ConsoleApplicationTest\Iris.NET.Client.ConsoleApplicationTest.csproj", "{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{37C94800-ED6F-41BF-A0E4-01FE44EE4BFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Server.ConsoleApplicationTest", "Iris.NET.Server.ConsoleApplicationTest\Iris.NET.Server.ConsoleApplicationTest.csproj", "{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Iris.NET\Iris.NET.projitems*{856716e0-8895-410b-aeec-88a27bdecd75}*SharedItemsImports = 4
 		Iris.NET\Iris.NET.projitems*{ffb94446-c9b3-4a4b-9925-e6a9ae5018e7}*SharedItemsImports = 13
 		Iris.NET\Iris.NET.projitems*{f9c1a457-5a5f-4eea-8076-af6038f4c646}*SharedItemsImports = 4
-		Iris.NET\Iris.NET.projitems*{0cbd69e3-ee95-4256-af71-a46463198172}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,8 +40,21 @@ Global
 		{856716E0-8895-410B-AEEC-88A27BDECD75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{856716E0-8895-410B-AEEC-88A27BDECD75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{856716E0-8895-410B-AEEC-88A27BDECD75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0CBD69E3-EE95-4256-AF71-A46463198172} = {37C94800-ED6F-41BF-A0E4-01FE44EE4BFF}
+		{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9} = {37C94800-ED6F-41BF-A0E4-01FE44EE4BFF}
+		{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2} = {37C94800-ED6F-41BF-A0E4-01FE44EE4BFF}
 	EndGlobalSection
 EndGlobal

@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Iris.NET
 {
+    [Serializable]
     public sealed class IrisMessage : IrisPacket
     {
         internal IrisMessage(Guid publisherId, string targetChannel, bool propagateThroughHierarchy = false)
