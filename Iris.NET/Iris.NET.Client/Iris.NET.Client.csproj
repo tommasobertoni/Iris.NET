@@ -7,7 +7,7 @@
     <ProjectGuid>{F9C1A457-5A5F-4EEA-8076-AF6038F4C646}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Iris.NET</RootNamespace>
+    <RootNamespace>Iris.NET.Client</RootNamespace>
     <AssemblyName>Iris.NET.Client</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -38,7 +38,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IrisClient.cs" />
+    <Compile Include="IrisClientNode.cs" />
+    <Compile Include="IrisClientConfig.cs" />
+    <Compile Include="IrisClientListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="..\Iris.NET\Iris.NET.projitems" Label="Shared" />

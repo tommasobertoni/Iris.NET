@@ -9,9 +9,12 @@
     <Import_RootNamespace>Iris.NET</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)IrisExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IrisNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\GenericExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IrisExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IrisConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Nodes\AbstractIrisNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Nodes\AbstractIrisListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Nodes\IrisNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisError.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisPacket.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Packets\IrisMessage.cs" />

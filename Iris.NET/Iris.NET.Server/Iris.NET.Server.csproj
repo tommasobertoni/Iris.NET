@@ -7,7 +7,7 @@
     <ProjectGuid>{856716E0-8895-410B-AEEC-88A27BDECD75}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Iris.NET</RootNamespace>
+    <RootNamespace>Iris.NET.Server</RootNamespace>
     <AssemblyName>Iris.NET.Server</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IrisServer.cs" />
+    <Compile Include="IrisServerNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="..\Iris.NET\Iris.NET.projitems" Label="Shared" />

@@ -11,9 +11,4 @@ namespace Iris.NET.ConsoleApplicationTest
         {
         }
     }
-
-    class A : IrisNode
-    {
-
-    }
 }
