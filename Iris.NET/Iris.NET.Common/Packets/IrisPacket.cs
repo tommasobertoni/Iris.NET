@@ -15,6 +15,6 @@ namespace Iris.NET
 
         public readonly Guid PacketId;
 
-        internal Guid PublisherId { get; }
+        public Guid PublisherId { get; }
     }
 }

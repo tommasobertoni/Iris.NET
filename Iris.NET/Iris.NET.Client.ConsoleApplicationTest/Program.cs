@@ -28,7 +28,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 Hostname = "127.0.0.1",
                 Port = 22000
             };
-            Console.WriteLine($"Client and config created {client.ClientId}-{config.Hostname}:{config.Port}\n");
+            Console.WriteLine($"Client and config created {client.NodeId}-{config.Hostname}:{config.Port}\n");
 
             try
             {

@@ -7,7 +7,7 @@ namespace Iris.NET
     [Serializable]
     public sealed class IrisMessage : IrisPacket
     {
-        internal IrisMessage(Guid publisherId, string targetChannel, bool propagateThroughHierarchy = false)
+        public IrisMessage(Guid publisherId, string targetChannel, bool propagateThroughHierarchy = false)
                             : base(publisherId)
         {
             TargetChannel = targetChannel;
@@ -16,7 +16,7 @@ namespace Iris.NET
 
         public string TargetChannel { get; }
 
-        internal bool PropagateThroughHierarchy { get; }
+        public bool PropagateThroughHierarchy { get; }
 
         public DateTime PublicationDateTime { get; internal set; }
 

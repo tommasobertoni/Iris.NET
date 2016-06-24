@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Iris.NET.Client.ConsoleApplicationTest</RootNamespace>
     <AssemblyName>Iris.NET.Client.ConsoleApplicationTest</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,6 +49,13 @@
       <Project>{f9c1a457-5a5f-4eea-8076-af6038f4c646}</Project>
       <Name>Iris.NET.Client</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Iris.NET.Common\Iris.NET.Common.csproj">
+      <Project>{0692286e-6499-4f89-8971-c6f0252a54a1}</Project>
+      <Name>Iris.NET.Common</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

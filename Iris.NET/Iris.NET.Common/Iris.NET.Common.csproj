@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{0692286E-6499-4F89-8971-C6F0252A54A1}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Iris.NET.Server.ConsoleApplicationTest</RootNamespace>
-    <AssemblyName>Iris.NET.Server.ConsoleApplicationTest</AssemblyName>
+    <RootNamespace>Iris.NET</RootNamespace>
+    <AssemblyName>Iris.NET.Common</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +23,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -41,21 +39,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
+    <Compile Include="Extensions\GenericExtensions.cs" />
+    <Compile Include="Extensions\IrisExtensions.cs" />
+    <Compile Include="IrisConfig.cs" />
+    <Compile Include="Nodes\AbstractIrisListener.cs" />
+    <Compile Include="Nodes\AbstractIrisNode.cs" />
+    <Compile Include="Nodes\IrisNode.cs" />
+    <Compile Include="Packets\IrisError.cs" />
+    <Compile Include="Packets\IrisMessage.cs" />
+    <Compile Include="Packets\IrisPacket.cs" />
+    <Compile Include="Packets\IrisSubscribe.cs" />
+    <Compile Include="Packets\IrisSystem.cs" />
+    <Compile Include="Packets\IrisUnsubscribe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Iris.NET.Common\Iris.NET.Common.csproj">
-      <Project>{0692286e-6499-4f89-8971-c6f0252a54a1}</Project>
-      <Name>Iris.NET.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Iris.NET.Server\Iris.NET.Server.csproj">
-      <Project>{856716e0-8895-410b-aeec-88a27bdecd75}</Project>
-      <Name>Iris.NET.Server</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

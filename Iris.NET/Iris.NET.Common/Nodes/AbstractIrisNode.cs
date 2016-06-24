@@ -7,12 +7,12 @@ namespace Iris.NET
     public abstract class AbstractIrisNode<T> : IrisNode
            where T : IrisConfig
     {
-        internal AbstractIrisListener _subscriptionsListener;
+        protected AbstractIrisListener _subscriptionsListener;
         protected volatile Dictionary<string, LinkedList<ContentHandler>> _channelsSubscriptions = new Dictionary<string, LinkedList<ContentHandler>>();
 
-        public abstract bool IsConnected { get; }
+        public Guid NodeId { get; } = Guid.NewGuid();
 
-        public Guid ClientId { get; } = Guid.NewGuid();
+        public abstract bool IsConnected { get; }
 
         public abstract bool Connect(T config);
 
@@ -50,7 +50,7 @@ namespace Iris.NET
             if (!IsConnected)
                 return false;
 
-            var message = new IrisMessage(ClientId, channel, propagateThroughHierarchy);
+            var message = new IrisMessage(NodeId, channel, propagateThroughHierarchy);
             message.PublicationDateTime = DateTime.Now;
             message.Content = content;
             Send(message);
@@ -78,7 +78,7 @@ namespace Iris.NET
                 }
             }
 
-            var sub = new IrisSubscribe(ClientId, channel);
+            var sub = new IrisSubscribe(NodeId, channel);
             Send(sub);
             return true;
         }
@@ -95,7 +95,7 @@ namespace Iris.NET
                 {
                     if (subs.Remove(messageHandler))
                     {
-                        var unsub = new IrisUnsubscribe(ClientId, channel);
+                        var unsub = new IrisUnsubscribe(NodeId, channel);
                         Send(unsub);
                         return true;
                     }
