@@ -26,27 +26,17 @@ namespace Iris.NET.Client
 
         protected override object ReadObject()
         {
-            _memoryStream = ReadFully(_networkStream);
+            _memoryStream = Read(_networkStream);
             return _memoryStream.DeserializeFromMemoryStream();
         }
 
-        /// <summary>
-        /// source: http://stackoverflow.com/questions/221925/creating-a-byte-array-from-a-stream#answer-221941
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private static MemoryStream ReadFully(Stream input)
+        private static MemoryStream Read(Stream input)
         {
             byte[] buffer = new byte[16 * 1024];
-            using (MemoryStream ms = new MemoryStream())
-            {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms;
-            }
+            MemoryStream ms = new MemoryStream();
+            int read = input.Read(buffer, 0, buffer.Length);
+            ms.Write(buffer, 0, read);
+            return ms;
         }
     }
 }

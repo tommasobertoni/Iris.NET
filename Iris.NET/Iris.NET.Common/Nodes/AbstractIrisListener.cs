@@ -34,10 +34,14 @@ namespace Iris.NET
 
         public virtual void Start()
         {
-            _thread = new Thread(Listen);
-            _thread.Start();
-            // Loop until worker thread activates.
-            while (!_thread.IsAlive) ;
+            if (!IsListening)
+            {
+                _keepListening = true;
+                _thread = new Thread(Listen);
+                _thread.Start();
+                // Loop until worker thread activates.
+                while (!_thread.IsAlive);
+            }
         }
 
         protected abstract void InitListenCycle();
@@ -56,26 +60,29 @@ namespace Iris.NET
                     data = ReadObject();
 
                     if (data is IrisError)
-                        OnErrorReceived.BeginInvoke(data as IrisError, null, null);
+                        OnErrorReceived?.BeginInvoke(data as IrisError, null, null);
                     else
-                        OnMessageReceived.BeginInvoke(data as IrisMessage, null, null);
+                        OnMessageReceived?.BeginInvoke(data as IrisMessage, null, null);
                 }
                 catch (InvalidCastException)
                 {
-                    OnInvalidDataReceived.BeginInvoke(data, null, null);
+                    OnInvalidDataReceived?.BeginInvoke(data, null, null);
                 }
                 catch (Exception ex)
                 {
-                    OnException.BeginInvoke(ex, null, null);
+                    OnException?.BeginInvoke(ex, null, null);
                 }
             }
         }
 
         public virtual void Stop()
         {
-            _keepListening = false;
-            _thread.Join();
-            _thread = null;
+            if (IsListening)
+            {
+                _keepListening = false;
+                _thread.Join();
+                _thread = null;
+            }
         }
     }
 }
