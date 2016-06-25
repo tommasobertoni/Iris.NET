@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Iris.NET.Server
 {
-    public class IrisServerNode : AbstractIrisNode<IrisConfig>
+    public class IrisServerNode : AbstractIrisNode<IrisBaseConfig>
     {
         public override bool IsConnected => false;
 
@@ -16,12 +16,12 @@ namespace Iris.NET.Server
             _server = server;
         }
 
-        public override bool Connect(IrisConfig config)
+        protected override void Send(IrisPacket packet)
         {
             throw new NotImplementedException();
         }
 
-        protected override void Send(IrisPacket packet)
+        protected override AbstractIrisListener OnConnect(IrisBaseConfig config)
         {
             throw new NotImplementedException();
         }

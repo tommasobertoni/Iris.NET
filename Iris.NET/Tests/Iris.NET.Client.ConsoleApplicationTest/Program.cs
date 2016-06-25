@@ -53,13 +53,13 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 string[] messages = { "HELLO", "PING" };
                 foreach (var message in messages)
                 {
-                    client.SendAsync(mainChannel, message);
+                    client.Send(mainChannel, message);
                     Console.WriteLine($"Sent {message} to {mainChannel}");
                     Thread.Sleep(1000);
                 }
 
                 Console.WriteLine("Write your message:");
-                client.SendAsync(mainChannel, Console.ReadLine());
+                client.Send(mainChannel, Console.ReadLine());
                 Thread.Sleep(1000);
                 Console.Write("...everything ok?");
                 Console.ReadLine();

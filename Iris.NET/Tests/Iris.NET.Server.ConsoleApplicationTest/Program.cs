@@ -14,8 +14,8 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             Console.ReadLine();
             Console.WriteLine("Main started\n\n");
 
-            IrisServer server = new IrisServer(22000);
-            server.Start();
+            IrisServer server = new IrisServer(new IrisPubSubRouter());
+            server.Start(22000);
         }
     }
 }

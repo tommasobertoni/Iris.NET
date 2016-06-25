@@ -40,8 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\GenericExtensions.cs" />
-    <Compile Include="Extensions\IrisExtensions.cs" />
-    <Compile Include="IrisConfig.cs" />
+    <Compile Include="Extensions\NetworkExtensions.cs" />
+    <Compile Include="IrisBaseConfig.cs" />
+    <Compile Include="IrisConcurrentHashSet.cs" />
     <Compile Include="Nodes\AbstractIrisListener.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
     <Compile Include="Nodes\IrisNode.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Packets\IrisSubscribe.cs" />
     <Compile Include="Packets\IrisSystem.cs" />
     <Compile Include="Packets\IrisUnsubscribe.cs" />
+    <Compile Include="Packets\IUserSubmittedPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -13,33 +13,32 @@ namespace Iris.NET.Client
 
         public override bool IsConnected => _socket?.Connected ?? false;
 
-        public override bool Connect(IrisClientConfig config)
+        protected override AbstractIrisListener OnConnect(IrisClientConfig config)
         {
             if (IsConnected)
-                return false;
+                return null;
             
             _socket = new TcpClient(config.Hostname, config.Port);
             _networkStream = _socket.GetStream();
-            _subscriptionsListener = new IrisClientListener(_networkStream, config.MessageFailureAttempts);
-            HookEventsToListener();
-            _subscriptionsListener.Start();
-
-            return true;
+            return new IrisClientListener(_networkStream, config.MessageFailureAttempts);
         }
 
         protected override void Send(IrisPacket packet)
         {
-            var stream = packet.SerializeToMemoryStream();
-            var rowData = stream.ToArray();
-            _networkStream.Write(rowData, 0, rowData.Length);
-            _networkStream.Flush();
+            if (packet != null)
+            {
+                var stream = packet.SerializeToMemoryStream();
+                var rowData = stream.ToArray();
+                _networkStream.Write(rowData, 0, rowData.Length);
+                _networkStream.Flush();
+            }
         }
 
         public override void Dispose()
         {
             base.Dispose();
+            _networkStream.Close();
             _socket.Close();
-            _subscriptionsListener.Stop();
         }
     }
 }

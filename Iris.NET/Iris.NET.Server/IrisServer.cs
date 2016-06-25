@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,94 +11,71 @@ namespace Iris.NET.Server
 {
     public class IrisServer
     {
-        private int _port;
-        public int Port => _port;
-
         public Guid Id => Guid.NewGuid();
 
-        public IrisServer(int port)
+        private volatile bool _isRunning;
+        public bool IsRunning => _isRunning;
+
+        public IPAddress Address { get; private set; }
+
+        public int? Port { get; private set; }
+
+        private IPubSubRouter _pubSubRouter;
+        private TcpListener _serverSocket;
+
+        public IrisServer(IPubSubRouter pubSubRouter)
         {
-            _port = port;
+            _pubSubRouter = pubSubRouter;
         }
 
-        public void Start()
-        {
-            TcpListener serverSocket = new TcpListener(IPAddress.Any, _port);
-            serverSocket.Start();
-            Console.WriteLine($"[IrisServer] started {Id}");
-            TcpClient clientSocket = serverSocket.AcceptTcpClient();
-            NetworkStream networkStream = clientSocket.GetStream();
-            Console.WriteLine("[IrisServer] client connected");
+        public void Start(int port, int messageFailureAttempts = 2) => Start(IPAddress.Any, port, messageFailureAttempts);
 
-            while (true)
+        public void Start(IPAddress address, int port, int messageFailureAttempts = 2)
+        {
+            if (IsRunning)
+                return;
+
+            try
             {
-                Console.WriteLine("[waiting for message]");
-                try
+                _isRunning = true;
+                Address = address;
+                Port = port;
+                _serverSocket = new TcpListener(Address, Port.Value);
+                _serverSocket.Start();
+
+                while (_isRunning)
                 {
-                    var memoryStream = Read(networkStream);
-                    var data = memoryStream.DeserializeFromMemoryStream();
-                    Console.WriteLine($"[IrisServer] data received: {data.GetType().Name}");
-                    if (data is IrisMessage)
+                    TcpClient clientSocket = _serverSocket.AcceptTcpClient();
+                    var remote = new IrisClientRemoteNode(clientSocket);
+                    remote.Connect(new IrisServerConfig(_pubSubRouter)
                     {
-                        var message = data as IrisMessage;
-                        Console.WriteLine($"[message] {message.Content};{message.TargetChannel};{message.PublicationDateTime};{message.PropagateThroughHierarchy};{message.PublisherId}");
-
-                        IrisMessage response = null;
-
-                        if (message.Content as string == "HELLO")
-                            response = new IrisMessage(Id, "main") { Content = "WORLD" };
-                        else if (message.Content as string == "PING")
-                            response = new IrisMessage(Id, "main") { Content = "PONG" };
-                        else if (message.Content as string != null)
-                            response = new IrisMessage(Id, "main") { Content = $"echo: {message.Content}" };
-
-                        if (response != null)
-                        {
-                            var stream = response.SerializeToMemoryStream();
-                            var rowData = stream.ToArray();
-                            networkStream.Write(rowData, 0, rowData.Length);
-                            networkStream.Flush();
-                        }
-                    }
-                    else if (data is IrisSubscribe)
-                    {
-                        var request = data as IrisSubscribe;
-                        Console.WriteLine($"[subscribe] {request.Channel};{request.PublisherId}");
-                    }
-                    else if (data is IrisUnsubscribe)
-                    {
-                        var request = data as IrisUnsubscribe;
-                        Console.WriteLine($"[UNsubscribe] {request.Channel};{request.PublisherId}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[unknown] {data.GetType().FullName}");
-                    }
+                        MessageFailureAttempts = messageFailureAttempts
+                    });
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[Exception] {ex.GetFullException()}");
-                    break;
-                }
-
-                Console.WriteLine();
             }
-
-            Console.WriteLine("Stopping");
-            networkStream.Close();
-            clientSocket.Close();
-            serverSocket.Stop();
-            Console.Write("Close...");
-            Console.ReadLine();
+            catch (Exception ex)
+            {
+                OnServerException?.BeginInvoke(ex, null, null);
+            }
+            finally
+            {
+                Stop();
+            }
         }
 
-        private static MemoryStream Read(Stream input)
+        public void Stop()
         {
-            byte[] buffer = new byte[16 * 1024];
-            MemoryStream ms = new MemoryStream();
-            int read = input.Read(buffer, 0, buffer.Length);
-            ms.Write(buffer, 0, read);
-            return ms;
+            if (!IsRunning)
+                return;
+
+            Address = null;
+            Port = null;
+            _serverSocket.Stop();
         }
+
+        #region Events
+        public delegate void ServerExceptionHandler(Exception ex);
+        public event ServerExceptionHandler OnServerException;
+        #endregion
     }
 }

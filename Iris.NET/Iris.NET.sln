@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.ConsoleApplicationTest", "Iris.NET.ConsoleApplicationTest\Iris.NET.ConsoleApplicationTest.csproj", "{0CBD69E3-EE95-4256-AF71-A46463198172}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.ConsoleApplicationTest", "Tests\Iris.NET.ConsoleApplicationTest\Iris.NET.ConsoleApplicationTest.csproj", "{0CBD69E3-EE95-4256-AF71-A46463198172}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Client", "Iris.NET.Client\Iris.NET.Client.csproj", "{F9C1A457-5A5F-4EEA-8076-AF6038F4C646}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Server", "Iris.NET.Server\Iris.NET.Server.csproj", "{856716E0-8895-410B-AEEC-88A27BDECD75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Client.ConsoleApplicationTest", "Iris.NET.Client.ConsoleApplicationTest\Iris.NET.Client.ConsoleApplicationTest.csproj", "{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Client.ConsoleApplicationTest", "Tests\Iris.NET.Client.ConsoleApplicationTest\Iris.NET.Client.ConsoleApplicationTest.csproj", "{BA640FED-F1AF-4051-AE2A-D5ADECEA25D9}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{37C94800-ED6F-41BF-A0E4-01FE44EE4BFF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{37C94800-ED6F-41BF-A0E4-01FE44EE4BFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Server.ConsoleApplicationTest", "Iris.NET.Server.ConsoleApplicationTest\Iris.NET.Server.ConsoleApplicationTest.csproj", "{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Server.ConsoleApplicationTest", "Tests\Iris.NET.Server.ConsoleApplicationTest\Iris.NET.Server.ConsoleApplicationTest.csproj", "{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Common", "Iris.NET.Common\Iris.NET.Common.csproj", "{0692286E-6499-4F89-8971-C6F0252A54A1}"
 EndProject

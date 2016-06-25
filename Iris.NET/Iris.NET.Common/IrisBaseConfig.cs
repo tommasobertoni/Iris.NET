@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Iris.NET
 {
-    public class IrisConfig
+    public class IrisBaseConfig
     {
         public int MessageFailureAttempts { get; set; } = 2;
     }

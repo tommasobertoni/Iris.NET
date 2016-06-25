@@ -5,7 +5,7 @@ using System.Text;
 namespace Iris.NET
 {
     [Serializable]
-    public class IrisUnsubscribe : IrisSystem
+    public class IrisUnsubscribe : IrisSystem, IUserSubmittedPacket
     {
         internal IrisUnsubscribe(Guid publisherId, string channel) : base(publisherId)
         {

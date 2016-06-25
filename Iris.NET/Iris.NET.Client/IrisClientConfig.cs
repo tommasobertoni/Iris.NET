@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Iris.NET.Client
 {
-    public class IrisClientConfig : IrisConfig
+    public class IrisClientConfig : IrisBaseConfig
     {
         public string Hostname { get; set; }
 

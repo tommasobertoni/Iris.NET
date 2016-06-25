@@ -23,5 +23,12 @@ namespace Iris.NET
             
             return fullExceptionBuilder.ToString();
         }
+
+        public static void ForEach<T>(this IrisConcurrentHashSet<T> hashSet, Action<T> action)
+        {
+            if (hashSet != null)
+                foreach (T item in hashSet)
+                    action?.Invoke(item);
+        }
     }
 }

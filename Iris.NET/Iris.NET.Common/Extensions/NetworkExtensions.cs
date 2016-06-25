@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Iris.NET
 {
-    public static class IrisExtensions
+    public static class NetworkExtensions
     {
         public static MemoryStream SerializeToMemoryStream(this object o)
         {
@@ -25,6 +25,15 @@ namespace Iris.NET
             stream.Seek(0, SeekOrigin.Begin);
             object o = formatter.Deserialize(stream);
             return o;
+        }
+
+        public static MemoryStream ReadNext(this Stream input)
+        {
+            byte[] buffer = new byte[16 * 1024];
+            MemoryStream ms = new MemoryStream();
+            int read = input.Read(buffer, 0, buffer.Length);
+            ms.Write(buffer, 0, read);
+            return ms;
         }
     }
 }

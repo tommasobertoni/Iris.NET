@@ -28,7 +28,7 @@ namespace Iris.NET
         internal delegate void ErrorHandler(IrisError error);
         internal event ErrorHandler OnErrorReceived;
 
-        internal delegate void MessageHandler(IrisMessage message);
+        internal delegate void MessageHandler(IUserSubmittedPacket packet);
         internal event MessageHandler OnMessageReceived;
         #endregion
 
@@ -62,7 +62,7 @@ namespace Iris.NET
                     if (data is IrisError)
                         OnErrorReceived?.BeginInvoke(data as IrisError, null, null);
                     else
-                        OnMessageReceived?.BeginInvoke(data as IrisMessage, null, null);
+                        OnMessageReceived?.BeginInvoke(data as IUserSubmittedPacket, null, null);
                 }
                 catch (InvalidCastException)
                 {

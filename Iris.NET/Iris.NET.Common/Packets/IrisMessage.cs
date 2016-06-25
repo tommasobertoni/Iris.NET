@@ -5,7 +5,7 @@ using System.Text;
 namespace Iris.NET
 {
     [Serializable]
-    public sealed class IrisMessage : IrisPacket
+    public sealed class IrisMessage : IrisPacket, IUserSubmittedPacket
     {
         public IrisMessage(Guid publisherId, string targetChannel, bool propagateThroughHierarchy = false)
                             : base(publisherId)

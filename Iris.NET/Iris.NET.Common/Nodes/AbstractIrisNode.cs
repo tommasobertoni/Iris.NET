@@ -5,16 +5,35 @@ using System.Text;
 namespace Iris.NET
 {
     public abstract class AbstractIrisNode<T> : IrisNode
-           where T : IrisConfig
+           where T : IrisBaseConfig
     {
-        protected AbstractIrisListener _subscriptionsListener;
+        public bool LogMessagesEnable { get; set; }
+
+        public bool LogExceptionsEnable { get; set; } = true;
+
+        public bool LogErrorsEnable { get; set; } = true;
+
+        public bool LogInvalidDataEnable { get; set; } = true;
+
+        private AbstractIrisListener _subscriptionsListener;
         protected volatile Dictionary<string, LinkedList<ContentHandler>> _channelsSubscriptions = new Dictionary<string, LinkedList<ContentHandler>>();
+
+        protected T _config;
 
         public Guid NodeId { get; } = Guid.NewGuid();
 
         public abstract bool IsConnected { get; }
+        
+        protected abstract AbstractIrisListener OnConnect(T config);
 
-        public abstract bool Connect(T config);
+        public bool Connect(T config)
+        {
+            _config = config;
+            _subscriptionsListener = OnConnect(_config);
+            HookEventsToListener();
+            _subscriptionsListener?.Start();
+            return _subscriptionsListener != null;
+        }
 
         protected void HookEventsToListener(AbstractIrisListener subscriptionsListener = null)
         {
@@ -45,7 +64,7 @@ namespace Iris.NET
         }
 
         #region PubSub
-        public virtual bool SendAsync(string channel, object content, bool propagateThroughHierarchy = false)
+        public virtual bool Send(string channel, object content, bool propagateThroughHierarchy = false)
         {
             if (!IsConnected)
                 return false;
@@ -115,7 +134,7 @@ namespace Iris.NET
         #endregion
 
         #region Messages handling
-        protected virtual void OnInvalidDataReceived(object data)
+        protected string GetLogForInvalidDataReceived(object data)
         {
             string runtimeType;
             try
@@ -126,38 +145,60 @@ namespace Iris.NET
             {
                 runtimeType = "could't retrive";
             }
-            var message = $"[InvalidDataReceived];Runtime Type:{runtimeType}";
-            OnLog?.BeginInvoke(message, null, null);
+            return $"[InvalidDataReceived];{nameof(runtimeType)}: {runtimeType}";
         }
+
+        protected virtual void OnInvalidDataReceived(object data)
+        {
+            if (LogInvalidDataEnable)
+                OnLog?.BeginInvoke(GetLogForInvalidDataReceived(data), null, null);
+        }
+
+        protected string GetLogForException(Exception ex) => $"[Exception];{ex.GetFullException()}";
 
         protected virtual void OnListenerException(Exception ex)
         {
-            OnException?.BeginInvoke(ex, null, null);
-            var message = $"[Exception];{ex.GetFullException()}";
-            OnLog?.BeginInvoke(message, null, null);
+            if (LogExceptionsEnable)
+            {
+                OnException?.BeginInvoke(ex, null, null);
+                OnLog?.BeginInvoke(GetLogForException(ex), null, null);
+            }
         }
+
+        protected string GetLogForErrorReceived(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.ByException)}: {error.ByException};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
 
         protected virtual void OnErrorReceived(IrisError error)
         {
-            var message = $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.ByException)}: {error.ByException};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
-            OnLog?.BeginInvoke(message, null, null);
+            if (LogErrorsEnable)
+                OnLog?.BeginInvoke(GetLogForErrorReceived(error), null, null);
         }
 
-        protected void OnMessageReceived(IrisMessage message)
-        {
-            LinkedList<ContentHandler> subscriptions;
-            if (_channelsSubscriptions.TryGetValue(message.TargetChannel, out subscriptions))
-            {
-                foreach (var subscription in subscriptions)
-                    subscription.BeginInvoke(message.Content, null, null);
-            }
+        protected virtual string GetLogForMessageReceived(IrisMessage message) => $"[Message];{nameof(message.TargetChannel)}: {message.TargetChannel};{nameof(message.PublicationDateTime)}: {message.PublicationDateTime};{nameof(message.PropagateThroughHierarchy)}: {message.PropagateThroughHierarchy}";
 
-            OnLog?.BeginInvoke($"[Message];{nameof(message.TargetChannel)}: {message.TargetChannel};{nameof(message.PublicationDateTime)}: {message.PublicationDateTime};{nameof(message.PropagateThroughHierarchy)}: {message.PropagateThroughHierarchy}", null, null);
+        protected virtual void OnMessageReceived(IUserSubmittedPacket packet)
+        {
+            if (packet is IrisMessage)
+            {
+                var message = packet as IrisMessage;
+                LinkedList<ContentHandler> subscriptions;
+                if (_channelsSubscriptions.TryGetValue(message.TargetChannel, out subscriptions))
+                {
+                    foreach (var subscription in subscriptions)
+                        subscription.BeginInvoke(message.Content, null, null);
+                }
+
+                if (LogMessagesEnable)
+                    OnLog?.BeginInvoke(GetLogForMessageReceived(message), null, null);
+            }
         }
 
         protected abstract void Send(IrisPacket packet);
         #endregion
 
-        public virtual void Dispose() => UnhookEventsFromListener();
+        public virtual void Dispose()
+        {
+            UnhookEventsFromListener();
+            _subscriptionsListener?.Stop();
+        }
     }
 }
