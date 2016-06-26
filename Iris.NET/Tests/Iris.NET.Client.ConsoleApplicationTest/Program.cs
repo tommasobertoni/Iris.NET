@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,20 +8,21 @@ using System.Threading;
 
 namespace Iris.NET.Client.ConsoleApplicationTest
 {
-    class Program
+    public class Program
     {
         static string sep = "------------------------";
         static string logFileName = @".\iris.test.log";
+        static string mainChannel = "main";
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            string mainChannel = "main";
             File.Delete(logFileName);
 
             Console.WriteLine($"{typeof(Program).Namespace}");
-            Console.WriteLine("Press Enter to start (or insert parameters below");
+            Console.WriteLine("Press Enter to start (or insert parameters below)");
+            
             var parametersString = Console.ReadLine();
-            args = parametersString.Split('\t');
+            string[] @params = parametersString.Split('\t');
             Console.WriteLine("Started\n");
 
             IrisClientNode client = new IrisClientNode();
@@ -36,6 +38,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 client.Connect(config);
                 Console.WriteLine($"Is client connected? {client.IsConnected} (Press Enter)");
 
+                client.OnDisposed += Client_OnClientDisposed;
                 client.OnException += ExceptionHandler;
                 client.OnLog += LogHandler;
                 Console.WriteLine("Exception/Log events hooked");
@@ -49,13 +52,27 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                     Console.WriteLine($"Client FAILED TO subscribe to \"{"main"}\" channel");
                 }
 
-                Thread.Sleep(1000);
-                string[] messages = { "HELLO", "PING" };
-                foreach (var message in messages)
+                if (args?.Length > 0 && args?.First()?.ToUpper() == "CUSTOM")
                 {
-                    client.Send(mainChannel, message);
-                    Console.WriteLine($"Sent {message} to {mainChannel}");
+                    Thread.Sleep(500);
+                    string message;
+                    do
+                    {
+                        Console.WriteLine("Write your message:");
+                        message = Console.ReadLine();
+                        client.Send(mainChannel, message);
+                    } while (message.ToUpper() != "QUIT" && message.ToUpper() != "Q");
+                }
+                else
+                {
                     Thread.Sleep(1000);
+                    string[] messages = { "HELLO", "PING" };
+                    foreach (var message in messages)
+                    {
+                        client.Send(mainChannel, message);
+                        Console.WriteLine($"Sent {message} to {mainChannel}");
+                        Thread.Sleep(1000);
+                    }
                 }
 
                 Console.Write("Tests completed");
@@ -69,7 +86,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             {
                 Console.WriteLine("Closing");
 
-                if (args != null && !args.Contains("NU")) // Not Unsubscribe
+                if (@params != null && !@params.Contains("NU")) // Not Unsubscribe
                 {
                     if (client.Unsubscribe(mainChannel, ContentHandler))
                     {
@@ -91,6 +108,11 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             client.Dispose();
             Console.Write("\n\nTerminate...");
             Console.ReadLine();
+        }
+
+        private static void Client_OnClientDisposed()
+        {
+            Process.GetCurrentProcess().CloseMainWindow();
         }
 
         private static void ContentHandler(object content)

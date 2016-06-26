@@ -48,9 +48,7 @@ namespace Iris.NET.Server
 
             Action<IrisNode> sendMessageToOthersAction = (n) =>
             {
-#if !TEST
                 if (n != sender)
-#endif
                     n.Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
             };
 

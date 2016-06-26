@@ -28,6 +28,10 @@ namespace Iris.NET
 
         public delegate void LogHandler(string log);
         public event LogHandler OnLog;
+
+        public delegate void VoidHandler();
+        public event VoidHandler OnConnected;
+        public event VoidHandler OnDisposed;
         #endregion
 
         private AbstractIrisListener _subscriptionsListener;
@@ -52,7 +56,12 @@ namespace Iris.NET
             _subscriptionsListener = OnConnect(_config);
             HookEventsToListener();
             _subscriptionsListener?.Start();
-            return _subscriptionsListener != null;
+
+            var success = _subscriptionsListener != null;
+            if (success)
+                OnConnected?.BeginInvoke(null, null);
+
+            return success;
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -64,6 +73,7 @@ namespace Iris.NET
                 UnhookEventsFromListener();
                 _subscriptionsListener?.Stop();
                 OnDispose();
+                OnDisposed?.BeginInvoke(null, null);
 
 #if TEST
                 Console.WriteLine($"{this.GetType().Name}:{this.NodeId} STOPPED");

@@ -27,8 +27,9 @@ namespace Iris.NET.Server
         public delegate void ServerExceptionHandler(Exception ex);
         public event ServerExceptionHandler OnServerException;
 
-        public event EventHandler OnServerStart;
-        public event EventHandler OnServerStop;
+        public delegate void VoidHandler();
+        public event VoidHandler OnStarted;
+        public event VoidHandler OnStoped;
         #endregion
 
         private IPubSubRouter _pubSubRouter;
@@ -64,7 +65,7 @@ namespace Iris.NET.Server
             // Loop until worker thread activates.
             while (!_thread.IsAlive) ;
 
-            OnServerStart?.BeginInvoke(this, null, null, null);
+            OnStarted?.BeginInvoke(null, null);
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -78,7 +79,7 @@ namespace Iris.NET.Server
             Port = null;
             _serverSocket?.Stop();
             _pubSubRouter.Dispose();
-            OnServerStop?.BeginInvoke(this, null, null, null);
+            OnStoped?.BeginInvoke(null, null);
         }
         #endregion
 

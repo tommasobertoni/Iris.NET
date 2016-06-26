@@ -56,6 +56,16 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Iris.NET.Client.ConsoleApplicationTest\Iris.NET.Client.ConsoleApplicationTest.csproj">
+      <Project>{ba640fed-f1af-4051-ae2a-d5adecea25d9}</Project>
+      <Name>Iris.NET.Client.ConsoleApplicationTest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Iris.NET.Server.ConsoleApplicationTest\Iris.NET.Server.ConsoleApplicationTest.csproj">
+      <Project>{5502b6bb-b747-41db-aaf5-7b26ffc8a0f2}</Project>
+      <Name>Iris.NET.Server.ConsoleApplicationTest</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

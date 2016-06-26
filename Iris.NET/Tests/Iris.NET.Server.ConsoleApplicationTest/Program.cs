@@ -5,13 +5,16 @@ using System.Text;
 
 namespace Iris.NET.Server.ConsoleApplicationTest
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Console.WriteLine($"{typeof(Program).Namespace}");
-            Console.Write("Press Enter to start");
-            Console.ReadLine();
+            if (args?.Length == 0)
+            {
+                Console.Write("Press Enter to start");
+                Console.ReadLine();
+            }
             Console.WriteLine("Started\n");
 
             IrisServer server = new IrisServer(new IrisPubSubRouter());
@@ -21,14 +24,26 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             do
             {
                 if (input != null)
-                    Console.WriteLine($"-- Unrecognized command \"{input}\"\n");
-                Console.Write("Command: ");
-                input = Console.ReadLine();
+                {
+                    if (args == null || !args.Contains(input))
+                    {
+                        Console.WriteLine($"-- Unrecognized command \"{input}\"\n");
+                    }
+                }
+
+                if (args == null || !args.Contains(input))
+                {
+                    Console.Write("Command: ");
+                    input = Console.ReadLine();
+                }
             } while (input?.ToUpper() != "QUIT" && input?.ToUpper() != "Q");
 
             server.Stop();
-            Console.Write("Terminate...");
-            Console.ReadLine();
+            if (args?.Length == 0)
+            {
+                Console.Write("Terminate...");
+                Console.ReadLine();
+            }
         }
     }
 }
