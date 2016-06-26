@@ -8,7 +8,7 @@ namespace Iris.NET
     public abstract class AbstractIrisListener
     {
         public bool IsListening => _thread != null && _keepListening;
-
+        
         protected Thread _thread;
         private volatile bool _keepListening;
         protected int _failureAttempts;
@@ -30,6 +30,12 @@ namespace Iris.NET
 
         internal delegate void MessageHandler(IUserSubmittedPacket packet);
         internal event MessageHandler OnMessageReceived;
+
+        internal delegate void MetaHandler(IrisMeta meta);
+        internal event MetaHandler OnMetaReceived;
+
+        internal delegate void VoidHandler();
+        internal event VoidHandler OnNullReceived;
         #endregion
 
         public virtual void Start()
@@ -59,10 +65,17 @@ namespace Iris.NET
                 {
                     data = ReadObject();
 
-                    if (data is IrisError)
-                        OnErrorReceived?.BeginInvoke(data as IrisError, null, null);
-                    else
-                        OnMessageReceived?.BeginInvoke(data as IUserSubmittedPacket, null, null);
+                    if (_keepListening)
+                    {
+                        if (data == null)
+                            OnNullReceived?.BeginInvoke(null, null);
+                        else if (data is IrisError)
+                            OnErrorReceived?.BeginInvoke((IrisError)data, null, null);
+                        else if (data is IrisMeta)
+                            OnMetaReceived?.BeginInvoke((IrisMeta)data, null, null);
+                        else
+                            OnMessageReceived?.BeginInvoke((IUserSubmittedPacket)data, null, null);
+                    }
                 }
                 catch (InvalidCastException)
                 {
@@ -75,13 +88,17 @@ namespace Iris.NET
             }
         }
 
+        protected abstract void OnStop();
+
         public virtual void Stop()
         {
             if (IsListening)
             {
                 _keepListening = false;
+                OnStop();
                 _thread.Join();
                 _thread = null;
+                Console.WriteLine($"{this.GetType().Name} STOPPED");
             }
         }
     }

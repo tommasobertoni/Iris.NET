@@ -5,16 +5,22 @@ using System.Text;
 
 namespace Iris.NET
 {
+    [Serializable]
     public class IrisMeta : IrisPacket
     {
+        public IrisMeta(Guid publisherId) : base(publisherId) { }
+
         public Request Request { get; set; } = Request.None;
 
-        public bool ACK { get; set; }
+        public Guid TargetPacketId { get; set; }
+
+        public bool? ACK { get; set; }
     }
 
     public enum Request
     {
         None,
-        Resend
+        Resend,
+        AreYouAlive
     }
 }

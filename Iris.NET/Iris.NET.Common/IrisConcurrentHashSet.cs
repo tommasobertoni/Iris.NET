@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Iris.NET
 {
-    public class IrisConcurrentHashSet<T>
+    public class IrisConcurrentHashSet<T> : IEnumerable<T>
     {
         private ConcurrentDictionary<T, byte> _items = new ConcurrentDictionary<T, byte>();
 
@@ -23,9 +23,11 @@ namespace Iris.NET
 
         public bool Contains(T item) => _items.ContainsKey(item);
 
-        public Enumerator GetEnumerator() => new Enumerator(_items);
-        
-        public class Enumerator : IEnumerator<T>, IDisposable, IEnumerator
+        public IEnumerator<T> GetEnumerator() => new Enumerator<T>(_items);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public class Enumerator<T> : IEnumerator<T>, IDisposable, IEnumerator
         {
             private ConcurrentDictionary<T, byte> _dictionary;
             private IEnumerator<KeyValuePair<T, byte>> _dictionaryEnumerator;

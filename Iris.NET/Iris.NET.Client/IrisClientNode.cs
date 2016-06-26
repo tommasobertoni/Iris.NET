@@ -34,11 +34,30 @@ namespace Iris.NET.Client
             }
         }
 
-        public override void Dispose()
+        protected override void OnMetaReceived(IrisMeta meta)
         {
-            base.Dispose();
-            _networkStream.Close();
-            _socket.Close();
+        }
+
+        protected override void OnListenerException(Exception ex)
+        {
+            if (!IsPeerAlive())
+                Dispose();
+
+            base.OnListenerException(ex);
+        }
+
+        protected override void OnNullReceived()
+        {
+            if (!IsPeerAlive())
+                Dispose();
+            else
+                _lastException = null;
+        }
+
+        protected override void OnDispose()
+        {
+            _networkStream?.Close();
+            _socket?.Close();
         }
     }
 }

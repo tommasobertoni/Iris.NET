@@ -25,5 +25,15 @@ namespace Iris.NET.Server
         {
             throw new NotImplementedException();
         }
+
+        protected override void OnMetaReceived(IrisMeta meta)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void OnDispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

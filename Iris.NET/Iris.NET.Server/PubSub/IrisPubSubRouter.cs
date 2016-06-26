@@ -8,47 +8,55 @@ namespace Iris.NET.Server
 {
     public class IrisPubSubRouter : IPubSubRouter
     {
-        private IrisConcurrentHashSet<IrisNode> _nodes = new IrisConcurrentHashSet<IrisNode>();
+        private ConcurrentDictionary<IrisNode, List<string>> _nodes = new ConcurrentDictionary<IrisNode, List<string>>();
         private ConcurrentDictionary<string, IrisConcurrentHashSet<IrisNode>> _subscriptions = new ConcurrentDictionary<string, IrisConcurrentHashSet<IrisNode>>();
 
         public bool Register(IrisNode node)
         {
-            if (_nodes.Contains(node))
+            if (_nodes.ContainsKey(node))
                 return false;
 
-            var result = _nodes.Add(node);
-            if (result)
-                Subscribe(node, null);
-
-            return result;
+            return _nodes.TryAdd(node, new List<string>());
         }
 
         public bool Unregister(IrisNode node)
         {
-            if (_nodes.Contains(node))
+            if (!_nodes.ContainsKey(node))
                 return false;
 
-            var result = _nodes.Remove(node);
-            if (result)
-                Unsubscribe(node, null);
+            List<string> channels;
+            bool success = _nodes.TryGetValue(node, out channels);
 
-            return result;
+            // Unregister node and remove subscriptions,
+            // with removeChannelFromRegisteredNode: false
+            // to avoid concurrent modifications over the channels list
+            foreach (var channel in channels)
+                if (!(success = Unsubscribe(node, channel, removeChannelFromRegisteredNode: false)))
+                    break;
+
+            if (success)
+                success = _nodes.TryRemove(node, out channels);
+
+            return success;
         }
 
-        public bool SubmitMessage(IrisNode node, IrisMessage message)
+        public bool SubmitMessage(IrisNode sender, IrisMessage message)
         {
             if (message.Content == null || message.PublisherId == null)
                 return false;
 
             Action<IrisNode> sendMessageToOthersAction = (n) =>
             {
-                if (n != node)
+#if !TEST
+                if (n != sender)
+#endif
                     n.Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
             };
 
             if (message.TargetChannel == null)
             {
-                _nodes.ForEach(sendMessageToOthersAction);
+                // Broadcast
+                _nodes.Keys.ForEach(sendMessageToOthersAction);
                 return true;
             }
             else
@@ -66,50 +74,71 @@ namespace Iris.NET.Server
 
         public bool Subscribe(IrisNode node, string channel)
         {
-            if (!_nodes.Contains(node))
+            if (!_nodes.ContainsKey(node))
                 return false;
+
+            bool success = false;
 
             if (channel != null)
             {
                 IrisConcurrentHashSet<IrisNode> concurrentHashSet;
                 if (_subscriptions.TryGetValue(channel, out concurrentHashSet))
                 {
-                    concurrentHashSet.Add(node);
-                    return true;
+                    success = concurrentHashSet.Add(node);
                 }
                 else
                 {
                     concurrentHashSet = new IrisConcurrentHashSet<IrisNode>();
                     concurrentHashSet.Add(node);
-                    return _subscriptions.TryAdd(channel, concurrentHashSet);
+                    success = _subscriptions.TryAdd(channel, concurrentHashSet);
                 }
             }
 
-            return true;
+            try
+            {
+                if (success)
+                    _nodes[node].Add(channel);
+            }
+            catch (Exception ex) when (!(ex is KeyNotFoundException))
+            {
+                success = false;
+            }
+
+            return success;
         }
 
-        public bool Unsubscribe(IrisNode node, string channel)
+        public bool Unsubscribe(IrisNode node, string channel, bool removeChannelFromRegisteredNode)
         {
-            if (!_nodes.Contains(node))
+            if (!_nodes.ContainsKey(node))
                 return false;
+
+            bool success = false;
 
             if (channel != null)
             {
                 IrisConcurrentHashSet<IrisNode> concurrentHashSet;
                 if (_subscriptions.TryGetValue(channel, out concurrentHashSet))
                 {
-                    concurrentHashSet.Add(node);
-                    return true;
-                }
-                else
-                {
-                    concurrentHashSet = new IrisConcurrentHashSet<IrisNode>();
-                    concurrentHashSet.Add(node);
-                    return _subscriptions.TryAdd(channel, concurrentHashSet);
+                    success = concurrentHashSet.Remove(node);
                 }
             }
 
-            return true;
+            if (removeChannelFromRegisteredNode)
+            {
+                try
+                {
+                    if (success)
+                        _nodes[node].Remove(channel);
+                }
+                catch (Exception ex) when (!(ex is KeyNotFoundException))
+                {
+                    success = false;
+                }
+            }
+
+            return success;
         }
+
+        public bool Unsubscribe(IrisNode node, string channel) => Unsubscribe(node, channel, true);
     }
 }

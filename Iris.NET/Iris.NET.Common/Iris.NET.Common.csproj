@@ -43,8 +43,9 @@
     <Compile Include="Extensions\NetworkExtensions.cs" />
     <Compile Include="IrisBaseConfig.cs" />
     <Compile Include="IrisConcurrentHashSet.cs" />
-    <Compile Include="Nodes\AbstractIrisListener.cs" />
+    <Compile Include="AbstractIrisListener.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
+    <Compile Include="AbstractNetworkIrisListener.cs" />
     <Compile Include="Nodes\IrisNode.cs" />
     <Compile Include="Packets\IrisError.cs" />
     <Compile Include="Packets\IrisMessage.cs" />

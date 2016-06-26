@@ -42,6 +42,7 @@ namespace Iris.NET.Server
                 Port = port;
                 _serverSocket = new TcpListener(Address, Port.Value);
                 _serverSocket.Start();
+                OnServerStart?.BeginInvoke(this, null, null, null);
 
                 while (_isRunning)
                 {
@@ -71,11 +72,15 @@ namespace Iris.NET.Server
             Address = null;
             Port = null;
             _serverSocket.Stop();
+            OnServerStop?.BeginInvoke(this, null, null, null);
         }
 
         #region Events
         public delegate void ServerExceptionHandler(Exception ex);
         public event ServerExceptionHandler OnServerException;
+
+        public event EventHandler OnServerStart;
+        public event EventHandler OnServerStop;
         #endregion
     }
 }

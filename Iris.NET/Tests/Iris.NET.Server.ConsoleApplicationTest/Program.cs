@@ -12,10 +12,12 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             Console.WriteLine($"{typeof(Program).Namespace}");
             Console.Write("Press Enter to start");
             Console.ReadLine();
-            Console.WriteLine("Main started\n\n");
+            Console.WriteLine("Started");
 
             IrisServer server = new IrisServer(new IrisPubSubRouter());
             server.Start(22000);
+            Console.Write("Terminate...");
+            Console.ReadLine();
         }
     }
 }

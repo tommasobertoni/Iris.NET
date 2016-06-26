@@ -15,9 +15,14 @@ namespace Iris.NET
 
         public bool LogInvalidDataEnable { get; set; } = true;
 
+        public bool LogNullsEnable { get; set; }
+
         private AbstractIrisListener _subscriptionsListener;
         protected volatile Dictionary<string, LinkedList<ContentHandler>> _channelsSubscriptions = new Dictionary<string, LinkedList<ContentHandler>>();
 
+        private object syncObj = new object();
+        protected bool _isDisposing;
+        protected Exception _lastException;
         protected T _config;
 
         public Guid NodeId { get; } = Guid.NewGuid();
@@ -43,9 +48,11 @@ namespace Iris.NET
             if (subscriptionsListener != null)
             {
                 subscriptionsListener.OnMessageReceived += OnMessageReceived;
+                subscriptionsListener.OnMetaReceived += OnMetaReceived;
                 subscriptionsListener.OnErrorReceived += OnErrorReceived;
                 subscriptionsListener.OnInvalidDataReceived += OnInvalidDataReceived;
-                subscriptionsListener.OnException += OnListenerException;
+                subscriptionsListener.OnException += HandleListenerException;
+                subscriptionsListener.OnNullReceived += OnNullReceived;
             }
         }
 
@@ -57,9 +64,11 @@ namespace Iris.NET
             if (subscriptionsListener != null)
             {
                 subscriptionsListener.OnMessageReceived -= OnMessageReceived;
+                subscriptionsListener.OnMetaReceived -= OnMetaReceived;
                 subscriptionsListener.OnErrorReceived -= OnErrorReceived;
                 subscriptionsListener.OnInvalidDataReceived -= OnInvalidDataReceived;
-                subscriptionsListener.OnException -= OnListenerException;
+                subscriptionsListener.OnException -= HandleListenerException;
+                subscriptionsListener.OnNullReceived -= OnNullReceived;
             }
         }
 
@@ -156,6 +165,15 @@ namespace Iris.NET
 
         protected string GetLogForException(Exception ex) => $"[Exception];{ex.GetFullException()}";
 
+        private void HandleListenerException(Exception ex)
+        {
+            if (_lastException == null || ex.Message != _lastException.Message)
+            {
+                _lastException = ex;
+                OnListenerException(ex);
+            }
+        }
+
         protected virtual void OnListenerException(Exception ex)
         {
             if (LogExceptionsEnable)
@@ -192,13 +210,50 @@ namespace Iris.NET
             }
         }
 
+        protected virtual string GetLogForNullReceived() => $"[NullReceived] Node: {NodeId}";
+
+        protected virtual void OnNullReceived()
+        {
+            if (LogNullsEnable)
+                OnLog?.BeginInvoke(GetLogForNullReceived(), null, null);
+        }
+
         protected abstract void Send(IrisPacket packet);
+
+        protected abstract void OnMetaReceived(IrisMeta meta);
         #endregion
+
+        protected bool IsPeerAlive()
+        {
+            try
+            {
+                Send(new IrisMeta(NodeId)
+                {
+                    ACK = null,
+                    Request = Request.AreYouAlive
+                });
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        protected abstract void OnDispose();
 
         public virtual void Dispose()
         {
-            UnhookEventsFromListener();
-            _subscriptionsListener?.Stop();
+            lock (syncObj)
+            {
+                if (!_isDisposing)
+                {
+                    _isDisposing = true;
+                    UnhookEventsFromListener();
+                    _subscriptionsListener?.Stop();
+                    OnDispose();
+                }
+            }
         }
     }
 }

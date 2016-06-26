@@ -5,11 +5,11 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Iris.NET.Client
+namespace Iris.NET.Server
 {
-    internal class IrisClientListener : AbstractNetworkIrisListener
+    internal class IrisServerListener : AbstractNetworkIrisListener
     {
-        public IrisClientListener(NetworkStream networkStream, int messageFailureAttempts)
+        public IrisServerListener(NetworkStream networkStream, int messageFailureAttempts)
                : base(networkStream, messageFailureAttempts)
         {
         }

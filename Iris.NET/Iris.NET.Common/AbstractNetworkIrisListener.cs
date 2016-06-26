@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
+using System.IO;
+using System.Net.Sockets;
 
-namespace Iris.NET.Server
+namespace Iris.NET
 {
-    internal class IrisServerListener : AbstractIrisListener
+    public class AbstractNetworkIrisListener : AbstractIrisListener
     {
         private int _messageFailureAttempts;
         private NetworkStream _networkStream;
         private MemoryStream _memoryStream;
 
-        public IrisServerListener(NetworkStream networkStream, int messageFailureAttempts)
+        public AbstractNetworkIrisListener(NetworkStream networkStream, int messageFailureAttempts)
         {
             _networkStream = networkStream;
             _messageFailureAttempts = messageFailureAttempts;
@@ -26,8 +26,18 @@ namespace Iris.NET.Server
 
         protected override object ReadObject()
         {
+            object @object = null;
             _memoryStream = _networkStream.ReadNext();
-            return _memoryStream.DeserializeFromMemoryStream();
+
+            if (_memoryStream.Length > 0)
+                @object = _memoryStream.DeserializeFromMemoryStream();
+
+            return @object;
+        }
+
+        protected override void OnStop()
+        {
+            _networkStream.Close();
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
     class Program
     {
         static string sep = "------------------------";
-        static string logFileName = "iris.test.log";
+        static string logFileName = @".\iris.test.log";
 
         static void Main(string[] args)
         {
@@ -18,9 +18,10 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             File.Delete(logFileName);
 
             Console.WriteLine($"{typeof(Program).Namespace}");
-            Console.Write("Press Enter to start");
-            Console.ReadLine();
-            Console.WriteLine("Main started\n\n");
+            Console.WriteLine("Press Enter to start (or insert parameters below");
+            var parametersString = Console.ReadLine();
+            args = parametersString.Split('\t');
+            Console.WriteLine("Started\n");
 
             IrisClientNode client = new IrisClientNode();
             IrisClientConfig config = new IrisClientConfig()
@@ -28,14 +29,12 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 Hostname = "127.0.0.1",
                 Port = 22000
             };
-            Console.WriteLine($"Client and config created {client.NodeId} <=> {config.Hostname}:{config.Port}\n");
+            Console.WriteLine($"Client and config created {client.NodeId} <=> {config.Hostname}:{config.Port}");
 
             try
             {
                 client.Connect(config);
-                Console.Write($"Is client connected? {client.IsConnected}!! (Press Enter)");
-                Console.ReadLine();
-                Console.WriteLine();
+                Console.WriteLine($"Is client connected? {client.IsConnected} (Press Enter)");
 
                 client.OnException += ExceptionHandler;
                 client.OnLog += LogHandler;
@@ -43,13 +42,14 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
                 if (client.Subscribe(mainChannel, ContentHandler))
                 {
-                    Console.WriteLine($"Client subscribed to \"{"main"}\" channel");
+                    Console.WriteLine($"Client subscribed to \"{"main"}\" channel\n");
                 }
                 else
                 {
                     Console.WriteLine($"Client FAILED TO subscribe to \"{"main"}\" channel");
                 }
 
+                Thread.Sleep(1000);
                 string[] messages = { "HELLO", "PING" };
                 foreach (var message in messages)
                 {
@@ -58,12 +58,8 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                     Thread.Sleep(1000);
                 }
 
-                Console.WriteLine("Write your message:");
-                client.Send(mainChannel, Console.ReadLine());
-                Thread.Sleep(1000);
-                Console.Write("...everything ok?");
+                Console.Write("Tests completed");
                 Console.ReadLine();
-                Console.WriteLine();
             }
             catch (Exception ex)
             {
@@ -73,14 +69,19 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             {
                 Console.WriteLine("Closing");
 
-                if (client.Unsubscribe(mainChannel, ContentHandler))
+                if (args != null && !args.Contains("NU")) // Not Unsubscribe
                 {
-                    Console.WriteLine($"Client unsubscribed from \"{mainChannel}\" channel");
+                    if (client.Unsubscribe(mainChannel, ContentHandler))
+                    {
+                        Console.WriteLine($"Client unsubscribed from \"{mainChannel}\" channel");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Client FAILED TO unsubscribe from \"{mainChannel}\" channel");
+                    }
                 }
                 else
-                {
-                    Console.WriteLine($"Client FAILED TO unsubscribe from \"{mainChannel}\" channel");
-                }
+                    Console.WriteLine("Skip \"Unsubscribe\"");
 
                 client.OnException -= ExceptionHandler;
                 client.OnLog -= LogHandler;
@@ -104,7 +105,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
         private static void LogHandler(string log)
         {
-            Console.WriteLine($"\n{sep}\nLog: {log}\n{sep}\n");
+            Console.WriteLine($"{sep}\nLog: {log}\n{sep}\n");
             File.AppendAllText(logFileName, log);
         }
     }
