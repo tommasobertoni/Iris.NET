@@ -9,6 +9,12 @@ namespace Iris.NET.Server
 {
     internal class IrisClientRemoteNode : AbstractIrisNode<IrisServerConfig>
     {
+        #region Properties
+        public override bool IsConnected => _pubSubRouter != null && _networkStream != null;
+
+        //public bool IsDisposed => _networkStream == null && _clientSocket == null && _pubSubRouter == null;
+        #endregion
+
         private IPubSubRouter _pubSubRouter;
         private IrisServerConfig _serverConfig;
         private TcpClient _clientSocket;
@@ -20,13 +26,12 @@ namespace Iris.NET.Server
             _clientSocket = clientSocket;
         }
 
-        public override bool IsConnected => _pubSubRouter != null && _networkStream != null;
-
-        public bool IsDisposed => _networkStream == null && _clientSocket == null && _pubSubRouter == null;
-
         protected override AbstractIrisListener OnConnect(IrisServerConfig config)
         {
-            if (IsConnected || IsDisposed)
+            if (_clientSocket == null)
+                throw new ObjectDisposedException(nameof(IrisClientRemoteNode));
+
+            if (IsConnected)
                 return null;
 
             _serverConfig = config;

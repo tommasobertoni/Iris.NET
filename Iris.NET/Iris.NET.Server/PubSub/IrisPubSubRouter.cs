@@ -11,6 +11,7 @@ namespace Iris.NET.Server
         private ConcurrentDictionary<IrisNode, List<string>> _nodes = new ConcurrentDictionary<IrisNode, List<string>>();
         private ConcurrentDictionary<string, IrisConcurrentHashSet<IrisNode>> _subscriptions = new ConcurrentDictionary<string, IrisConcurrentHashSet<IrisNode>>();
 
+        #region Public
         public bool Register(IrisNode node)
         {
             if (_nodes.ContainsKey(node))
@@ -107,7 +108,21 @@ namespace Iris.NET.Server
             return success;
         }
 
-        public bool Unsubscribe(IrisNode node, string channel, bool removeChannelFromRegisteredNode)
+        public bool Unsubscribe(IrisNode node, string channel) => Unsubscribe(node, channel, true);
+
+        public void Dispose()
+        {
+            _subscriptions?.Clear();
+            _nodes.Keys.ForEach(n =>
+            {
+                try { n.Dispose(); }
+                catch { }
+            });
+            _nodes?.Clear();
+        }
+        #endregion
+
+        private bool Unsubscribe(IrisNode node, string channel, bool removeChannelFromRegisteredNode)
         {
             if (!_nodes.ContainsKey(node))
                 return false;
@@ -138,7 +153,5 @@ namespace Iris.NET.Server
 
             return success;
         }
-
-        public bool Unsubscribe(IrisNode node, string channel) => Unsubscribe(node, channel, true);
     }
 }

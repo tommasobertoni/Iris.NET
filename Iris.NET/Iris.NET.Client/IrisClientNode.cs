@@ -8,10 +8,12 @@ namespace Iris.NET.Client
 {
     public class IrisClientNode : AbstractIrisNode<IrisClientConfig>
     {
+        #region Properties
+        public override bool IsConnected => _socket?.Connected ?? false;
+        #endregion
+
         protected TcpClient _socket;
         protected volatile NetworkStream _networkStream;
-
-        public override bool IsConnected => _socket?.Connected ?? false;
 
         protected override AbstractIrisListener OnConnect(IrisClientConfig config)
         {

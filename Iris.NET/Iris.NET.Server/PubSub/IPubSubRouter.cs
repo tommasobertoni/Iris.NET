@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Iris.NET.Server
 {
-    public interface IPubSubRouter
+    public interface IPubSubRouter : IDisposable
     {
         bool Register(IrisNode node);
 
