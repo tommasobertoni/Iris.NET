@@ -8,14 +8,14 @@ namespace Iris.NET.Server
 {
     public interface IPubSubRouter : IDisposable
     {
-        bool Register(IrisNode node);
+        bool Register(IIrisNode node);
 
-        bool Unregister(IrisNode node);
+        bool Unregister(IIrisNode node);
 
-        bool SubmitMessage(IrisNode node, IrisMessage message);
+        bool SubmitMessage(IIrisNode node, IrisMessage message);
 
-        bool Subscribe(IrisNode node, string channel);
+        bool Subscribe(IIrisNode node, string channel);
 
-        bool Unsubscribe(IrisNode node, string channel);
+        bool Unsubscribe(IIrisNode node, string channel);
     }
 }

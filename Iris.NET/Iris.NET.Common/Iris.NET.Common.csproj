@@ -53,6 +53,7 @@
     <Compile Include="IrisBaseConfig.cs" />
     <Compile Include="IrisConcurrentHashSet.cs" />
     <Compile Include="AbstractIrisListener.cs" />
+    <Compile Include="IrisHook.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
     <Compile Include="AbstractNetworkIrisListener.cs" />
     <Compile Include="Nodes\IrisNode.cs" />

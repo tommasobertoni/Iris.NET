@@ -8,11 +8,11 @@ namespace Iris.NET.Server
 {
     public class IrisPubSubRouter : IPubSubRouter
     {
-        private ConcurrentDictionary<IrisNode, List<string>> _nodes = new ConcurrentDictionary<IrisNode, List<string>>();
-        private ConcurrentDictionary<string, IrisConcurrentHashSet<IrisNode>> _subscriptions = new ConcurrentDictionary<string, IrisConcurrentHashSet<IrisNode>>();
+        private ConcurrentDictionary<IIrisNode, List<string>> _nodes = new ConcurrentDictionary<IIrisNode, List<string>>();
+        private ConcurrentDictionary<string, IrisConcurrentHashSet<IIrisNode>> _subscriptions = new ConcurrentDictionary<string, IrisConcurrentHashSet<IIrisNode>>();
 
         #region Public
-        public bool Register(IrisNode node)
+        public bool Register(IIrisNode node)
         {
             if (_nodes.ContainsKey(node))
                 return false;
@@ -20,7 +20,7 @@ namespace Iris.NET.Server
             return _nodes.TryAdd(node, new List<string>());
         }
 
-        public bool Unregister(IrisNode node)
+        public bool Unregister(IIrisNode node)
         {
             if (!_nodes.ContainsKey(node))
                 return false;
@@ -41,12 +41,12 @@ namespace Iris.NET.Server
             return success;
         }
 
-        public bool SubmitMessage(IrisNode sender, IrisMessage message)
+        public bool SubmitMessage(IIrisNode sender, IrisMessage message)
         {
             if (message.Content == null || message.PublisherId == null)
                 return false;
 
-            Action<IrisNode> sendMessageToOthersAction = (n) =>
+            Action<IIrisNode> sendMessageToOthersAction = (n) =>
             {
                 if (n != sender)
                     n.Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
@@ -60,7 +60,7 @@ namespace Iris.NET.Server
             }
             else
             {
-                IrisConcurrentHashSet<IrisNode> concurrentHashSet;
+                IrisConcurrentHashSet<IIrisNode> concurrentHashSet;
                 if (_subscriptions.TryGetValue(message.TargetChannel, out concurrentHashSet))
                 {
                     concurrentHashSet.ForEach(sendMessageToOthersAction);
@@ -71,7 +71,7 @@ namespace Iris.NET.Server
             }
         }
 
-        public bool Subscribe(IrisNode node, string channel)
+        public bool Subscribe(IIrisNode node, string channel)
         {
             if (!_nodes.ContainsKey(node))
                 return false;
@@ -80,14 +80,14 @@ namespace Iris.NET.Server
 
             if (channel != null)
             {
-                IrisConcurrentHashSet<IrisNode> concurrentHashSet;
+                IrisConcurrentHashSet<IIrisNode> concurrentHashSet;
                 if (_subscriptions.TryGetValue(channel, out concurrentHashSet))
                 {
                     success = concurrentHashSet.Add(node);
                 }
                 else
                 {
-                    concurrentHashSet = new IrisConcurrentHashSet<IrisNode>();
+                    concurrentHashSet = new IrisConcurrentHashSet<IIrisNode>();
                     concurrentHashSet.Add(node);
                     success = _subscriptions.TryAdd(channel, concurrentHashSet);
                 }
@@ -106,7 +106,7 @@ namespace Iris.NET.Server
             return success;
         }
 
-        public bool Unsubscribe(IrisNode node, string channel) => Unsubscribe(node, channel, true);
+        public bool Unsubscribe(IIrisNode node, string channel) => Unsubscribe(node, channel, true);
 
         public void Dispose()
         {
@@ -120,7 +120,7 @@ namespace Iris.NET.Server
         }
         #endregion
 
-        private bool Unsubscribe(IrisNode node, string channel, bool removeChannelFromRegisteredNode)
+        private bool Unsubscribe(IIrisNode node, string channel, bool removeChannelFromRegisteredNode)
         {
             if (!_nodes.ContainsKey(node))
                 return false;
@@ -129,7 +129,7 @@ namespace Iris.NET.Server
 
             if (channel != null)
             {
-                IrisConcurrentHashSet<IrisNode> concurrentHashSet;
+                IrisConcurrentHashSet<IIrisNode> concurrentHashSet;
                 if (_subscriptions.TryGetValue(channel, out concurrentHashSet))
                 {
                     success = concurrentHashSet.Remove(node);

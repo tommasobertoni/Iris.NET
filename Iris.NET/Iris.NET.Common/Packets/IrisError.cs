@@ -4,13 +4,21 @@ using System.Text;
 
 namespace Iris.NET
 {
+    /// <summary>
+    /// Class for internal/logical error within the library
+    /// </summary>
     [Serializable]
     public class IrisError : IrisPacket
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="publisherId">Guid of the client who sent this packet</param>
         internal IrisError(Guid publisherId) : base(publisherId) { }
 
-        public bool ByException { get; set; }
-
+        /// <summary>
+        /// The exception that caused the sending of this packet
+        /// </summary>
         public Exception Exception { get; }
     }
 }

@@ -88,7 +88,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
                 if (@params != null && !@params.Contains("NU")) // Not Unsubscribe
                 {
-                    if (client.Unsubscribe(mainChannel, ContentHandler))
+                    if (client.Unsubscribe(mainChannel))
                     {
                         Console.WriteLine($"Client unsubscribed from \"{mainChannel}\" channel");
                     }
@@ -115,9 +115,12 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             Process.GetCurrentProcess().CloseMainWindow();
         }
 
-        private static void ContentHandler(object content)
+        private static void ContentHandler(object content, IrisHook k)
         {
-            Console.WriteLine($"Content received! {content}\n");
+            if (content != null)
+                Console.WriteLine($"Content received! {content}\n");
+            else if (k != null)
+                Console.WriteLine($"{nameof(IrisHook)} => {nameof(k.Unsubscribing)}: {k.Unsubscribing}");
         }
 
         private static void ExceptionHandler(Exception ex)

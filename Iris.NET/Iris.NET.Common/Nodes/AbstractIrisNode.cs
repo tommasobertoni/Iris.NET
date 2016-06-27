@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Iris.NET
 {
-    public abstract class AbstractIrisNode<T> : IrisNode
+    public abstract class AbstractIrisNode<T> : IIrisNode
            where T : IrisBaseConfig
     {
         #region Properties
@@ -82,65 +82,64 @@ namespace Iris.NET
         }
 
         #region PubSub
-                public virtual bool Send(string channel, object content, bool propagateThroughHierarchy = false)
+        public virtual bool Send(string targetChannel, object content, bool propagateThroughHierarchy = false)
+        {
+            if (!IsConnected)
+                return false;
+
+            var message = new IrisMessage(NodeId, targetChannel, propagateThroughHierarchy);
+            message.PublicationDateTime = DateTime.Now;
+            message.Content = content;
+            Send(message);
+
+            return true;
+        }
+
+        public virtual bool Subscribe(string channel, ContentHandler messageHandler)
+        {
+            if (!IsConnected)
+                return false;
+
+            lock (_channelsSubscriptions)
+            {
+                LinkedList<ContentHandler> subs = null;
+                if (_channelsSubscriptions.TryGetValue(channel, out subs))
                 {
-                    if (!IsConnected)
-                        return false;
+                    subs.AddLast(messageHandler);
+                }
+                else
+                {
+                    subs = new LinkedList<ContentHandler>();
+                    subs.AddFirst(messageHandler);
+                    _channelsSubscriptions.Add(channel, subs);
+                }
+            }
 
-                    var message = new IrisMessage(NodeId, channel, propagateThroughHierarchy);
-                    message.PublicationDateTime = DateTime.Now;
-                    message.Content = content;
-                    Send(message);
+            var sub = new IrisSubscribe(NodeId, channel);
+            Send(sub);
+            return true;
+        }
 
+        public virtual bool Unsubscribe(string channel)
+        {
+            if (!IsConnected)
+                return false;
+
+            lock (_channelsSubscriptions)
+            {
+                LinkedList<ContentHandler> subs = null;
+                if (_channelsSubscriptions.TryGetValue(channel, out subs))
+                {
+                    subs.ForEach(s => s.BeginInvoke(null, new IrisHook { Unsubscribing = true }, null, null));
+                    subs.Clear();
+                    var unsub = new IrisUnsubscribe(NodeId, channel);
+                    Send(unsub);
                     return true;
                 }
+            }
 
-                public virtual bool Subscribe(string channel, ContentHandler messageHandler)
-                {
-                    if (!IsConnected)
-                        return false;
-
-                    lock (_channelsSubscriptions)
-                    {
-                        LinkedList<ContentHandler> subs = null;
-                        if (_channelsSubscriptions.TryGetValue(channel, out subs))
-                        {
-                            subs.AddLast(messageHandler);
-                        }
-                        else
-                        {
-                            subs = new LinkedList<ContentHandler>();
-                            subs.AddFirst(messageHandler);
-                            _channelsSubscriptions.Add(channel, subs);
-                        }
-                    }
-
-                    var sub = new IrisSubscribe(NodeId, channel);
-                    Send(sub);
-                    return true;
-                }
-
-                public virtual bool Unsubscribe(string channel, ContentHandler messageHandler)
-                {
-                    if (!IsConnected)
-                        return false;
-
-                    lock (_channelsSubscriptions)
-                    {
-                        LinkedList<ContentHandler> subs = null;
-                        if (_channelsSubscriptions.TryGetValue(channel, out subs))
-                        {
-                            if (subs.Remove(messageHandler))
-                            {
-                                var unsub = new IrisUnsubscribe(NodeId, channel);
-                                Send(unsub);
-                                return true;
-                            }
-                        }
-                    }
-
-                    return false;
-                }
+            return false;
+        }
         #endregion
         #endregion
 
@@ -193,7 +192,7 @@ namespace Iris.NET
             }
         }
 
-#region Messages handling
+        #region Messages handling
         protected string GetLogForInvalidDataReceived(object data)
         {
             string runtimeType;
@@ -234,7 +233,7 @@ namespace Iris.NET
             }
         }
 
-        protected string GetLogForErrorReceived(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.ByException)}: {error.ByException};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
+        protected string GetLogForErrorReceived(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
 
         protected virtual void OnErrorReceived(IrisError error)
         {
@@ -253,7 +252,7 @@ namespace Iris.NET
                 if (_channelsSubscriptions.TryGetValue(message.TargetChannel, out subscriptions))
                 {
                     foreach (var subscription in subscriptions)
-                        subscription.BeginInvoke(message.Content, null, null);
+                        subscription.BeginInvoke(message.Content, null, null, null);
                 }
 
                 if (LogMessagesEnable)
@@ -272,6 +271,6 @@ namespace Iris.NET
         protected abstract void Send(IrisPacket packet);
 
         protected abstract void OnMetaReceived(IrisMeta meta);
-#endregion
+        #endregion
     }
 }
