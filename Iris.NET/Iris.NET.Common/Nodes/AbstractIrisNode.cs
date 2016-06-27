@@ -130,7 +130,7 @@ namespace Iris.NET
                 LinkedList<ContentHandler> subs = null;
                 if (_channelsSubscriptions.TryGetValue(channel, out subs))
                 {
-                    subs.ForEach(s => s.BeginInvoke(null, new IrisHook { Unsubscribing = true }, null, null));
+                    subs.ForEach(s => s.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null));
                     subs.Clear();
                     var unsub = new IrisUnsubscribe(NodeId, channel);
                     Send(unsub);

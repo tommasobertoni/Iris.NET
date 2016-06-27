@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Iris.NET
 {
-    public class IrisHook
+    public class IrisContextHook
     {
         public bool Unsubscribing { get; internal set; }
     }

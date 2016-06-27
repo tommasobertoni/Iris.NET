@@ -44,5 +44,5 @@ namespace Iris.NET
     /// </summary>
     /// <param name="content">The content received</param>
     /// <param name="k">Iris hook for other information</param>
-    public delegate void ContentHandler(object content, IrisHook k);
+    public delegate void ContentHandler(object content, IrisContextHook hook);
 }

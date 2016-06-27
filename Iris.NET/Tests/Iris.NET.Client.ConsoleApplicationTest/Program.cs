@@ -115,12 +115,12 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             Process.GetCurrentProcess().CloseMainWindow();
         }
 
-        private static void ContentHandler(object content, IrisHook k)
+        private static void ContentHandler(object content, IrisContextHook hook)
         {
             if (content != null)
                 Console.WriteLine($"Content received! {content}\n");
-            else if (k != null)
-                Console.WriteLine($"{nameof(IrisHook)} => {nameof(k.Unsubscribing)}: {k.Unsubscribing}");
+            else if (hook != null)
+                Console.WriteLine($"{nameof(IrisContextHook)} => {nameof(hook.Unsubscribing)}: {hook.Unsubscribing}");
         }
 
         private static void ExceptionHandler(Exception ex)
