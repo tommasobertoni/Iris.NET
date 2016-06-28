@@ -57,7 +57,7 @@ namespace Iris.NET.Server
         {
         }
 
-        protected override void OnMessageReceived(IUserSubmittedPacket packet)
+        protected override void OnUserSubmittedPacketReceived(IUserSubmittedPacket packet)
         {
             bool? result = null;
 

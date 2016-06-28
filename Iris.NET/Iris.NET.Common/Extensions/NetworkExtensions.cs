@@ -17,7 +17,7 @@ namespace Iris.NET
             return stream;
         }
 
-        public static T DeserializeFromMemoryStream<T>(this MemoryStream stream) => (T)DeserializeFromMemoryStream(stream);
+        public static T DeserializeFromMemoryStream<T>(this MemoryStream stream) where T : class => DeserializeFromMemoryStream(stream) as T;
 
         public static object DeserializeFromMemoryStream(this MemoryStream stream)
         {

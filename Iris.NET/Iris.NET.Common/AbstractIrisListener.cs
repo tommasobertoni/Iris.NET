@@ -32,7 +32,7 @@ namespace Iris.NET
         internal event ErrorHandler OnErrorReceived;
 
         internal delegate void MessageHandler(IUserSubmittedPacket packet);
-        internal event MessageHandler OnMessageReceived;
+        internal event MessageHandler OnUserSubmittedPacketReceived;
 
         internal delegate void MetaHandler(IrisMeta meta);
         internal event MetaHandler OnMetaReceived;
@@ -96,7 +96,7 @@ namespace Iris.NET
                         else if (data is IrisMeta)
                             OnMetaReceived?.BeginInvoke((IrisMeta)data, null, null);
                         else
-                            OnMessageReceived?.BeginInvoke((IUserSubmittedPacket)data, null, null);
+                            OnUserSubmittedPacketReceived?.BeginInvoke((IUserSubmittedPacket)data, null, null);
                     }
                 }
                 catch (InvalidCastException)
