@@ -56,7 +56,7 @@
     <Compile Include="IrisContextHook.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
     <Compile Include="AbstractNetworkIrisListener.cs" />
-    <Compile Include="Nodes\IrisNode.cs" />
+    <Compile Include="Nodes\IIrisNode.cs" />
     <Compile Include="Packets\IrisError.cs" />
     <Compile Include="Packets\IrisMessage.cs" />
     <Compile Include="Packets\IrisMeta.cs" />

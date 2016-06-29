@@ -5,7 +5,7 @@ using System.Text;
 namespace Iris.NET
 {
     /// <summary>
-    /// Class for internal/logical error within the library
+    /// Class for internal/logical error within the library.
     /// </summary>
     [Serializable]
     public class IrisError : IrisPacket
@@ -13,12 +13,17 @@ namespace Iris.NET
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="publisherId">Guid of the client who sent this packet</param>
+        /// <param name="publisherId">Guid of the client who sent this packet.</param>
         internal IrisError(Guid publisherId) : base(publisherId) { }
 
         /// <summary>
-        /// The exception that caused the sending of this packet
+        /// The exception that caused the sending of this packet.
         /// </summary>
-        public Exception Exception { get; }
+        public Exception Exception { get; internal set; }
+
+        /// <summary>
+        /// A log string.
+        /// </summary>
+        public string Log { get; internal set; }
     }
 }

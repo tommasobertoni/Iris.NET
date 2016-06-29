@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -16,56 +17,59 @@ namespace Iris.NET
     {
         #region Properties
         /// <summary>
-        /// Guid of this node
+        /// Guid of this node.
         /// </summary>
         public Guid NodeId { get; } = Guid.NewGuid();
 
         /// <summary>
-        /// Triggers a log event when a message is received
+        /// Triggers a log event when a message is received.
         /// </summary>
         public bool LogMessagesEnable { get; set; }
 
         /// <summary>
-        /// Triggers a log event when an exception occurs
+        /// Triggers a log event when an exception occurs.
+        /// Default value is true.
         /// </summary>
         public bool LogExceptionsEnable { get; set; } = true;
 
         /// <summary>
-        /// Triggers a log event when an error is received
+        /// Triggers a log event when an error is received.
+        /// Default value is true.
         /// </summary>
         public bool LogErrorsEnable { get; set; } = true;
 
         /// <summary>
-        /// Triggers a log event when invalid data is received
+        /// Triggers a log event when invalid data is received.
+        /// Default value is true.
         /// </summary>
         public bool LogInvalidDataEnable { get; set; } = true;
 
         /// <summary>
-        /// Triggers a log event when null is received
+        /// Triggers a log event when null is received.
         /// </summary>
         public bool LogNullsEnable { get; set; }
         #endregion
 
         #region Events
         /// <summary>
-        /// Triggered when an exception occurs
+        /// Triggered when an exception occurs.
         /// </summary>
         public event ExceptionHandler OnException;
         public delegate void ExceptionHandler(Exception ex);
 
         /// <summary>
-        /// Triggered when an operation generates a log
+        /// Triggered when an operation generates a log.
         /// </summary>
         public event LogHandler OnLog;
         public delegate void LogHandler(string log);
 
         /// <summary>
-        /// Triggered when the connection succeeded
+        /// Triggered when the connection succeeded.
         /// </summary>
         public event VoidHandler OnConnected;
 
         /// <summary>
-        /// Triggered when the client is disposed
+        /// Triggered when the client is disposed.
         /// </summary>
         public event VoidHandler OnDisposed;
         public delegate void VoidHandler();
@@ -79,29 +83,41 @@ namespace Iris.NET
 
         #region Abstract
         /// <summary>
-        /// Indicates if this node is connected
+        /// Indicates if this node is connected.
         /// </summary>
         public abstract bool IsConnected { get; }
 
         /// <summary>
-        /// Invoked when the node is connecting
+        /// Invoked when the node is connecting.
         /// </summary>
-        /// <param name="config">The connection's configuration</param>
-        /// <returns>An AbstractIrisListener</returns>
+        /// <param name="config">The connection's configuration.</param>
+        /// <returns>An AbstractIrisListener.</returns>
         protected abstract AbstractIrisListener OnConnect(T config);
 
         /// <summary>
-        /// Invoked when the node is disposing
+        /// Invoked when the node is disposing.
         /// </summary>
         protected abstract void OnDispose();
+
+        /// <summary>
+        /// Sends the packet to the network.
+        /// </summary>
+        /// <param name="packet">The packet to send.</param>
+        protected abstract void Send(IrisPacket packet);
+
+        /// <summary>
+        /// Handler for an error received from the IrisListener.
+        /// </summary>
+        /// <param name="meta">The IrisMeta received.</param>
+        protected abstract void OnMetaReceived(IrisMeta meta);
         #endregion
 
         #region Public
         /// <summary>
-        /// Connects the node to it's network
+        /// Connects the node to it's network.
         /// </summary>
-        /// <param name="config">The connection's configuration</param>
-        /// <returns>Operation succeeded</returns>
+        /// <param name="config">The connection's configuration.</param>
+        /// <returns>Operation succeeded.</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public bool Connect(T config)
         {
@@ -118,7 +134,7 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Closes the connection and disposes all the connection resources
+        /// Closes the connection and disposes all the connection resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public virtual void Dispose()
@@ -139,12 +155,12 @@ namespace Iris.NET
 
         #region PubSub
         /// <summary>
-        /// Submits the content to the pubsub network
+        /// Submits the content to the pubsub network.
         /// </summary>
-        /// <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast)</param>
-        /// <param name="content">The content to send</param>
-        /// <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel</param>
-        /// <returns>Operation succeeded</returns>
+        /// <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
+        /// <param name="content">The content to send.</param>
+        /// <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
+        /// <returns>Operation succeeded.</returns>
         public virtual bool Send(string targetChannel, object content, bool propagateThroughHierarchy = false)
         {
             if (!IsConnected)
@@ -159,12 +175,12 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Subscribes this node to a channel
+        /// Subscribes this node to a channel.
         /// </summary>
-        /// <param name="channel">The channel to which subscribe</param>
-        /// <param name="messageHandler">A handler for the content received through this subscription</param>
-        /// <returns>Operation succeeded</returns>
-        public virtual bool Subscribe(string channel, ContentHandler messageHandler)
+        /// <param name="channel">The channel to which subscribe.</param>
+        /// <param name="contentHandler">A handler for the content received through this subscription.</param>
+        /// <returns>Operation succeeded.</returns>
+        public virtual bool Subscribe(string channel, ContentHandler contentHandler)
         {
             if (!IsConnected)
                 return false;
@@ -174,12 +190,12 @@ namespace Iris.NET
                 LinkedList<ContentHandler> subs = null;
                 if (_channelsSubscriptions.TryGetValue(channel, out subs))
                 {
-                    subs.AddLast(messageHandler);
+                    subs.AddLast(contentHandler);
                 }
                 else
                 {
                     subs = new LinkedList<ContentHandler>();
-                    subs.AddFirst(messageHandler);
+                    subs.AddFirst(contentHandler);
                     _channelsSubscriptions.Add(channel, subs);
                 }
             }
@@ -190,10 +206,56 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Unsubscribes this node from a channel. All the content handlers subscribed to this channel will be lost.
+        /// Removes the content handler from the subscription.
         /// </summary>
-        /// <param name="channel">The channel from which unsubscribe</param>
-        /// <returns>Operation succeeded</returns>
+        /// <param name="channel">The channel from which unsubscribe.</param>
+        /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
+        /// <returns>Operation succeeded.</returns>
+        public virtual bool Unsubscribe(string channel, ContentHandler contentHandler) => Unsubscribe(channel, contentHandler, false);
+
+        /// <summary>
+        /// Removes the content handler from the subscription.
+        /// </summary>
+        /// <param name="channel">The channel from which unsubscribe.</param>
+        /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
+        /// <param name="keepUnderlyingNetworkSubscription"></param>
+        /// <returns>Operation succeeded.</returns>
+        public virtual bool Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingNetworkSubscription)
+        {
+            if (!IsConnected)
+                return false;
+
+            lock (_channelsSubscriptions)
+            {
+                LinkedList<ContentHandler> subs = null;
+                if (_channelsSubscriptions.TryGetValue(channel, out subs))
+                {
+                    if (subs.Remove(contentHandler))
+                    {
+                        contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
+
+                        // If there aren't any subscriptions and there's no request of keeping the underlying network subscription
+                        if (!subs.Any() && !keepUnderlyingNetworkSubscription)
+                        {
+                            var unsub = new IrisUnsubscribe(NodeId, channel);
+                            Send(unsub);
+                        }
+                        
+                        return true;
+
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Unsubscribes this node from a channel.
+        /// All the content handlers subscribed to this channel will be lost.
+        /// </summary>
+        /// <param name="channel">The channel from which unsubscribe.</param>
+        /// <returns>Operation succeeded.</returns>
         public virtual bool Unsubscribe(string channel)
         {
             if (!IsConnected)
@@ -206,6 +268,7 @@ namespace Iris.NET
                 {
                     subs.ForEach(s => s.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null));
                     subs.Clear();
+                    _channelsSubscriptions.Remove(channel);
                     var unsub = new IrisUnsubscribe(NodeId, channel);
                     Send(unsub);
                     return true;
@@ -218,9 +281,9 @@ namespace Iris.NET
         #endregion
 
         /// <summary>
-        /// Attaches handlers to the IrisListener events
+        /// Attaches handlers to the IrisListener events.
         /// </summary>
-        /// <param name="subscriptionsListener">The target IrisListener</param>
+        /// <param name="subscriptionsListener">The target IrisListener.</param>
         protected void HookEventsToListener(AbstractIrisListener subscriptionsListener = null)
         {
             if (subscriptionsListener == null)
@@ -230,7 +293,7 @@ namespace Iris.NET
             {
                 subscriptionsListener.OnUserSubmittedPacketReceived += OnUserSubmittedPacketReceived;
                 subscriptionsListener.OnMetaReceived += OnMetaReceived;
-                subscriptionsListener.OnErrorReceived += OnErrorReceived;
+                subscriptionsListener.OnErrorReceived += OnError;
                 subscriptionsListener.OnInvalidDataReceived += OnInvalidDataReceived;
                 subscriptionsListener.OnException += HandleListenerException;
                 subscriptionsListener.OnNullReceived += OnNullReceived;
@@ -238,9 +301,9 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Detaches the handlers from the IrisListener events
+        /// Detaches the handlers from the IrisListener events.
         /// </summary>
-        /// <param name="subscriptionsListener">The target IrisListener</param>
+        /// <param name="subscriptionsListener">The target IrisListener.</param>
         protected void UnhookEventsFromListener(AbstractIrisListener subscriptionsListener = null)
         {
             if (subscriptionsListener == null)
@@ -250,7 +313,7 @@ namespace Iris.NET
             {
                 subscriptionsListener.OnUserSubmittedPacketReceived -= OnUserSubmittedPacketReceived;
                 subscriptionsListener.OnMetaReceived -= OnMetaReceived;
-                subscriptionsListener.OnErrorReceived -= OnErrorReceived;
+                subscriptionsListener.OnErrorReceived -= OnError;
                 subscriptionsListener.OnInvalidDataReceived -= OnInvalidDataReceived;
                 subscriptionsListener.OnException -= HandleListenerException;
                 subscriptionsListener.OnNullReceived -= OnNullReceived;
@@ -258,7 +321,7 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Checks if the connection is working properly by sending a meta packet
+        /// Checks if the connection is working properly by sending a meta packet.
         /// </summary>
         /// <returns></returns>
         protected bool IsPeerAlive()
@@ -278,12 +341,12 @@ namespace Iris.NET
             }
         }
 
-        #region Messages handling
+        #region Listener events
         /// <summary>
-        /// Builds a string for logging the invalid data received
+        /// Builds a string for logging the invalid data received.
         /// </summary>
-        /// <param name="data">The invalid data received</param>
-        /// <returns>A log string</returns>
+        /// <param name="data">The invalid data received.</param>
+        /// <returns>A log string.</returns>
         protected string GetLogForInvalidDataReceived(object data)
         {
             string runtimeType;
@@ -299,10 +362,10 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Handler for invalid data received from the IrisListener
-        /// Fires a log event if LogInvalidDataEnable is true
+        /// Handler for invalid data received from the IrisListener.
+        /// Fires a log event if LogInvalidDataEnable is true.
         /// </summary>
-        /// <param name="data">The invalid data received</param>
+        /// <param name="data">The invalid data received.</param>
         protected virtual void OnInvalidDataReceived(object data)
         {
             if (LogInvalidDataEnable)
@@ -310,17 +373,17 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Builds a string for logging the exception that occurred
+        /// Builds a string for logging the exception that occurred.
         /// </summary>
-        /// <param name="ex">The exception that occurred</param>
-        /// <returns>A log string</returns>
+        /// <param name="ex">The exception that occurred.</param>
+        /// <returns>A log string.</returns>
         protected string GetLogForException(Exception ex) => $"[Exception];{ex.GetFullException()}";
 
         /// <summary>
-        /// Handler for exceptions coming from the IrisListener
-        /// Checks wether this exception was already caught right before and invokes the method OnListenerException
+        /// Handler for exceptions coming from the IrisListener.
+        /// Checks wether this exception was already caught right before and invokes the method OnListenerException.
         /// </summary>
-        /// <param name="ex">The exception that occurred</param>
+        /// <param name="ex">The exception that occurred.</param>
         private void HandleListenerException(Exception ex)
         {
             if (_lastException == null || ex.Message != _lastException.Message)
@@ -331,11 +394,11 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Handler for exceptions coming from the IrisListener
-        /// Fires a OnException event
-        /// Fires a log event if LogExceptionsEnable is true
+        /// Handler for exceptions coming from the IrisListener.
+        /// Fires a OnException event.
+        /// Fires a log event if LogExceptionsEnable is true.
         /// </summary>
-        /// <param name="ex">The exception that occurred</param>
+        /// <param name="ex">The exception that occurred.</param>
         protected virtual void OnListenerException(Exception ex)
         {
             OnException?.BeginInvoke(ex, null, null);
@@ -344,80 +407,78 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Builds a string for logging the error received
+        /// Builds a string for logging the error received.
         /// </summary>
-        /// <param name="error">The IrisError received</param>
-        /// <returns>A log string</returns>
-        protected string GetLogForErrorReceived(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
+        /// <param name="error">The IrisError received.</param>
+        /// <returns>A log string.</returns>
+        protected string GetLogForError(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
 
         /// <summary>
-        /// Handler for an error received from the IrisListener
-        /// Fires a log event if LogErrorsEnable is true
+        /// Handler for an IrisError.
+        /// Fires a log event if LogErrorsEnable is true.
         /// </summary>
-        /// <param name="error">The IrisError received</param>
-        protected virtual void OnErrorReceived(IrisError error)
+        /// <param name="error">The IrisError received.</param>
+        protected virtual void OnError(IrisError error)
         {
             if (LogErrorsEnable)
-                OnLog?.BeginInvoke(GetLogForErrorReceived(error), null, null);
+                OnLog?.BeginInvoke(GetLogForError(error), null, null);
         }
 
         /// <summary>
-        /// Builds a string for logging the message received
+        /// Builds a string for logging the message received.
         /// </summary>
-        /// <param name="message">The IrisMessage received</param>
-        /// <returns>A log string</returns>
+        /// <param name="message">The IrisMessage received.</param>
+        /// <returns>A log string.</returns>
         protected virtual string GetLogForMessageReceived(IrisMessage message) => $"[Message];{nameof(message.TargetChannel)}: {message.TargetChannel};{nameof(message.PublicationDateTime)}: {message.PublicationDateTime};{nameof(message.PropagateThroughHierarchy)}: {message.PropagateThroughHierarchy}";
 
         /// <summary>
-        /// Handler for a user submitted packet received from the IrisListener
-        /// If the packet is of IrisMessage type, invokes the ContentHandlers subscribed to the reception of the message
-        /// Fires a log event if LogMessagesEnable is true and the packet is of IrisMessage type
+        /// Handler for a user submitted packet received from the IrisListener.
+        /// If the packet is of IrisMessage type, invokes the ContentHandlers subscribed to the reception of the message.
+        /// Fires a log event if LogMessagesEnable is true and the packet is of IrisMessage type.
         /// </summary>
-        /// <param name="packet">The IUserSubmittedPacket packet received</param>
+        /// <param name="packet">The IUserSubmittedPacket packet received.</param>
         protected virtual void OnUserSubmittedPacketReceived(IUserSubmittedPacket packet)
         {
             if (packet is IrisMessage)
             {
                 var message = packet as IrisMessage;
-                LinkedList<ContentHandler> subscriptions;
-                if (_channelsSubscriptions.TryGetValue(message.TargetChannel, out subscriptions))
-                {
-                    foreach (var subscription in subscriptions)
-                        subscription.BeginInvoke(message.Content, null, null, null);
-                }
+                LinkedList<ContentHandler> handlers = null;
+                
+                if (message.TargetChannel != null)
+                    _channelsSubscriptions.TryGetValue(message.TargetChannel, out handlers);
+
+                // TODO: message.PropagateThroughHierarchy
+                if (handlers != null)
+                    foreach (var hander in handlers)
+                        hander.BeginInvoke(message.Content, null, null, null);
 
                 if (LogMessagesEnable)
                     OnLog?.BeginInvoke(GetLogForMessageReceived(message), null, null);
+
+                // No subscription found for this message
+                if (handlers == null)
+                    OnLog?.BeginInvoke(GetLogForError(new IrisError(NodeId)
+                    {
+                        Log = $"Unable to find subscriptions for the channel {message.TargetChannel}. [Message]{GetLogForMessageReceived(message)}."
+                    }), null, null);
             }
         }
 
         /// <summary>
-        /// Builds a string for logging null data received
+        /// Builds a string for logging null data received.
         /// </summary>
-        /// <returns>A log string</returns>
+        /// <returns>A log string.</returns>
         protected virtual string GetLogForNullReceived() => $"[NullReceived] Node: {NodeId}";
 
         /// <summary>
-        /// Handler for null data received from the IrisListener
-        /// Fires a log event if LogNullsEnable is true
+        /// Handler for null data received from the IrisListener.
+        /// Fires a log event if LogNullsEnable is true.
         /// </summary>
         protected virtual void OnNullReceived()
         {
             if (LogNullsEnable)
                 OnLog?.BeginInvoke(GetLogForNullReceived(), null, null);
         }
-
-        /// <summary>
-        /// Sends the packet to the network
-        /// </summary>
-        /// <param name="packet">The packet to send</param>
-        protected abstract void Send(IrisPacket packet);
-
-        /// <summary>
-        /// Handler for an error received from the IrisListener
-        /// </summary>
-        /// <param name="meta">The IrisMeta received</param>
-        protected abstract void OnMetaReceived(IrisMeta meta);
         #endregion
     }
 }

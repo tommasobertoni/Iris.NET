@@ -5,7 +5,7 @@ using System.Text;
 namespace Iris.NET
 {
     /// <summary>
-    /// Base abstract class for objects sent between clients through the server
+    /// Base abstract class for objects sent between clients through the server.
     /// </summary>
     [Serializable]
     public abstract class IrisPacket
@@ -13,7 +13,7 @@ namespace Iris.NET
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="publisherId">Guid of the client who sent this packet</param>
+        /// <param name="publisherId">Guid of the client who sent this packet.</param>
         internal IrisPacket(Guid publisherId)
         {
             PacketId = Guid.NewGuid();
@@ -21,12 +21,12 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Guid of this packet
+        /// Guid of this packet.
         /// </summary>
         public Guid PacketId { get; }
 
         /// <summary>
-        /// Guid of the client who sent this packet
+        /// Guid of the client who sent this packet.
         /// </summary>
         public Guid PublisherId { get; }
     }
