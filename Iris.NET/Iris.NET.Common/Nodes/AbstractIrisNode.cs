@@ -78,8 +78,13 @@ namespace Iris.NET
         private AbstractIrisListener _subscriptionsListener;
         protected volatile Dictionary<string, LinkedList<ContentHandler>> _channelsSubscriptions = new Dictionary<string, LinkedList<ContentHandler>>();
         protected bool _isDisposing;
-        protected Exception _lastException;
         protected T _config;
+
+        /// <summary>
+        /// Used to store the last exception occurred, to avoid triggering multiple times
+        /// the associate events if the exception occurs again right after
+        /// </summary>
+        protected Exception _lastException;
 
         #region Abstract
         /// <summary>
@@ -91,7 +96,7 @@ namespace Iris.NET
         /// Invoked when the node is connecting.
         /// </summary>
         /// <param name="config">The connection's configuration.</param>
-        /// <returns>An AbstractIrisListener.</returns>
+        /// <returns>An AbstractIrisListener instance.</returns>
         protected abstract AbstractIrisListener OnConnect(T config);
 
         /// <summary>
