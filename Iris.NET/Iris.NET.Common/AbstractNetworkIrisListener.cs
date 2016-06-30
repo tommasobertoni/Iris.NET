@@ -7,23 +7,35 @@ using System.Net.Sockets;
 
 namespace Iris.NET
 {
+    /// <summary>
+    /// Abstract implementation of AbstractIrisListener targeting network communications
+    /// </summary>
     public class AbstractNetworkIrisListener : AbstractIrisListener
     {
-        private int _messageFailureAttempts;
-        private NetworkStream _networkStream;
-        private MemoryStream _memoryStream;
+        protected NetworkStream _networkStream;
+        protected MemoryStream _memoryStream;
 
-        public AbstractNetworkIrisListener(NetworkStream networkStream, int messageFailureAttempts)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="networkStream">The network stream that the node is connected to</param>
+        public AbstractNetworkIrisListener(NetworkStream networkStream)
         {
             _networkStream = networkStream;
-            _messageFailureAttempts = messageFailureAttempts;
         }
 
+        /// <summary>
+        /// Initialize the listening cycle.
+        /// </summary>
         protected override void InitListenCycle()
         {
             _memoryStream = null;
         }
 
+        /// <summary>
+        /// Reads the incoming data and return it as object.
+        /// </summary>
+        /// <returns>The data as object</returns>
         protected override object ReadObject()
         {
             object @object = null;
@@ -35,6 +47,9 @@ namespace Iris.NET
             return @object;
         }
 
+        /// <summary>
+        /// Invoked when this listener is stopping.
+        /// </summary>
         protected override void OnStop()
         {
             _networkStream.Close();

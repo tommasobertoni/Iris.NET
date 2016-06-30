@@ -19,7 +19,6 @@ namespace Iris.NET.Server
         private IrisServerConfig _serverConfig;
         private TcpClient _clientSocket;
         private NetworkStream _networkStream;
-        private volatile int _attemptsCount;
 
         public IrisClientRemoteNode(TcpClient clientSocket)
         {
@@ -39,7 +38,7 @@ namespace Iris.NET.Server
 
             _networkStream = _clientSocket.GetStream();
             _pubSubRouter.Register(this);
-            return new IrisServerListener(_networkStream, config.MessageFailureAttempts);
+            return new IrisServerListener(_networkStream);
         }
 
         protected override void Send(IrisPacket packet)
@@ -81,26 +80,21 @@ namespace Iris.NET.Server
             if (result.HasValue)
             {
                 Send(new IrisMeta(NodeId) { ACK = result.Value });
-                if (result.Value)
-                    _attemptsCount = 0;
             }
         }
 
         protected override void OnInvalidDataReceived(object data)
         {
-            if (++_attemptsCount < _config.MessageFailureAttempts)
+            Send(new IrisMeta(NodeId)
             {
-                Send(new IrisMeta(NodeId)
-                {
-                    Request = Request.Resend,
-                    ACK = false
-                });
-            }
+                Request = Request.Resend,
+                ACK = false
+            });
         }
 
-        protected override void OnErrorReceived(IrisError error)
+        protected override void OnError(IrisError error)
         {
-            base.OnErrorReceived(error);
+            base.OnError(error);
         }
 
         protected override void OnListenerException(Exception ex)

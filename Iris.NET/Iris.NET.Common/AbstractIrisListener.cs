@@ -6,50 +6,83 @@ using System.Threading;
 
 namespace Iris.NET
 {
+    /// <summary>
+    /// Abstract class that listens to incoming data and deserializes it into packets and sends them
+    /// through events. Handles errors and exceptions.
+    /// The listening cycle is on a different thread.
+    /// </summary>
     public abstract class AbstractIrisListener
     {
         #region Properties
+        /// <summary>
+        /// Indicates if it's listening to incoming data.
+        /// </summary>
         public bool IsListening => _thread != null && _keepListening;
         #endregion
 
         protected Thread _thread;
         private volatile bool _keepListening;
-        protected int _failureAttempts;
-
-        public AbstractIrisListener(int failureAttempts = 1)
-        {
-            _failureAttempts = failureAttempts;
-        }
 
         #region Events
-        internal delegate void InvalidDataHandler(object data);
+        /// <summary>
+        /// Triggered when the data received could not be deserialized.
+        /// </summary>
         internal event InvalidDataHandler OnInvalidDataReceived;
+        internal delegate void InvalidDataHandler(object data);
 
-        internal delegate void ExceptionHandler(Exception ex);
+        /// <summary>
+        /// Triggered when an exception occurs.
+        /// </summary>
         internal event ExceptionHandler OnException;
+        internal delegate void ExceptionHandler(Exception ex);
 
-        internal delegate void ErrorHandler(IrisError error);
+        /// <summary>
+        /// Triggered when an IrisError is received.
+        /// </summary>
         internal event ErrorHandler OnErrorReceived;
+        internal delegate void ErrorHandler(IrisError error);
 
-        internal delegate void MessageHandler(IUserSubmittedPacket packet);
+        /// <summary>
+        /// Triggered when a user submitted packet is received.
+        /// </summary>
         internal event MessageHandler OnUserSubmittedPacketReceived;
+        internal delegate void MessageHandler(IUserSubmittedPacket packet);
 
-        internal delegate void MetaHandler(IrisMeta meta);
+        /// <summary>
+        /// Triggered when an IrisMeta packet is received.
+        /// </summary>
         internal event MetaHandler OnMetaReceived;
+        internal delegate void MetaHandler(IrisMeta meta);
 
-        internal delegate void VoidHandler();
+        /// <summary>
+        /// Triggered when null data is received.
+        /// </summary>
         internal event VoidHandler OnNullReceived;
+        internal delegate void VoidHandler();
         #endregion
 
         #region Abstract
+        /// <summary>
+        /// Initialize the listening cycle.
+        /// </summary>
         protected abstract void InitListenCycle();
 
+        /// <summary>
+        /// Reads the incoming data and return it as object.
+        /// </summary>
+        /// <returns>The data as object</returns>
         protected abstract object ReadObject();
 
+        /// <summary>
+        /// Invoked when this listener is stopping.
+        /// </summary>
         protected abstract void OnStop();
         #endregion
 
         #region Public
+        /// <summary>
+        /// Starts the listening cycle.
+        /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public virtual void Start()
         {
@@ -63,6 +96,9 @@ namespace Iris.NET
             }
         }
 
+        /// <summary>
+        /// Stops the listening cycle.
+        /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public virtual void Stop()
         {
@@ -76,6 +112,10 @@ namespace Iris.NET
         }
         #endregion
 
+        /// <summary>
+        /// Executes the listening cycle. When some data is received, the appropriate event is fired
+        /// in order to notify whoever is listening for the data using this instance.
+        /// </summary>
         protected virtual void Listen()
         {
             while (_keepListening)

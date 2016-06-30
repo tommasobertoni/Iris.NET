@@ -9,8 +9,8 @@ namespace Iris.NET.Client
 {
     internal class IrisClientListener : AbstractNetworkIrisListener
     {
-        public IrisClientListener(NetworkStream networkStream, int messageFailureAttempts)
-               : base(networkStream, messageFailureAttempts)
+        public IrisClientListener(NetworkStream networkStream)
+               : base(networkStream)
         {
         }
     }

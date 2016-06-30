@@ -22,7 +22,7 @@ namespace Iris.NET.Client
             
             _socket = new TcpClient(config.Hostname, config.Port);
             _networkStream = _socket.GetStream();
-            return new IrisClientListener(_networkStream, config.MessageFailureAttempts);
+            return new IrisClientListener(_networkStream);
         }
 
         protected override void Send(IrisPacket packet)

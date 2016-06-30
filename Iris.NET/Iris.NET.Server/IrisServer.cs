@@ -36,7 +36,6 @@ namespace Iris.NET.Server
         private TcpListener _serverSocket;
         private volatile bool _isRunning;
         protected Thread _thread;
-        private int _messageFailureAttempts;
 
         public IrisServer(IPubSubRouter pubSubRouter)
         {
@@ -45,10 +44,10 @@ namespace Iris.NET.Server
 
         #region Public
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Start(int port, int messageFailureAttempts = 2) => Start(IPAddress.Any, port, messageFailureAttempts);
+        public void Start(int port) => Start(IPAddress.Any, port);
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Start(IPAddress address, int port, int messageFailureAttempts = 2)
+        public void Start(IPAddress address, int port)
         {
             if (IsRunning)
                 return;
@@ -56,7 +55,6 @@ namespace Iris.NET.Server
             _isRunning = true;
             Address = address;
             Port = port;
-            _messageFailureAttempts = messageFailureAttempts;
             _serverSocket = new TcpListener(Address, Port.Value);
             _serverSocket.Start();
 
@@ -91,10 +89,7 @@ namespace Iris.NET.Server
                 {
                     TcpClient clientSocket = _serverSocket.AcceptTcpClient();
                     var remote = new IrisClientRemoteNode(clientSocket);
-                    remote.Connect(new IrisServerConfig(_pubSubRouter)
-                    {
-                        MessageFailureAttempts = _messageFailureAttempts
-                    });
+                    remote.Connect(new IrisServerConfig(_pubSubRouter));
                 }
             }
             catch (Exception ex)
