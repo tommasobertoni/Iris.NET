@@ -11,25 +11,40 @@ using System.Threading;
 
 namespace Iris.NET.Server
 {
+    /// <summary>
+    /// Network IrisServer.
+    /// </summary>
     public class IrisServer
     {
         #region Properties
+        /// <summary>
+        /// Guid of this server.
+        /// </summary>
         public Guid Id => Guid.NewGuid();
-        
+
+        /// <summary>
+        /// Indicates if this server is running.
+        /// </summary>
         public bool IsRunning => _isRunning;
 
+        /// <summary>
+        /// The address on which this server is currently running.
+        /// </summary>
         public IPAddress Address { get; private set; }
 
+        /// <summary>
+        /// The port on which this server is currently running.
+        /// </summary>
         public int? Port { get; private set; }
         #endregion
 
         #region Events
-        public delegate void ServerExceptionHandler(Exception ex);
         public event ServerExceptionHandler OnServerException;
+        public delegate void ServerExceptionHandler(Exception ex);
 
-        public delegate void VoidHandler();
         public event VoidHandler OnStarted;
         public event VoidHandler OnStoped;
+        public delegate void VoidHandler();
         #endregion
 
         private IPubSubRouter _pubSubRouter;
@@ -37,6 +52,10 @@ namespace Iris.NET.Server
         private volatile bool _isRunning;
         protected Thread _thread;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="pubSubRouter">An implementation of IPubSubRouter.</param>
         public IrisServer(IPubSubRouter pubSubRouter)
         {
             _pubSubRouter = pubSubRouter;

@@ -25,7 +25,7 @@ namespace Iris.NET.Client
         /// Invoked when the node is connecting.
         /// </summary>
         /// <param name="config">The connection's configuration.</param>
-        /// <returns>An AbstractIrisListener instance.</returns>
+        /// <returns>An IrisClientListener instance.</returns>
         protected override AbstractIrisListener OnConnect(IrisClientConfig config)
         {
             if (IsConnected)
@@ -52,7 +52,7 @@ namespace Iris.NET.Client
         }
 
         /// <summary>
-        /// Handler for an error received from the IrisListener.
+        /// Handler for a meta packet received from the network.
         /// </summary>
         /// <param name="meta">The IrisMeta received.</param>
         protected override void OnMetaReceived(IrisMeta meta)

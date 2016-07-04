@@ -111,7 +111,7 @@ namespace Iris.NET
         protected abstract void Send(IrisPacket packet);
 
         /// <summary>
-        /// Handler for an error received from the IrisListener.
+        /// Handler for a meta packet received from the network.
         /// </summary>
         /// <param name="meta">The IrisMeta received.</param>
         protected abstract void OnMetaReceived(IrisMeta meta);

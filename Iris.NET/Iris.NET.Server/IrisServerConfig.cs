@@ -5,10 +5,17 @@ using System.Text;
 
 namespace Iris.NET.Server
 {
+    /// <summary>
+    /// Server node configuration.
+    /// </summary>
     internal class IrisServerConfig : IrisBaseConfig
     {
-        public readonly IPubSubRouter PubSubRouter;
+        public IPubSubRouter PubSubRouter { get; }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="pubSubRouter">An implementation of IPubSubRouter.</param>
         public IrisServerConfig(IPubSubRouter pubSubRouter)
         {
             PubSubRouter = pubSubRouter;
