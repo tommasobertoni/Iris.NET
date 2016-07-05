@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Iris.NET
+namespace Iris.NET.Collections
 {
     /// <summary>
     /// Basic implementation of a generic concurrent hash set.
@@ -45,6 +45,11 @@ namespace Iris.NET
         /// <param name="item">The target item.</param>
         /// <returns>Item is contained in the hash set.</returns>
         public bool Contains(T item) => _items.ContainsKey(item);
+
+        /// <summary>
+        /// Clear all the items.
+        /// </summary>
+        public void Clear() => _items.Clear();
 
         /// <summary>
         /// Returns the generic enumerator.

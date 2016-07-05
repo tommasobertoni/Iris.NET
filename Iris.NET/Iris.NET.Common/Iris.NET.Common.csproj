@@ -51,7 +51,7 @@
     <Compile Include="Extensions\GenericExtensions.cs" />
     <Compile Include="Extensions\NetworkExtensions.cs" />
     <Compile Include="IrisBaseConfig.cs" />
-    <Compile Include="IrisConcurrentHashSet.cs" />
+    <Compile Include="Collections\IrisConcurrentHashSet.cs" />
     <Compile Include="AbstractIrisListener.cs" />
     <Compile Include="IrisContextHook.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
