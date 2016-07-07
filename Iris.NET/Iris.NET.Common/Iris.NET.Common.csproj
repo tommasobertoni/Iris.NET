@@ -48,6 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\IChannelsSubscriptionsDictionary.cs" />
+    <Compile Include="Collections\IrisChannelsSubscriptionsDictionary.cs" />
     <Compile Include="Extensions\GenericExtensions.cs" />
     <Compile Include="Extensions\NetworkExtensions.cs" />
     <Compile Include="IrisBaseConfig.cs" />

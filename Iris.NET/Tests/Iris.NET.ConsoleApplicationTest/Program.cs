@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iris.NET.Collections;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,8 +14,44 @@ namespace Iris.NET.ConsoleApplicationTest
 
         static void Main(string[] args)
         {
+            // NetworkTest();
+            DataStructuresTest();
+        }
+
+        private static void DataStructuresTest()
+        {
+            IChannelsSubscriptionsDictionary<string> csd = new IrisChannelsSubscriptionsDictionary<string>();
+            Console.WriteLine(csd); Console.WriteLine();
+
+            string james = "James";
+            csd.Add("main", james);
+            Console.WriteLine(csd); Console.WriteLine();
+
+            csd.Add(new string[] { "main", "submain"}, james);
+            var adam = "Adam";
+            csd.Add(new string[] { "main", "submain" }, adam);
+            Console.WriteLine(csd); Console.WriteLine();
+
+            var anna = "Anna";
+            csd.Add("parallel", anna);
+            csd.Add("parallel", james);
+            csd.Add("parallel", adam);
+            Console.WriteLine(csd); Console.WriteLine();
+
+            var stuart = "Stuart";
+            csd.Add(new string[] { "parallel", "subparallel" }, stuart);
+            Console.WriteLine(csd); Console.WriteLine();
+
+            csd.Add(new string[] { "main", "submain", "extrasub" }, stuart);
+            Console.WriteLine(csd); Console.WriteLine();
+
+            Console.ReadLine();
+        }
+
+        private static void NetworkTest()
+        {
             var serverThread = new Thread(RunServer);
-            
+
             Console.WriteLine("Press Enter to start (or insert clients count below)");
             var parametersString = Console.ReadLine();
             var clientsCount = 0;
@@ -30,7 +67,7 @@ namespace Iris.NET.ConsoleApplicationTest
             Console.WriteLine($"Write \"{killWord}\" and press Enter to terminate ALL clients and exit");
             Console.WriteLine("-- Note: the first input is handled by this main program, the second by the server thread\n");
             serverThread.Start();
-            while (!serverThread.IsAlive);
+            while (!serverThread.IsAlive) ;
 
             string input = null;
             do

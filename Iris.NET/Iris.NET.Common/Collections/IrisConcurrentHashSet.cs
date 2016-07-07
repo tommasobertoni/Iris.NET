@@ -108,5 +108,7 @@ namespace Iris.NET.Collections
             /// </summary>
             public void Reset() => _dictionaryEnumerator = _concurrentHashSet._items.GetEnumerator();
         }
+
+        public override string ToString() => string.Join(",", _items.Keys.ToArray());
     }
 }
