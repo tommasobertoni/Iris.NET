@@ -14,7 +14,7 @@ namespace Iris.NET.Collections
         public const char ChannelsSeparator = '/';
 
         private ChannelTreeNode<T> _root = new ChannelTreeNode<T>(null, null);
-
+        
         public IEnumerable<T> this[string channel]
         {
             get
@@ -23,15 +23,12 @@ namespace Iris.NET.Collections
             }
         }
 
-        public bool Add(string channel, T item) => Add(channel.Split(ChannelsSeparator), item);
+        public bool Add(string channel, T item) => Add(item, channel.Split(ChannelsSeparator));
 
-        public bool Add(string[] channelsHierarchy, T item)
+        public bool Add(T item, params string[] channelsHierarchy)
         {
-            if (channelsHierarchy == null || item == null)
+            if (item == null)
                 throw new ArgumentNullException();
-
-            if (channelsHierarchy.Length < 1)
-                throw new ArgumentException();
 
             CheckChannelsNamesValidity(channelsHierarchy);
 
@@ -76,6 +73,9 @@ namespace Iris.NET.Collections
 
         private void CheckChannelsNamesValidity(string[] channelsHierarchy)
         {
+            if (channelsHierarchy == null || channelsHierarchy.Length < 1)
+                throw new ArgumentException();
+
             for (int i = 0; i < channelsHierarchy.Length; i++)
             {
                 var name = channelsHierarchy[i];
@@ -90,9 +90,7 @@ namespace Iris.NET.Collections
         {
             var currentNode = parent;
             for (int i = fromIndex; i < channelsHierarchy.Length; i++)
-            {
                 currentNode = new ChannelTreeNode<T>(currentNode, channelsHierarchy[i]);
-            }
 
             return currentNode;
         }
@@ -105,14 +103,24 @@ namespace Iris.NET.Collections
             if (node != null)
             {
                 subscriptions = new List<T>();
-                subscriptions.AddRange(node.Items.ToList());
                 if (includeFullHierarchy)
                 {
-                    
+                    GetFullSubscriptions(node, subscriptions);
+                }
+                else
+                {
+                    subscriptions.AddRange(node.Items.ToList());
                 }
             }
 
             return subscriptions;
+        }
+
+        private void GetFullSubscriptions(ChannelTreeNode<T> node, List<T> subscriptions)
+        {
+            subscriptions.AddRange(node.Items.ToList());
+            foreach (var child in node.Childs)
+                GetFullSubscriptions(child.Value, subscriptions);
         }
 
         public void Remove(string channel, T item)
@@ -148,24 +156,19 @@ namespace Iris.NET.Collections
 
         private ChannelTreeNode<T> FindNode(string channel)
         {
-            ChannelTreeNode<T> node = null;
-
             var channelsHierarchy = channel.Split(ChannelsSeparator);
             CheckChannelsNamesValidity(channelsHierarchy);
 
-            var headChannelName = channelsHierarchy[0];
-            if (_root.Childs.ContainsKey(headChannelName))
-                node = _root.Childs[channelsHierarchy[0]];
-            else return null;
+            ChannelTreeNode<T> node = _root;
 
             int i;
-            for (i = 1; i < channelsHierarchy.Length; i++)
+            for (i = 0; i < channelsHierarchy.Length; i++)
             {
-                var splitChannel = channelsHierarchy[i];
-                if (!node.Childs.ContainsKey(splitChannel))
+                var subChannel = channelsHierarchy[i];
+                if (!node.Childs.ContainsKey(subChannel))
                     break;
 
-                node = node.Childs[splitChannel];
+                node = node.Childs[subChannel];
             }
 
             return i == channelsHierarchy.Length ? node : null;
@@ -175,9 +178,12 @@ namespace Iris.NET.Collections
         {
             StringBuilder sb = new StringBuilder();
             foreach (var node in _root.Childs)
-                sb.Append($"{node.Value}\n");
+                sb.Append($"\n{node.Value}");
 
-            return sb.ToString();
+            var toString = sb.ToString();
+            if (toString != null && toString.Length > 0)
+                toString = toString.Substring(1);
+            return toString;
         }
     }
 

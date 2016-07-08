@@ -9,7 +9,7 @@ namespace Iris.NET.Collections
     {
         bool Add(string channel, T item);
 
-        bool Add(string[] channelsHierarchy, T item);
+        bool Add(T item, params string[] channelsHierarchy);
 
         IEnumerable<T> this[string channel] { get; }
 

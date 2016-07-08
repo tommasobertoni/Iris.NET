@@ -21,35 +21,51 @@ namespace Iris.NET.ConsoleApplicationTest
         private static void DataStructuresTest()
         {
             IChannelsSubscriptionsDictionary<string> csd = new IrisChannelsSubscriptionsDictionary<string>();
-            Console.WriteLine("- Empty"); Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- Empty"); Console.WriteLine(csd); Console.WriteLine("\n");
 
             string james = "James";
             csd.Add("main", james);
-            Console.WriteLine("- James in main"); Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- James in main"); Console.WriteLine(csd); Console.WriteLine("\n");
 
-            csd.Add(new string[] { "main", "submain"}, james);
+            csd.Add(james, new string[] { "main", "submain" });
             var adam = "Adam";
-            csd.Add(new string[] { "main", "submain" }, adam);
-            Console.WriteLine("- James and Adam in submain"); Console.WriteLine(csd); Console.WriteLine();
+            csd.Add(adam, new string[] { "main", "submain" });
+            Console.WriteLine("- James and Adam in submain"); Console.WriteLine(csd); Console.WriteLine("\n");
 
             var anna = "Anna";
             csd.Add("parallel", anna);
             csd.Add("parallel", james);
             csd.Add("parallel", adam);
-            Console.WriteLine("- James, Adam and Anna in parallel"); Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- James, Adam and Anna in parallel"); Console.WriteLine(csd); Console.WriteLine("\n");
+
+            var people = csd["parallel"];
+            Console.WriteLine("- People in \"parallel\""); Console.WriteLine(string.Join(",", people.ToArray())); Console.WriteLine("\n");
 
             var stuart = "Stuart";
-            csd.Add(new string[] { "parallel", "subparallel" }, stuart);
-            Console.WriteLine("- Stuart in subparallel"); Console.WriteLine(csd); Console.WriteLine();
+            csd.Add(stuart, new string[] { "parallel", "subparallel" });
+            Console.WriteLine("- Stuart in subparallel"); Console.WriteLine(csd); Console.WriteLine("\n");
 
-            csd.Add(new string[] { "main", "submain", "extrasub" }, stuart);
-            Console.WriteLine("- Stuart in extrasub"); Console.WriteLine(csd); Console.WriteLine();
+            csd.Add(stuart, new string[] { "main", "submain", "extrasub" });
+            csd.Add(adam, new string[] { "main", "submain", "extrasub" });
+            Console.WriteLine("- Stuart and Adam in extrasub"); Console.WriteLine(csd); Console.WriteLine("\n");
+
+            var mainSubs = csd.GetSubscriptions("main");
+            Console.WriteLine("- Subscriptions to \"main\""); Console.WriteLine(string.Join(",", mainSubs.ToArray())); Console.WriteLine("\n");
+
+            var submainFullSubs = csd.GetSubscriptions("main/submain", true);
+            Console.WriteLine("- Full subscriptions to \"submain\" and its hierarchy"); Console.WriteLine(string.Join(",", submainFullSubs.ToArray())); Console.WriteLine("\n");
+
+            var parallelFullSubs = csd.GetSubscriptions("parallel", true);
+            Console.WriteLine("- Full subscriptions to \"parallel\" and its hierarchy"); Console.WriteLine(string.Join(",", parallelFullSubs.ToArray())); Console.WriteLine("\n");
 
             csd.RemoveChannel("main/submain");
-            Console.WriteLine("- Removed main/submain"); Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- Removed main/submain"); Console.WriteLine(csd); Console.WriteLine("\n");
 
-            csd.Add(new string[] { "main", "submain", "extrasub" }, stuart);
-            Console.WriteLine("- Stuart in extrasub"); Console.WriteLine(csd); Console.WriteLine();
+            csd.Add(stuart, new string[] { "main", "submain", "extrasub" });
+            Console.WriteLine("- Stuart in extrasub"); Console.WriteLine(csd); Console.WriteLine("\n");
+
+            var mainFullSubs = csd.GetSubscriptions("main", true);
+            Console.WriteLine("- Full subscriptions to \"main\" and its hierarchy"); Console.WriteLine(string.Join(",", mainFullSubs.ToArray())); Console.WriteLine("\n");
 
             Console.Write("Press ENTER to terminate...");
             Console.ReadLine();
