@@ -21,30 +21,37 @@ namespace Iris.NET.ConsoleApplicationTest
         private static void DataStructuresTest()
         {
             IChannelsSubscriptionsDictionary<string> csd = new IrisChannelsSubscriptionsDictionary<string>();
-            Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- Empty"); Console.WriteLine(csd); Console.WriteLine();
 
             string james = "James";
             csd.Add("main", james);
-            Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- James in main"); Console.WriteLine(csd); Console.WriteLine();
 
             csd.Add(new string[] { "main", "submain"}, james);
             var adam = "Adam";
             csd.Add(new string[] { "main", "submain" }, adam);
-            Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- James and Adam in submain"); Console.WriteLine(csd); Console.WriteLine();
 
             var anna = "Anna";
             csd.Add("parallel", anna);
             csd.Add("parallel", james);
             csd.Add("parallel", adam);
-            Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- James, Adam and Anna in parallel"); Console.WriteLine(csd); Console.WriteLine();
 
             var stuart = "Stuart";
             csd.Add(new string[] { "parallel", "subparallel" }, stuart);
-            Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- Stuart in subparallel"); Console.WriteLine(csd); Console.WriteLine();
 
             csd.Add(new string[] { "main", "submain", "extrasub" }, stuart);
-            Console.WriteLine(csd); Console.WriteLine();
+            Console.WriteLine("- Stuart in extrasub"); Console.WriteLine(csd); Console.WriteLine();
 
+            csd.RemoveChannel("main/submain");
+            Console.WriteLine("- Removed main/submain"); Console.WriteLine(csd); Console.WriteLine();
+
+            csd.Add(new string[] { "main", "submain", "extrasub" }, stuart);
+            Console.WriteLine("- Stuart in extrasub"); Console.WriteLine(csd); Console.WriteLine();
+
+            Console.Write("Press ENTER to terminate...");
             Console.ReadLine();
         }
 

@@ -13,15 +13,13 @@ namespace Iris.NET.Collections
     {
         public const char ChannelsSeparator = '/';
 
-        private ConcurrentDictionary<string, ChannelTreeNode<T>> _nodes = new ConcurrentDictionary<string, ChannelTreeNode<T>>();
+        private ChannelTreeNode<T> _root = new ChannelTreeNode<T>(null, null);
 
         public IEnumerable<T> this[string channel]
         {
             get
             {
-                ChannelTreeNode<T> node = null;
-                _nodes.TryGetValue(channel, out node);
-                return node?.Items;
+                return FindNode(channel)?.Items;
             }
         }
 
@@ -37,20 +35,15 @@ namespace Iris.NET.Collections
 
             CheckChannelsNamesValidity(channelsHierarchy);
 
-            var rootChannel = $"{ChannelsSeparator}{channelsHierarchy[0]}";
+            var rootChannel = channelsHierarchy[0];
 
-            if (_nodes.ContainsKey(rootChannel))
+            if (_root.Childs.ContainsKey(rootChannel))
             {
-                StringBuilder sb = new StringBuilder();
-                sb.Append(rootChannel);
-
-                ChannelTreeNode<T> node = _nodes[rootChannel];
+                ChannelTreeNode<T> node = _root.Childs[rootChannel];
                 var firstNewChannelIndex = 1;
                 for (; firstNewChannelIndex < channelsHierarchy.Length; firstNewChannelIndex++)
                 {
-                    sb.Append($"{ChannelsSeparator}{channelsHierarchy[firstNewChannelIndex]}");
-                    var currentChannelName = sb.ToString();
-
+                    var currentChannelName = channelsHierarchy[firstNewChannelIndex];
                     if (!node.Childs.ContainsKey(currentChannelName))
                         break;
 
@@ -69,7 +62,7 @@ namespace Iris.NET.Collections
             else // New hierarchy
             {
                 ChannelTreeNode<T> node = new ChannelTreeNode<T>(null, rootChannel);
-                _nodes.TryAdd(node.FullChannelName, node);
+                _root.Childs.TryAdd(node.Name, node);
                 node = CreateNewHierarchy(node, channelsHierarchy, 1);
                 if (node != null)
                 {
@@ -95,15 +88,10 @@ namespace Iris.NET.Collections
 
         private ChannelTreeNode<T> CreateNewHierarchy(ChannelTreeNode<T> parent, string[] channelsHierarchy, int fromIndex = 0)
         {
-            StringBuilder sb = new StringBuilder();
-            if (parent != null)
-                sb.Append(parent.FullChannelName);
-
             var currentNode = parent;
             for (int i = fromIndex; i < channelsHierarchy.Length; i++)
             {
-                sb.Append($"{ChannelsSeparator}{channelsHierarchy[i]}");
-                currentNode = new ChannelTreeNode<T>(currentNode, sb.ToString());
+                currentNode = new ChannelTreeNode<T>(currentNode, channelsHierarchy[i]);
             }
 
             return currentNode;
@@ -111,28 +99,82 @@ namespace Iris.NET.Collections
 
         public IEnumerable<T> GetSubscriptions(string channel, bool includeFullHierarchy = false)
         {
-            throw new NotImplementedException();
+            List<T> subscriptions = null;
+
+            var node = FindNode(channel);
+            if (node != null)
+            {
+                subscriptions = new List<T>();
+                subscriptions.AddRange(node.Items.ToList());
+                if (includeFullHierarchy)
+                {
+                    
+                }
+            }
+
+            return subscriptions;
         }
 
         public void Remove(string channel, T item)
         {
-            throw new NotImplementedException();
+            var node = FindNode(channel);
+            if (node != null)
+                node.Items.Remove(item);
         }
 
         public void RemoveAll(T item)
         {
-            throw new NotImplementedException();
+            foreach (var node in _root.Childs)
+                RemoveAll(node.Value, item);
         }
 
-        public void RemoveChannel(string channel)
+        private void RemoveAll(ChannelTreeNode<T> node, T itemToBeRemoved)
         {
-            throw new NotImplementedException();
+            node.Items.Remove(itemToBeRemoved);
+            foreach (var subnode in node.Childs)
+                RemoveAll(subnode.Value, itemToBeRemoved);
+        }
+
+        public void RemoveChannel(string fullChannelName)
+        {
+            ChannelTreeNode<T> outer;
+            var node = FindNode(fullChannelName);
+            if (node != null)
+            {
+                var channelName = fullChannelName.Split(ChannelsSeparator).Last();
+                node.Parent?.Childs.TryRemove(channelName, out outer);
+            }
+        }
+
+        private ChannelTreeNode<T> FindNode(string channel)
+        {
+            ChannelTreeNode<T> node = null;
+
+            var channelsHierarchy = channel.Split(ChannelsSeparator);
+            CheckChannelsNamesValidity(channelsHierarchy);
+
+            var headChannelName = channelsHierarchy[0];
+            if (_root.Childs.ContainsKey(headChannelName))
+                node = _root.Childs[channelsHierarchy[0]];
+            else return null;
+
+            int i;
+            for (i = 1; i < channelsHierarchy.Length; i++)
+            {
+                var splitChannel = channelsHierarchy[i];
+                if (!node.Childs.ContainsKey(splitChannel))
+                    break;
+
+                node = node.Childs[splitChannel];
+            }
+
+            return i == channelsHierarchy.Length ? node : null;
         }
 
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var node in _nodes)
+            foreach (var node in _root.Childs)
                 sb.Append($"{node.Value}\n");
 
             return sb.ToString();
@@ -141,7 +183,9 @@ namespace Iris.NET.Collections
 
     class ChannelTreeNode<T>
     {
-        public string FullChannelName { get; }
+        public string Name { get; }
+
+        public string FullName => $"{Parent?.FullName}{IrisChannelsSubscriptionsDictionary<T>.ChannelsSeparator}{Name}";
 
         public IrisConcurrentHashSet<T> Items { get; internal set; } = new IrisConcurrentHashSet<T>();
 
@@ -149,20 +193,13 @@ namespace Iris.NET.Collections
 
         public ChannelTreeNode<T> Parent { get; internal set; }
 
-        public ChannelTreeNode(ChannelTreeNode<T> parent, string fullChannelName)
+        public ChannelTreeNode(ChannelTreeNode<T> parent, string channelName)
         {
-            if (fullChannelName == null)
-                throw new ArgumentNullException();
-
-            if (string.IsNullOrWhiteSpace(fullChannelName) ||
-                !fullChannelName.StartsWith(IrisChannelsSubscriptionsDictionary<T>.ChannelsSeparator.ToString()))
-                throw new ArgumentException();
-
             Parent = parent;
-            FullChannelName = fullChannelName;
+            Name = channelName;
 
             if (Parent != null)
-                Parent.Childs.TryAdd(FullChannelName, this);
+                Parent.Childs.TryAdd(Name, this);
         }
 
         public override bool Equals(object obj)
@@ -171,15 +208,15 @@ namespace Iris.NET.Collections
             if ((treeNode = obj as ChannelTreeNode<T>) == null)
                 return false;
 
-            return treeNode.FullChannelName?.Equals(FullChannelName) ?? false;
+            return treeNode.FullName?.Equals(FullName) ?? false;
         }
 
-        public override int GetHashCode() => FullChannelName?.GetHashCode() ?? 0;
+        public override int GetHashCode() => FullName.GetHashCode();
 
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append($"{FullChannelName} ({Items.Count}) -> {{");
+            sb.Append($"{Name} ({Items.Count}) -> {{");
 
             foreach (var child in Childs)
             {
