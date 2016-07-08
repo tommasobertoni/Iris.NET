@@ -183,7 +183,7 @@ namespace Iris.NET.Collections
 
             foreach (var child in Childs)
             {
-                sb.Append(child);
+                sb.Append(child.Value);
             }
 
             sb.Append("}");
