@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iris.NET.Collections;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,16 @@ namespace Iris.NET.Server
     public class IrisPubSubRouter : IPubSubRouter
     {
         private ConcurrentDictionary<IIrisNode, List<string>> _nodes = new ConcurrentDictionary<IIrisNode, List<string>>();
-        private ConcurrentDictionary<string, IrisConcurrentHashSet<IIrisNode>> _subscriptions = new ConcurrentDictionary<string, IrisConcurrentHashSet<IIrisNode>>();
+        private IChannelsSubscriptionsDictionary<IIrisNode> _subsDictionary;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="subsDictionary">An implementation of IChannelsSubscriptionsDictionary. If not specified, it will use an instance of IrisChannelsSubscriptionsDictionary.</param>
+        public IrisPubSubRouter(IChannelsSubscriptionsDictionary<IIrisNode> subsDictionary = null)
+        {
+            _subsDictionary = subsDictionary ?? new IrisChannelsSubscriptionsDictionary<IIrisNode>();
+        }
 
         #region Public
         /// <summary>
@@ -80,14 +90,11 @@ namespace Iris.NET.Server
             }
             else
             {
-                IrisConcurrentHashSet<IIrisNode> concurrentHashSet;
-                if (_subscriptions.TryGetValue(message.TargetChannel, out concurrentHashSet))
-                {
-                    concurrentHashSet.ForEach(sendMessageToOthersAction);
-                    return true;
-                }
+                var irisNodes = _subsDictionary.GetSubscriptions(message.TargetChannel, message.PropagateThroughHierarchy);
+                if (irisNodes != null)
+                    irisNodes.ForEach(sendMessageToOthersAction);
 
-                return false;
+                return irisNodes != null;
             }
         }
 
@@ -105,19 +112,7 @@ namespace Iris.NET.Server
             bool success = false;
 
             if (channel != null)
-            {
-                IrisConcurrentHashSet<IIrisNode> concurrentHashSet;
-                if (_subscriptions.TryGetValue(channel, out concurrentHashSet))
-                {
-                    success = concurrentHashSet.Add(node);
-                }
-                else
-                {
-                    concurrentHashSet = new IrisConcurrentHashSet<IIrisNode>();
-                    concurrentHashSet.Add(node);
-                    success = _subscriptions.TryAdd(channel, concurrentHashSet);
-                }
-            }
+                success = _subsDictionary.Add(node, channel);
 
             try
             {
@@ -126,6 +121,7 @@ namespace Iris.NET.Server
             }
             catch (Exception ex) when (!(ex is KeyNotFoundException))
             {
+                _subsDictionary.Remove(node, channel);
                 success = false;
             }
 
@@ -145,7 +141,7 @@ namespace Iris.NET.Server
         /// </summary>
         public void Dispose()
         {
-            _subscriptions?.Clear();
+            _subsDictionary?.Clear();
             _nodes.Keys.ForEach(n =>
             {
                 try { n.Dispose(); }
@@ -170,13 +166,7 @@ namespace Iris.NET.Server
             bool success = false;
 
             if (channel != null)
-            {
-                IrisConcurrentHashSet<IIrisNode> concurrentHashSet;
-                if (_subscriptions.TryGetValue(channel, out concurrentHashSet))
-                {
-                    success = concurrentHashSet.Remove(node);
-                }
-            }
+                success = _subsDictionary.Remove(node, channel);
 
             if (removeChannelFromRegisteredNode && success)
             {

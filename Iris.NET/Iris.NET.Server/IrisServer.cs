@@ -55,10 +55,10 @@ namespace Iris.NET.Server
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="pubSubRouter">An implementation of IPubSubRouter.</param>
-        public IrisServer(IPubSubRouter pubSubRouter)
+        /// <param name="pubSubRouter">An implementation of IPubSubRouter. If not specified, it will use an instance of IrisPubSubRouter.</param>
+        public IrisServer(IPubSubRouter pubSubRouter = null)
         {
-            _pubSubRouter = pubSubRouter;
+            _pubSubRouter = pubSubRouter ?? new IrisPubSubRouter();
         }
 
         #region Public
