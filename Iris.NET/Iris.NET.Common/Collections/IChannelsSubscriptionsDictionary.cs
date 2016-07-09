@@ -56,7 +56,7 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="item">The item to be removed.</param>
         /// <param name="channel">The name of the head channel or a hierarchy.</param>
-        void Remove(T item, string channel);
+        bool Remove(T item, string channel);
 
         /// <summary>
         /// Removes all subscriptions of the item from all the channels.
@@ -68,6 +68,11 @@ namespace Iris.NET.Collections
         /// Removes a channel and its children.
         /// </summary>
         /// <param name="channel">The parent channel to be removed.</param>
-        void RemoveChannel(string channel);
+        bool RemoveChannel(string channel);
+
+        /// <summary>
+        /// Clears all the channels and subscriptions.
+        /// </summary>
+        void Clear();
     }
 }

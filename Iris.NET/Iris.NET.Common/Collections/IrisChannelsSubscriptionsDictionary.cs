@@ -15,6 +15,7 @@ namespace Iris.NET.Collections
 
         private ChannelTreeNode<T> _root = new ChannelTreeNode<T>(null, null);
 
+        #region Public
         /// <summary>
         /// Returns a list of items subscribed to the channel.
         /// </summary>
@@ -75,7 +76,7 @@ namespace Iris.NET.Collections
             }
             else // New hierarchy
             {
-                ChannelTreeNode<T> node = new ChannelTreeNode<T>(null, rootChannel);
+                ChannelTreeNode<T> node = new ChannelTreeNode<T>(_root, rootChannel);
                 _root.Childs.TryAdd(node.Name, node);
                 node = CreateNewHierarchy(node, channelsHierarchy, 1);
                 if (node != null)
@@ -86,30 +87,6 @@ namespace Iris.NET.Collections
             }
 
             return false;
-        }
-
-        private void CheckChannelsNamesValidity(string[] channelsHierarchy)
-        {
-            if (channelsHierarchy == null || channelsHierarchy.Length < 1)
-                throw new ArgumentException();
-
-            for (int i = 0; i < channelsHierarchy.Length; i++)
-            {
-                var name = channelsHierarchy[i];
-                if (string.IsNullOrWhiteSpace(name) || name.Contains(ChannelsSeparator))
-                    throw new ArgumentException();
-                else
-                    channelsHierarchy[i] = name.ToLower();
-            }
-        }
-
-        private ChannelTreeNode<T> CreateNewHierarchy(ChannelTreeNode<T> parent, string[] channelsHierarchy, int fromIndex = 0)
-        {
-            var currentNode = parent;
-            for (int i = fromIndex; i < channelsHierarchy.Length; i++)
-                currentNode = new ChannelTreeNode<T>(currentNode, channelsHierarchy[i]);
-
-            return currentNode;
         }
 
         /// <summary>
@@ -139,13 +116,6 @@ namespace Iris.NET.Collections
             return subscriptions;
         }
 
-        private void GetFullSubscriptions(ChannelTreeNode<T> node, List<T> subscriptions)
-        {
-            subscriptions.AddRange(node.Items.ToList());
-            foreach (var child in node.Childs)
-                GetFullSubscriptions(child.Value, subscriptions);
-        }
-
         /// <summary>
         /// Returns a list of head channels, which are the ones that have no parent channel.
         /// </summary>
@@ -170,11 +140,13 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="item">The item to be removed.</param>
         /// <param name="channel">The name of the head channel or a hierarchy.</param>
-        public void Remove(T item, string channel)
+        public bool Remove(T item, string channel)
         {
+            var success = false;
             var node = FindNode(channel);
             if (node != null)
-                node.Items.Remove(item);
+                success = node.Items.Remove(item);
+            return success;
         }
 
         /// <summary>
@@ -187,6 +159,38 @@ namespace Iris.NET.Collections
                 RemoveAll(node.Value, item);
         }
 
+        /// <summary>
+        /// Removes a channel and its children.
+        /// </summary>
+        /// <param name="channel">The parent channel to be removed.</param>
+        public bool RemoveChannel(string fullChannelName)
+        {
+            var success = false;
+            ChannelTreeNode<T> outer;
+            var node = FindNode(fullChannelName);
+            if (node != null)
+            {
+                var channelName = fullChannelName.Split(ChannelsSeparator).Last();
+                success = node.Parent?.Childs.TryRemove(channelName, out outer) ?? false;
+            }
+            return success;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var node in _root.Childs)
+                sb.Append($"\n{node.Value}");
+
+            var toString = sb.ToString();
+            if (toString != null && toString.Length > 0)
+                toString = toString.Substring(1);
+            return toString;
+        }
+
+        public void Clear() => _root = new ChannelTreeNode<T>(null, null);
+        #endregion
+
         private void RemoveAll(ChannelTreeNode<T> node, T itemToBeRemoved)
         {
             node.Items.Remove(itemToBeRemoved);
@@ -194,19 +198,35 @@ namespace Iris.NET.Collections
                 RemoveAll(subnode.Value, itemToBeRemoved);
         }
 
-        /// <summary>
-        /// Removes a channel and its children.
-        /// </summary>
-        /// <param name="channel">The parent channel to be removed.</param>
-        public void RemoveChannel(string fullChannelName)
+        private void GetFullSubscriptions(ChannelTreeNode<T> node, List<T> subscriptions)
         {
-            ChannelTreeNode<T> outer;
-            var node = FindNode(fullChannelName);
-            if (node != null)
+            subscriptions.AddRange(node.Items.ToList());
+            foreach (var child in node.Childs)
+                GetFullSubscriptions(child.Value, subscriptions);
+        }
+
+        private void CheckChannelsNamesValidity(string[] channelsHierarchy)
+        {
+            if (channelsHierarchy == null || channelsHierarchy.Length < 1)
+                throw new ArgumentException();
+
+            for (int i = 0; i < channelsHierarchy.Length; i++)
             {
-                var channelName = fullChannelName.Split(ChannelsSeparator).Last();
-                node.Parent?.Childs.TryRemove(channelName, out outer);
+                var name = channelsHierarchy[i];
+                if (string.IsNullOrWhiteSpace(name) || name.Contains(ChannelsSeparator))
+                    throw new ArgumentException();
+                else
+                    channelsHierarchy[i] = name.ToLower();
             }
+        }
+
+        private ChannelTreeNode<T> CreateNewHierarchy(ChannelTreeNode<T> parent, string[] channelsHierarchy, int fromIndex = 0)
+        {
+            var currentNode = parent;
+            for (int i = fromIndex; i < channelsHierarchy.Length; i++)
+                currentNode = new ChannelTreeNode<T>(currentNode, channelsHierarchy[i]);
+
+            return currentNode;
         }
 
         private ChannelTreeNode<T> FindNode(string channel)
@@ -227,18 +247,6 @@ namespace Iris.NET.Collections
             }
 
             return i == channelsHierarchy.Length ? node : null;
-        }
-
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (var node in _root.Childs)
-                sb.Append($"\n{node.Value}");
-
-            var toString = sb.ToString();
-            if (toString != null && toString.Length > 0)
-                toString = toString.Substring(1);
-            return toString;
         }
     }
 
@@ -288,66 +296,4 @@ namespace Iris.NET.Collections
             return sb.ToString();
         }
     }
-
-    //class ChannelTreeNodeCollection<T> : NameObjectCollectionBase
-    //{
-    //    public ChannelTreeNodeCollection()
-    //           : base(new ChannelTreeNodeEqualityComparer<T>())
-    //    {
-    //    }
-
-    //    public ChannelTreeNode<T> this[int index]
-    //    {
-    //        get
-    //        {
-    //            return (ChannelTreeNode<T>)BaseGet(index);
-    //        }
-
-    //        set
-    //        {
-    //            BaseSet(index, value);
-    //        }
-    //    }
-
-    //    public ChannelTreeNode<T> this[string channel]
-    //    {
-    //        get
-    //        {
-    //            return (ChannelTreeNode<T>)BaseGet(channel);
-    //        }
-
-    //        set
-    //        {
-    //            BaseSet(value.Name, value);
-    //        }
-    //    }
-
-    //    public void Add(ChannelTreeNode<T> node)
-    //    {
-    //        if (node == null)
-    //            throw new ArgumentNullException();
-
-    //        if (Contains(node.Name))
-    //            throw new ArgumentException();
-
-    //        BaseAdd(node.Name, node);
-    //    }
-
-    //    public bool Contains(string channel) => BaseGet(channel) != null;
-
-    //    public void Remove(ChannelTreeNode<T> node) => Remove(node.Name);
-
-    //    public void Remove(string channel) => BaseRemove(channel);
-
-    //    public void RemoveAt(int index) => BaseRemoveAt(index);
-
-    //    public void Clear() => BaseClear();
-    //}
-
-    //class ChannelTreeNodeEqualityComparer<T> : IEqualityComparer
-    //{
-    //    bool IEqualityComparer.Equals(object x, object y) => (x as ChannelTreeNode<T>)?.Name == (y as ChannelTreeNode<T>)?.Name;
-
-    //    int IEqualityComparer.GetHashCode(object obj) => (obj as ChannelTreeNode<T>)?.Name.GetHashCode() ?? 0;
-    //}
 }
