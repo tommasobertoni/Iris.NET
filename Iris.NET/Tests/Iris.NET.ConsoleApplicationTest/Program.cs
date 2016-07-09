@@ -24,7 +24,7 @@ namespace Iris.NET.ConsoleApplicationTest
             Console.WriteLine("- Empty"); Console.WriteLine(csd); Console.WriteLine("\n");
 
             string james = "James";
-            csd.Add("main", james);
+            csd.Add(james, "main");
             Console.WriteLine("- James in main"); Console.WriteLine(csd); Console.WriteLine("\n");
 
             csd.Add(james, new string[] { "main", "submain" });
@@ -33,9 +33,9 @@ namespace Iris.NET.ConsoleApplicationTest
             Console.WriteLine("- James and Adam in submain"); Console.WriteLine(csd); Console.WriteLine("\n");
 
             var anna = "Anna";
-            csd.Add("parallel", anna);
-            csd.Add("parallel", james);
-            csd.Add("parallel", adam);
+            csd.Add(anna, "parallel");
+            csd.Add(james, "parallel");
+            csd.Add(adam, "parallel");
             Console.WriteLine("- James, Adam and Anna in parallel"); Console.WriteLine(csd); Console.WriteLine("\n");
 
             var people = csd["parallel"];
@@ -66,6 +66,16 @@ namespace Iris.NET.ConsoleApplicationTest
 
             var mainFullSubs = csd.GetSubscriptions("main", true);
             Console.WriteLine("- Full subscriptions to \"main\" and its hierarchy"); Console.WriteLine(string.Join(",", mainFullSubs.ToArray())); Console.WriteLine("\n");
+
+            var heads = csd.GetChannelsHeads();
+            Console.WriteLine("- Heads"); Console.WriteLine(string.Join(",", heads)); Console.WriteLine("\n");
+
+            foreach (var head in heads)
+            {
+                var childs = csd.GetChannelsHierarchy(head);
+                Console.WriteLine($"- Childs of {head}"); Console.WriteLine(string.Join(",", childs)); Console.WriteLine();
+            }
+            Console.WriteLine();
 
             Console.Write("Press ENTER to terminate...");
             Console.ReadLine();

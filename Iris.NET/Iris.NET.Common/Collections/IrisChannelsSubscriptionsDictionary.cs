@@ -14,17 +14,34 @@ namespace Iris.NET.Collections
         public const char ChannelsSeparator = '/';
 
         private ChannelTreeNode<T> _root = new ChannelTreeNode<T>(null, null);
-        
-        public IEnumerable<T> this[string channel]
+
+        /// <summary>
+        /// Returns a list of items subscribed to the channel.
+        /// </summary>
+        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <returns>A list of items subscribed to the channel.</returns>
+        public List<T> this[string channel]
         {
             get
             {
-                return FindNode(channel)?.Items;
+                return FindNode(channel)?.Items.ToList();
             }
         }
 
-        public bool Add(string channel, T item) => Add(item, channel.Split(ChannelsSeparator));
+        /// <summary>
+        /// Adds an item to a channel.
+        /// </summary>
+        /// <param name="item">The item to be added.</param>
+        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <returns>Operation succeeded.</returns>
+        public bool Add(T item, string channel) => Add(item, channel.Split(ChannelsSeparator));
 
+        /// <summary>
+        /// Adds an item to a channel.
+        /// </summary>
+        /// <param name="channelsHierarchy">The hierarchy of channels of which the last is the channel to which the item will be added.</param>
+        /// <param name="item">The item to be added.</param>
+        /// <returns>Operation succeeded.</returns>
         public bool Add(T item, params string[] channelsHierarchy)
         {
             if (item == null)
@@ -95,7 +112,13 @@ namespace Iris.NET.Collections
             return currentNode;
         }
 
-        public IEnumerable<T> GetSubscriptions(string channel, bool includeFullHierarchy = false)
+        /// <summary>
+        /// Returns a list of items subscribed to the channel.
+        /// </summary>
+        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="includeFullHierarchy">If set to true, it will include all the subscriptions to the child channels of the specified parent channel.</param>
+        /// <returns>A list of items subscribed to the channel.</returns>
+        public List<T> GetSubscriptions(string channel, bool includeFullHierarchy = false)
         {
             List<T> subscriptions = null;
 
@@ -123,13 +146,41 @@ namespace Iris.NET.Collections
                 GetFullSubscriptions(child.Value, subscriptions);
         }
 
-        public void Remove(string channel, T item)
+        /// <summary>
+        /// Returns a list of head channels, which are the ones that have no parent channel.
+        /// </summary>
+        /// <returns>A list of head channels.</returns>
+        public List<string> GetChannelsHeads() => _root.Childs.Keys.ToList();
+
+        /// <summary>
+        /// Returns a list of channels, which are children of the specified parent channel.
+        /// </summary>
+        /// <param name="parentChannel"></param>
+        /// <returns>A list of child channels.</returns>
+        public List<string> GetChannelsHierarchy(string parentChannel)
+        {
+            var node = FindNode(parentChannel);
+            if (node != null)
+                return node.Childs.Keys.ToList();
+            return null;
+        }
+
+        /// <summary>
+        /// Removes an item from a channel.
+        /// </summary>
+        /// <param name="item">The item to be removed.</param>
+        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        public void Remove(T item, string channel)
         {
             var node = FindNode(channel);
             if (node != null)
                 node.Items.Remove(item);
         }
 
+        /// <summary>
+        /// Removes all subscriptions of the item from all the channels.
+        /// </summary>
+        /// <param name="item">The item to be removed.</param>
         public void RemoveAll(T item)
         {
             foreach (var node in _root.Childs)
@@ -143,6 +194,10 @@ namespace Iris.NET.Collections
                 RemoveAll(subnode.Value, itemToBeRemoved);
         }
 
+        /// <summary>
+        /// Removes a channel and its children.
+        /// </summary>
+        /// <param name="channel">The parent channel to be removed.</param>
         public void RemoveChannel(string fullChannelName)
         {
             ChannelTreeNode<T> outer;
