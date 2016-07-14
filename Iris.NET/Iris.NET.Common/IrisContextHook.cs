@@ -16,5 +16,12 @@ namespace Iris.NET
         /// Indicates if the node is unsubscribing from the channel of the content handler
         /// </summary>
         public bool Unsubscribing { get; internal set; }
+
+        /// <summary>
+        /// Indicates the target channel of the current context.
+        /// </summary>
+        public string TargetChannel { get; internal set; }
+
+        public DateTime PublicationDateTime { get; internal set; }
     }
 }

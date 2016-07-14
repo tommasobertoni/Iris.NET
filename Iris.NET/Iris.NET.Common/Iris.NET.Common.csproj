@@ -56,6 +56,7 @@
     <Compile Include="Collections\IrisConcurrentHashSet.cs" />
     <Compile Include="AbstractIrisListener.cs" />
     <Compile Include="IrisContextHook.cs" />
+    <Compile Include="IDisposableSubscription.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
     <Compile Include="AbstractNetworkIrisListener.cs" />
     <Compile Include="Nodes\IIrisNode.cs" />

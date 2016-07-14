@@ -12,16 +12,16 @@ namespace Iris.NET.Server
     /// </summary>
     public class IrisPubSubRouter : IPubSubRouter
     {
-        private ConcurrentDictionary<IIrisNode, List<string>> _nodes = new ConcurrentDictionary<IIrisNode, List<string>>();
-        private IChannelsSubscriptionsDictionary<IIrisNode> _subsDictionary;
+        private ConcurrentDictionary<IMessageSubscriber, List<string>> _nodes = new ConcurrentDictionary<IMessageSubscriber, List<string>>();
+        private IChannelsSubscriptionsDictionary<IMessageSubscriber> _subsDictionary;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="subsDictionary">An implementation of IChannelsSubscriptionsDictionary. If not specified, it will use an instance of IrisChannelsSubscriptionsDictionary.</param>
-        public IrisPubSubRouter(IChannelsSubscriptionsDictionary<IIrisNode> subsDictionary = null)
+        public IrisPubSubRouter(IChannelsSubscriptionsDictionary<IMessageSubscriber> subsDictionary = null)
         {
-            _subsDictionary = subsDictionary ?? new IrisChannelsSubscriptionsDictionary<IIrisNode>();
+            _subsDictionary = subsDictionary ?? new IrisChannelsSubscriptionsDictionary<IMessageSubscriber>();
         }
 
         #region Public
@@ -31,7 +31,7 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="node">The node to register.</param>
         /// <returns>Operation succeeded.</returns>
-        public bool Register(IIrisNode node)
+        public bool Register(IMessageSubscriber node)
         {
             if (_nodes.ContainsKey(node))
                 return false;
@@ -44,7 +44,7 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="node">The node to unregister.</param>
         /// <returns>Operation succeeded.</returns>
-        public bool Unregister(IIrisNode node)
+        public bool Unregister(IMessageSubscriber node)
         {
             if (!_nodes.ContainsKey(node))
                 return false;
@@ -71,15 +71,15 @@ namespace Iris.NET.Server
         /// <param name="sender">The submitter node.</param>
         /// <param name="message">The message to submit.</param>
         /// <returns>Operation succeeded.</returns>
-        public bool SubmitMessage(IIrisNode sender, IrisMessage message)
+        public bool SubmitMessage(IMessageSubscriber sender, IrisMessage message)
         {
             if (message.Content == null || message.PublisherId == null || !_nodes.ContainsKey(sender))
                 return false;
 
-            Action<IIrisNode> sendMessageToOthersAction = (n) =>
+            Action<IMessageSubscriber> sendMessageToOthersAction = (n) =>
             {
                 if (n != sender)
-                    n.Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
+                    n.ReceiveMessage(message);
             };
 
             if (message.TargetChannel == null)
@@ -104,7 +104,7 @@ namespace Iris.NET.Server
         /// <param name="node">The node to subscribe.</param>
         /// <param name="channel">The channel to which subscribe.</param>
         /// <returns>Operation succeeded.</returns>
-        public bool Subscribe(IIrisNode node, string channel)
+        public bool Subscribe(IMessageSubscriber node, string channel)
         {
             if (!_nodes.ContainsKey(node))
                 return false;
@@ -134,7 +134,7 @@ namespace Iris.NET.Server
         /// <param name="node">The node to unsubscribe.</param>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <returns>Operation succeeded.</returns>
-        public bool Unsubscribe(IIrisNode node, string channel) => Unsubscribe(node, channel, true);
+        public bool Unsubscribe(IMessageSubscriber node, string channel) => Unsubscribe(node, channel, true);
 
         /// <summary>
         /// Disposes the instance and every registered node.
@@ -158,7 +158,7 @@ namespace Iris.NET.Server
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="removeChannelFromRegisteredNode">If true, removes the channel from the main nodes list.</param>
         /// <returns>Operation succeeded.</returns>
-        private bool Unsubscribe(IIrisNode node, string channel, bool removeChannelFromRegisteredNode)
+        private bool Unsubscribe(IMessageSubscriber node, string channel, bool removeChannelFromRegisteredNode)
         {
             if (!_nodes.ContainsKey(node))
                 return false;

@@ -126,16 +126,17 @@ namespace Iris.NET
         [MethodImpl(MethodImplOptions.Synchronized)]
         public bool Connect(T config)
         {
+            if (IsConnected)
+                return false;
+
             _config = config;
             _subscriptionsListener = OnConnect(_config);
             HookEventsToListener();
             _subscriptionsListener?.Start();
 
-            var success = _subscriptionsListener != null;
-            if (success)
-                OnConnected?.BeginInvoke(null, null);
+            OnConnected?.BeginInvoke(null, null);
 
-            return success;
+            return true;
         }
 
         /// <summary>
@@ -152,7 +153,7 @@ namespace Iris.NET
                 OnDispose();
                 OnDisposed?.BeginInvoke(null, null);
 
-#if TEST
+#if DEBUG && TEST
                 Console.WriteLine($"{this.GetType().Name}:{this.NodeId} STOPPED");
 #endif
             }
@@ -184,11 +185,11 @@ namespace Iris.NET
         /// </summary>
         /// <param name="channel">The channel to which subscribe.</param>
         /// <param name="contentHandler">A handler for the content received through this subscription.</param>
-        /// <returns>Operation succeeded.</returns>
-        public virtual bool Subscribe(string channel, ContentHandler contentHandler)
+        /// <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+        public virtual IDisposableSubscription Subscribe(string channel, ContentHandler contentHandler)
         {
             if (!IsConnected)
-                return false;
+                return null;
 
             lock (_channelsSubscriptions)
             {
@@ -205,9 +206,8 @@ namespace Iris.NET
                 }
             }
 
-            var sub = new IrisSubscribe(NodeId, channel);
-            Send(sub);
-            return true;
+            Send(new IrisSubscribe(NodeId, channel));
+            return new IrisDisposableSubscription(this, channel, contentHandler);
         }
 
         /// <summary>
@@ -455,7 +455,11 @@ namespace Iris.NET
                 // TODO: message.PropagateThroughHierarchy
                 if (handlers != null)
                     foreach (var hander in handlers)
-                        hander.BeginInvoke(message.Content, null, null, null);
+                        hander.BeginInvoke(message.Content, new IrisContextHook()
+                        {
+                            TargetChannel = message.TargetChannel,
+                            PublicationDateTime = message.PublicationDateTime
+                        }, null, null);
 
                 if (LogMessagesEnable)
                     OnLog?.BeginInvoke(GetLogForMessageReceived(message), null, null);

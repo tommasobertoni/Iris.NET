@@ -5,6 +5,10 @@ using System.Text;
 
 namespace Iris.NET.Collections
 {
+    /// <summary>
+    /// Interface for a channels-subscriptions handler class.
+    /// </summary>
+    /// <typeparam name="T">The subscription type.</typeparam>
     public interface IChannelsSubscriptionsDictionary<T>
     {
         /// <summary>

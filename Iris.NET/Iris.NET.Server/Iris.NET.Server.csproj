@@ -48,14 +48,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IrisServerListener.cs" />
+    <Compile Include="Nodes\IrisServerNetworkListener.cs" />
     <Compile Include="PubSub\IPubSubRouter.cs" />
     <Compile Include="Nodes\IrisClientRemoteNode.cs" />
     <Compile Include="IrisServer.cs" />
     <Compile Include="IrisServerConfig.cs" />
-    <Compile Include="Nodes\IrisServerNode.cs" />
+    <Compile Include="Nodes\IrisServerLocalNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PubSub\IrisPubSubRouter.cs" />
+    <Compile Include="PubSub\IMessageSubscriber.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Iris.NET.Common\Iris.NET.Common.csproj">

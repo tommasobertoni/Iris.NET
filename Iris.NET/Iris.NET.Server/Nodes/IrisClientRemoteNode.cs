@@ -11,7 +11,7 @@ namespace Iris.NET.Server
     /// Network client remote node.
     /// Represents the connection to a remote client node.
     /// </summary>
-    internal class IrisClientRemoteNode : AbstractIrisNode<IrisServerConfig>
+    internal class IrisClientRemoteNode : AbstractIrisNode<IrisServerConfig>, IMessageSubscriber
     {
         #region Properties
         /// <summary>
@@ -52,7 +52,7 @@ namespace Iris.NET.Server
 
             _networkStream = _clientSocket.GetStream();
             _pubSubRouter.Register(this);
-            return new IrisServerListener(_networkStream);
+            return new IrisServerNetworkListener(_networkStream);
         }
 
         /// <summary>
@@ -168,5 +168,7 @@ namespace Iris.NET.Server
             _clientSocket = null;
             _pubSubRouter = null;
         }
+
+        public void ReceiveMessage(IrisMessage message) => Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
     }
 }

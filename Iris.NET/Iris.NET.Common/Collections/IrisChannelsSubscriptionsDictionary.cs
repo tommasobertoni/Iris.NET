@@ -9,6 +9,10 @@ using System.Text;
 
 namespace Iris.NET.Collections
 {
+    /// <summary>
+    /// Implementation of IChannelsSubscriptionsDictionary.
+    /// </summary>
+    /// <typeparam name="T">The subscription type.</typeparam>
     public class IrisChannelsSubscriptionsDictionary<T> : IChannelsSubscriptionsDictionary<T>
     {
         public const char ChannelsSeparator = '/';
@@ -250,18 +254,42 @@ namespace Iris.NET.Collections
         }
     }
 
+    /// <summary>
+    /// Class used to identify a node in the channels-subscriptions data structure.
+    /// </summary>
+    /// <typeparam name="T">The subscription type.</typeparam>
     class ChannelTreeNode<T>
     {
+        /// <summary>
+        /// The name of the channel this node represents.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// The name of the channel this node represents. Uses IrisChannelsSubscriptionsDictionary.ChannelsSeparator to build the string.
+        /// </summary>
         public string FullName => $"{Parent?.FullName}{IrisChannelsSubscriptionsDictionary<T>.ChannelsSeparator}{Name}";
 
-        public IrisConcurrentHashSet<T> Items { get; internal set; } = new IrisConcurrentHashSet<T>();
+        /// <summary>
+        /// Set of items that are subscribed to this channel.
+        /// </summary>
+        public IrisConcurrentHashSet<T> Items { get; } = new IrisConcurrentHashSet<T>();
 
-        public ConcurrentDictionary<string, ChannelTreeNode<T>> Childs { get; internal set; } = new ConcurrentDictionary<string, ChannelTreeNode<T>>();
+        /// <summary>
+        /// Dictionary of child nodes.
+        /// </summary>
+        public ConcurrentDictionary<string, ChannelTreeNode<T>> Childs { get; } = new ConcurrentDictionary<string, ChannelTreeNode<T>>();
 
+        /// <summary>
+        /// The parent node.
+        /// </summary>
         public ChannelTreeNode<T> Parent { get; internal set; }
 
+        /// <summary>
+        /// Constructor. It adds itself as a child to the parent node.
+        /// </summary>
+        /// <param name="parent">The parent node.</param>
+        /// <param name="channelName">The channel this node represents.</param>
         public ChannelTreeNode(ChannelTreeNode<T> parent, string channelName)
         {
             Parent = parent;
@@ -271,6 +299,11 @@ namespace Iris.NET.Collections
                 Parent.Childs.TryAdd(Name, this);
         }
 
+        /// <summary>
+        /// Defines equality to another node if their fullname matches.
+        /// </summary>
+        /// <param name="obj">Another object.</param>
+        /// <returns>True if the comparison object is a node and has the same fullname.</returns>
         public override bool Equals(object obj)
         {
             ChannelTreeNode<T> treeNode = null;
@@ -280,6 +313,10 @@ namespace Iris.NET.Collections
             return treeNode.FullName?.Equals(FullName) ?? false;
         }
 
+        /// <summary>
+        /// Defines the hash code as the fullname's hash code.
+        /// </summary>
+        /// <returns>The hash code of this node.</returns>
         public override int GetHashCode() => FullName.GetHashCode();
 
         public override string ToString()

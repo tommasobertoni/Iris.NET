@@ -17,14 +17,14 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="node">The node to register.</param>
         /// <returns>Operation succeeded.</returns>
-        bool Register(IIrisNode node);
+        bool Register(IMessageSubscriber node);
 
         /// <summary>
         /// Unregisters a node. This also deletes every subscription of that node.
         /// </summary>
         /// <param name="node">The node to unregister.</param>
         /// <returns>Operation succeeded.</returns>
-        bool Unregister(IIrisNode node);
+        bool Unregister(IMessageSubscriber node);
 
         /// <summary>
         /// Submits a message to its channel's subscribers.
@@ -32,7 +32,7 @@ namespace Iris.NET.Server
         /// <param name="sender">The submitter node.</param>
         /// <param name="message">The message to submit.</param>
         /// <returns>Operation succeeded.</returns>
-        bool SubmitMessage(IIrisNode sender, IrisMessage message);
+        bool SubmitMessage(IMessageSubscriber sender, IrisMessage message);
 
         /// <summary>
         /// Subscribes a node to a channel in order to receive target messages.
@@ -40,7 +40,7 @@ namespace Iris.NET.Server
         /// <param name="node">The node to subscribe.</param>
         /// <param name="channel">The channel to which subscribe.</param>
         /// <returns>Operation succeeded.</returns>
-        bool Subscribe(IIrisNode node, string channel);
+        bool Subscribe(IMessageSubscriber node, string channel);
 
         /// <summary>
         /// Unsubscribes a node from a channel in order to stop receiving target messages.
@@ -48,6 +48,6 @@ namespace Iris.NET.Server
         /// <param name="node">The node to unsubscribe.</param>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <returns>Operation succeeded.</returns>
-        bool Unsubscribe(IIrisNode node, string channel);
+        bool Unsubscribe(IMessageSubscriber node, string channel);
     }
 }

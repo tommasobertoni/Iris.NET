@@ -11,16 +11,21 @@ namespace Iris.NET.Client.ConsoleApplicationTest
     public class Program
     {
         static string sep = "------------------------";
-        static string logFileName = @".\iris.test.log";
         static string mainChannel = "main";
 
         public static void Main(string[] args)
         {
-            File.Delete(logFileName);
+            if (args != null && args.Length > 0 && args[0].ToLower() == "full")
+                Full();
+            else
+                Base(args);
+        }
 
+        private static void Base(string[] args)
+        {
             Console.WriteLine($"{typeof(Program).Namespace}");
             Console.WriteLine("Press Enter to start (or insert parameters below)");
-            
+
             var parametersString = Console.ReadLine();
             string[] @params = parametersString.Split('\t');
             Console.WriteLine("Started\n");
@@ -40,10 +45,9 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
                 client.OnDisposed += Client_OnClientDisposed;
                 client.OnException += ExceptionHandler;
-                client.OnLog += LogHandler;
                 Console.WriteLine("Exception/Log events hooked");
 
-                if (client.Subscribe(mainChannel, ContentHandler))
+                if (client.Subscribe(mainChannel, ContentHandler) != null)
                 {
                     Console.WriteLine($"Client subscribed to \"{"main"}\" channel\n");
                 }
@@ -101,7 +105,6 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                     Console.WriteLine("Skip \"Unsubscribe\"");
 
                 client.OnException -= ExceptionHandler;
-                client.OnLog -= LogHandler;
                 Console.WriteLine("Exception/Log events UNhooked");
             }
 
@@ -128,10 +131,73 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             Console.WriteLine($"\n{sep}\nEXCEPTION: {ex.GetFullException()}\n{sep}\n");
         }
 
-        private static void LogHandler(string log)
+        private static void Full()
         {
-            Console.WriteLine($"{sep}\nLog: {log}\n{sep}\n");
-            File.AppendAllText(logFileName, log);
+            IrisClientNode client = new IrisClientNode();
+            IrisClientConfig config = new IrisClientConfig()
+            {
+                Hostname = "127.0.0.1",
+                Port = 22000
+            };
+
+            client.OnDisposed += Client_OnClientDisposed;
+            client.OnException += ExceptionHandler;
+            client.Connect(config);
+            Console.WriteLine("- Client connected");
+
+            string input;
+            do
+            {
+                Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
+                Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
+                Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
+                Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
+                Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
+                Console.WriteLine();
+
+                input = Console.ReadLine();
+                string[] command = input.ToUpper().Split(' ');
+                bool handled = false;
+
+                if (command.Length > 1)
+                {
+                    switch (command[0])
+                    {
+                        case "SUB":
+                            if (handled = command.Length == 2 && client.Subscribe(command[1], GenericContentHandler) != null)
+                                Console.WriteLine("- Subscribed");
+                            break;
+
+                        case "UNSUB":
+                            if (handled = command.Length == 2 && client.Unsubscribe(command[1], GenericContentHandler))
+                                Console.WriteLine("- Unsubscribed");
+                            break;
+
+                        case "SEND":
+                            if (handled = (command.Length == 3 && client.Send(command[1], command[2])) ||
+                                          (command.Length == 2 && client.Send(null, command[1])))
+                                Console.WriteLine("- Message sent");
+                            break;
+
+                        case "Q":
+                        case "QUIT":
+                            handled = command.Length == 1;
+                            break;
+                    }
+                }
+
+                if (!handled)
+                    Console.WriteLine($"- Unrecognized command \"{input}\"");
+                Console.WriteLine();
+
+            } while (input.ToUpper() != "QUIT" && input.ToUpper() != "Q");
+
+            client.Dispose();
+        }
+
+        static void GenericContentHandler(object content, IrisContextHook hook)
+        {
+            Console.WriteLine($"Content: {content} [for {hook.TargetChannel}, on {hook.PublicationDateTime}]");
         }
     }
 }

@@ -62,6 +62,8 @@ namespace Iris.NET.Server
         }
 
         #region Public
+        public IrisServerConfig GetServerConfig() => new IrisServerConfig(_pubSubRouter);
+
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Start(int port) => Start(IPAddress.Any, port);
 
@@ -108,7 +110,7 @@ namespace Iris.NET.Server
                 {
                     TcpClient clientSocket = _serverSocket.AcceptTcpClient();
                     var remote = new IrisClientRemoteNode(clientSocket);
-                    remote.Connect(new IrisServerConfig(_pubSubRouter));
+                    remote.Connect(GetServerConfig());
                 }
             }
             catch (Exception ex)

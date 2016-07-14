@@ -28,8 +28,8 @@ namespace Iris.NET
         /// </summary>
         /// <param name="channel">The channel to which subscribe.</param>
         /// <param name="contentHandler">A handler for the content received through this subscription.</param>
-        /// <returns>Operation succeeded.</returns>
-        bool Subscribe(string channel, ContentHandler contentHandler);
+        /// <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+        IDisposableSubscription Subscribe(string channel, ContentHandler contentHandler);
 
         /// <summary>
         /// Removes the content handler from the subscription.

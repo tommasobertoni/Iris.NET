@@ -1,4 +1,5 @@
 ﻿using Iris.NET.Collections;
+using Iris.NET.Server;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,8 +15,9 @@ namespace Iris.NET.ConsoleApplicationTest
 
         static void Main(string[] args)
         {
-            // NetworkTest();
-            DataStructuresTest();
+            //NetworkTest();
+            //DataStructuresTest();
+            ClientServerLocalFullTest();
         }
 
         private static void DataStructuresTest()
@@ -83,16 +85,16 @@ namespace Iris.NET.ConsoleApplicationTest
 
         private static void NetworkTest()
         {
-            var serverThread = new Thread(RunServer);
+            var serverThread = new Thread(() => Server.ConsoleApplicationTest.Program.Main(new string[] { killWord }));
 
-            Console.WriteLine("Press Enter to start (or insert clients count below)");
+            Console.WriteLine("Press Enter to start (or insert network clients count below)");
             var parametersString = Console.ReadLine();
-            var clientsCount = 0;
-            int.TryParse(parametersString, out clientsCount);
-            if (clientsCount < 1) clientsCount = 1;
+            var networkClientsCount = 0;
+            int.TryParse(parametersString, out networkClientsCount);
+            if (networkClientsCount < 1) networkClientsCount = 1;
 
-            Process[] clients = new Process[clientsCount];
-            for (int i = 0; i < clientsCount; i++)
+            Process[] clients = new Process[networkClientsCount];
+            for (int i = 0; i < networkClientsCount; i++)
             {
                 clients[i] = Process.Start(@"Iris.NET.Client.ConsoleApplicationTest.exe", "custom");
             }
@@ -119,9 +121,28 @@ namespace Iris.NET.ConsoleApplicationTest
             serverThread.Join();
         }
 
-        private static void RunServer()
+        private static void ClientServerLocalFullTest(int networkClientsCount = 1)
         {
-            Server.ConsoleApplicationTest.Program.Main(new string[] { killWord });
+            var server = Process.Start(@"Iris.NET.Server.ConsoleApplicationTest.exe", $"full");
+
+            if (networkClientsCount < 1)
+                networkClientsCount = 1;
+
+            Process[] clients = new Process[networkClientsCount];
+            for (int i = 0; i < networkClientsCount; i++)
+                clients[i] = Process.Start(@"Iris.NET.Client.ConsoleApplicationTest.exe", "full");
+
+            string command;
+            do
+            {
+                Console.WriteLine("- Write \"SK\" to kill the server");
+                Console.WriteLine("- Write \"CK\" to kill all the clients");
+                Console.WriteLine("- Write \"CKF\" to kill the first client remaining");
+                Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and kill all");
+                Console.WriteLine();
+                command = Console.ReadLine();
+                Console.WriteLine();
+            } while (command.ToUpper() != "QUIT" && command.ToUpper() != "Q");
         }
     }
 }
