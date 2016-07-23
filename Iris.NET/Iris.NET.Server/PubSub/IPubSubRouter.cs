@@ -16,38 +16,38 @@ namespace Iris.NET.Server
         /// Allows the node to receive broadcast messages.
         /// </summary>
         /// <param name="node">The node to register.</param>
-        /// <returns>Operation succeeded.</returns>
-        bool Register(IIrisNode node);
+        /// <returns>True if the operation succeeded.</returns>
+        bool Register(IMessageSubscriber node);
 
         /// <summary>
         /// Unregisters a node. This also deletes every subscription of that node.
         /// </summary>
         /// <param name="node">The node to unregister.</param>
-        /// <returns>Operation succeeded.</returns>
-        bool Unregister(IIrisNode node);
+        /// <returns>True if the operation succeeded.</returns>
+        bool Unregister(IMessageSubscriber node);
 
         /// <summary>
         /// Submits a message to its channel's subscribers.
         /// </summary>
         /// <param name="sender">The submitter node.</param>
         /// <param name="message">The message to submit.</param>
-        /// <returns>Operation succeeded.</returns>
-        bool SubmitMessage(IIrisNode sender, IrisMessage message);
+        /// <returns>True if the operation succeeded.</returns>
+        bool SubmitMessage(IMessageSubscriber sender, IrisMessage message);
 
         /// <summary>
         /// Subscribes a node to a channel in order to receive target messages.
         /// </summary>
         /// <param name="node">The node to subscribe.</param>
         /// <param name="channel">The channel to which subscribe.</param>
-        /// <returns>Operation succeeded.</returns>
-        bool Subscribe(IIrisNode node, string channel);
+        /// <returns>True if the operation succeeded.</returns>
+        bool Subscribe(IMessageSubscriber node, string channel);
 
         /// <summary>
         /// Unsubscribes a node from a channel in order to stop receiving target messages.
         /// </summary>
         /// <param name="node">The node to unsubscribe.</param>
         /// <param name="channel">The channel from which unsubscribe.</param>
-        /// <returns>Operation succeeded.</returns>
-        bool Unsubscribe(IIrisNode node, string channel);
+        /// <returns>True if the operation succeeded.</returns>
+        bool Unsubscribe(IMessageSubscriber node, string channel);
     }
 }

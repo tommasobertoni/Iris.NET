@@ -7,6 +7,7 @@ namespace Iris.NET
 {
     /// <summary>
     /// Class for meta communication between clients.
+    /// #Note This has not a concrete purpose yet... maybe it will be removed
     /// </summary>
     [Serializable]
     public class IrisMeta : IrisPacket

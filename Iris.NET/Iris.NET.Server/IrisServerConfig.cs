@@ -8,8 +8,11 @@ namespace Iris.NET.Server
     /// <summary>
     /// Server node configuration.
     /// </summary>
-    internal class IrisServerConfig : IrisBaseConfig
+    public class IrisServerConfig : IrisBaseConfig
     {
+        /// <summary>
+        /// The IPubSubRouter instance to interact with.
+        /// </summary>
         public IPubSubRouter PubSubRouter { get; }
 
         /// <summary>

@@ -56,6 +56,7 @@
     <Compile Include="Collections\IrisConcurrentHashSet.cs" />
     <Compile Include="AbstractIrisListener.cs" />
     <Compile Include="IrisContextHook.cs" />
+    <Compile Include="IDisposableSubscription.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
     <Compile Include="AbstractNetworkIrisListener.cs" />
     <Compile Include="Nodes\IIrisNode.cs" />
@@ -65,7 +66,6 @@
     <Compile Include="Packets\IrisPacket.cs" />
     <Compile Include="Packets\IrisSubscribe.cs" />
     <Compile Include="Packets\IrisUnsubscribe.cs" />
-    <Compile Include="Packets\IUserSubmittedPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

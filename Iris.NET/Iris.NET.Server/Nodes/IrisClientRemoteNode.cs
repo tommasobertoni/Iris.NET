@@ -11,7 +11,7 @@ namespace Iris.NET.Server
     /// Network client remote node.
     /// Represents the connection to a remote client node.
     /// </summary>
-    internal class IrisClientRemoteNode : AbstractIrisNode<IrisServerConfig>
+    internal class IrisClientRemoteNode : AbstractIrisNode<IrisServerConfig>, IMessageSubscriber
     {
         #region Properties
         /// <summary>
@@ -52,7 +52,7 @@ namespace Iris.NET.Server
 
             _networkStream = _clientSocket.GetStream();
             _pubSubRouter.Register(this);
-            return new IrisServerListener(_networkStream);
+            return new IrisServerNetworkListener(_networkStream);
         }
 
         /// <summary>
@@ -79,12 +79,12 @@ namespace Iris.NET.Server
         }
 
         /// <summary>
-        /// Handler for a user submitted packet received from the IrisListener.
+        /// Handler for a packet received from the IrisListener.
         /// If the data is valid, it's given to the IPubSubRouter to be handled.
         /// If the data is valid, it sends an IrisMeta packet with positive ACK.
         /// </summary>
-        /// <param name="packet">The IUserSubmittedPacket packet received.</param>
-        protected override void OnUserSubmittedPacketReceived(IUserSubmittedPacket packet)
+        /// <param name="packet">The packet received.</param>
+        protected override void OnClientSubmittedPacketReceived(IrisPacket packet)
         {
             bool? result = null;
 
@@ -107,7 +107,7 @@ namespace Iris.NET.Server
 
             if (result.HasValue)
             {
-                Send(new IrisMeta(NodeId) { ACK = result.Value });
+                Send(new IrisMeta(Id) { ACK = result.Value });
             }
         }
 
@@ -118,7 +118,7 @@ namespace Iris.NET.Server
         /// <param name="data">The invalid data received.</param>
         protected override void OnInvalidDataReceived(object data)
         {
-            Send(new IrisMeta(NodeId)
+            Send(new IrisMeta(Id)
             {
                 Request = Request.Resend,
                 ACK = false
@@ -167,6 +167,14 @@ namespace Iris.NET.Server
             _clientSocket.Close();
             _clientSocket = null;
             _pubSubRouter = null;
+        }
+
+        public void ReceiveMessage(IrisMessage message)
+        {
+            if (message.TargetChannel == null)
+                SendToBroadcast(message.Content);
+            else
+                Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
         }
     }
 }

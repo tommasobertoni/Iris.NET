@@ -61,6 +61,10 @@
       <Project>{0692286E-6499-4F89-8971-C6F0252A54A1}</Project>
       <Name>Iris.NET.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Iris.NET.Server\Iris.NET.Server.csproj">
+      <Project>{856716E0-8895-410B-AEEC-88A27BDECD75}</Project>
+      <Name>Iris.NET.Server</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Iris.NET.Client.ConsoleApplicationTest\Iris.NET.Client.ConsoleApplicationTest.csproj">
       <Project>{ba640fed-f1af-4051-ae2a-d5adecea25d9}</Project>
       <Name>Iris.NET.Client.ConsoleApplicationTest</Name>

@@ -25,14 +25,14 @@ namespace Iris.NET.Collections
         /// Adds an item to the hash set.
         /// </summary>
         /// <param name="item">The item to be added.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Add(T item) => _items.TryAdd(item, 0);
 
         /// <summary>
         /// Removes the item from the hash set.
         /// </summary>
         /// <param name="item">The item to be removed.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Remove(T item)
         {
             byte temp;

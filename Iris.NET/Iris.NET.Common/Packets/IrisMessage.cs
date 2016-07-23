@@ -8,7 +8,7 @@ namespace Iris.NET
     /// Class for pubsub communication
     /// </summary>
     [Serializable]
-    public sealed class IrisMessage : IrisPacket, IUserSubmittedPacket
+    public sealed class IrisMessage : IrisPacket
     {
         /// <summary>
         /// Constructor-
@@ -21,6 +21,7 @@ namespace Iris.NET
         {
             TargetChannel = targetChannel;
             PropagateThroughHierarchy = propagateThroughHierarchy;
+            IsClientSubmitted = true;
         }
 
         /// <summary>
