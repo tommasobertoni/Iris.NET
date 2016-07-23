@@ -8,7 +8,7 @@ namespace Iris.NET
     /// Class for requesting to unsubscribe from a channel.
     /// </summary>
     [Serializable]
-    public class IrisUnsubscribe : IrisPacket, IUserSubmittedPacket
+    public class IrisUnsubscribe : IrisPacket
     {
         /// <summary>
         /// Constructor.
@@ -18,6 +18,7 @@ namespace Iris.NET
         public IrisUnsubscribe(Guid publisherId, string channel) : base(publisherId)
         {
             Channel = channel;
+            IsClientSubmitted = true;
         }
 
         /// <summary>

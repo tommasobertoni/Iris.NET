@@ -23,9 +23,14 @@ namespace Iris.NET.Server
             _pubSubRouter = _config.PubSubRouter;
             _pubSubRouter.Register(this);
             _isConnected = true;
+            // Return null because there's no need for a "listener",
+            // since the message are received by the invocation of ReceiveMessage.
             return null;
         }
 
+        /// <summary>
+        /// Invoked when the node is disposing.
+        /// </summary>
         protected override void OnDispose()
         {
             _isConnected = false;
@@ -41,6 +46,10 @@ namespace Iris.NET.Server
         {
         }
 
+        /// <summary>
+        /// Sends the packet to the network.
+        /// </summary>
+        /// <param name="packet">The packet to send.</param>
         protected override void Send(IrisPacket packet)
         {
             if (packet is IrisSubscribe)
@@ -60,6 +69,10 @@ namespace Iris.NET.Server
             }
         }
 
-        public void ReceiveMessage(IrisMessage message) => OnUserSubmittedPacketReceived(message);
+        /// <summary>
+        /// Invoked when a new message is sent to this subscriber.
+        /// </summary>
+        /// <param name="message">The message sent.</param>
+        public void ReceiveMessage(IrisMessage message) => OnClientSubmittedPacketReceived(message);
     }
 }

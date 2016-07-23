@@ -66,7 +66,6 @@
     <Compile Include="Packets\IrisPacket.cs" />
     <Compile Include="Packets\IrisSubscribe.cs" />
     <Compile Include="Packets\IrisUnsubscribe.cs" />
-    <Compile Include="Packets\IUserSubmittedPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

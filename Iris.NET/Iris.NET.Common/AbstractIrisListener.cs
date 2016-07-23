@@ -45,8 +45,8 @@ namespace Iris.NET
         /// <summary>
         /// Triggered when a user submitted packet is received.
         /// </summary>
-        internal event MessageHandler OnUserSubmittedPacketReceived;
-        internal delegate void MessageHandler(IUserSubmittedPacket packet);
+        internal event MessageHandler OnClientSubmittedPacketReceived;
+        internal delegate void MessageHandler(IrisPacket packet);
 
         /// <summary>
         /// Triggered when an IrisMeta packet is received.
@@ -136,7 +136,13 @@ namespace Iris.NET
                         else if (data is IrisMeta)
                             OnMetaReceived?.BeginInvoke((IrisMeta)data, null, null);
                         else
-                            OnUserSubmittedPacketReceived?.BeginInvoke((IUserSubmittedPacket)data, null, null);
+                        {
+                            var packet = (IrisPacket)data;
+                            if (packet.IsClientSubmitted)
+                                OnClientSubmittedPacketReceived?.BeginInvoke(packet, null, null);
+                            else
+                                OnInvalidDataReceived?.BeginInvoke(data, null, null);
+                        }
                     }
                 }
                 catch (InvalidCastException)

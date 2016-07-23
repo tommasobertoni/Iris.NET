@@ -65,13 +65,13 @@ namespace Iris.NET.ConsoleApplicationTest
             var mainFullSubs = csd.GetSubscriptions("main", true);
             Console.WriteLine("- Full subscriptions to \"main\" and its hierarchy"); Console.WriteLine(string.Join(",", mainFullSubs.ToArray())); Console.WriteLine("\n");
 
-            var heads = csd.GetChannelsHeads();
-            Console.WriteLine("- Heads"); Console.WriteLine(string.Join(",", heads)); Console.WriteLine("\n");
+            var roots = csd.GetChannelsRoots();
+            Console.WriteLine("- Roots"); Console.WriteLine(string.Join(",", roots)); Console.WriteLine("\n");
 
-            foreach (var head in heads)
+            foreach (var root in roots)
             {
-                var childs = csd.GetChannelsHierarchy(head);
-                Console.WriteLine($"- Childs of {head}"); Console.WriteLine(string.Join(",", childs)); Console.WriteLine();
+                var childs = csd.GetChannelsHierarchy(root);
+                Console.WriteLine($"- Childs of {root}"); Console.WriteLine(string.Join(",", childs)); Console.WriteLine();
             }
             Console.WriteLine();
 

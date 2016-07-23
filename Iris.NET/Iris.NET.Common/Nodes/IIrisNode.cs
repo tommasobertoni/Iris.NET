@@ -50,8 +50,9 @@ namespace Iris.NET
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
+        /// <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
         /// <returns>True if the operation succeeded.</returns>
-        bool Unsubscribe(string channel, ContentHandler contentHandler);
+        bool Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingSubscription = false);
 
         /// <summary>
         /// Removes the content handler from the broadcast communication.
@@ -73,6 +74,6 @@ namespace Iris.NET
     /// Delegate definition for a content handler.
     /// </summary>
     /// <param name="content">The content received.</param>
-    /// <param name="k">Iris hook for other information.</param>
+    /// <param name="hook">Iris context hook for other information.</param>
     public delegate void ContentHandler(object content, IrisContextHook hook);
 }

@@ -79,12 +79,12 @@ namespace Iris.NET.Server
         }
 
         /// <summary>
-        /// Handler for a user submitted packet received from the IrisListener.
+        /// Handler for a packet received from the IrisListener.
         /// If the data is valid, it's given to the IPubSubRouter to be handled.
         /// If the data is valid, it sends an IrisMeta packet with positive ACK.
         /// </summary>
-        /// <param name="packet">The IUserSubmittedPacket packet received.</param>
-        protected override void OnUserSubmittedPacketReceived(IUserSubmittedPacket packet)
+        /// <param name="packet">The packet received.</param>
+        protected override void OnClientSubmittedPacketReceived(IrisPacket packet)
         {
             bool? result = null;
 

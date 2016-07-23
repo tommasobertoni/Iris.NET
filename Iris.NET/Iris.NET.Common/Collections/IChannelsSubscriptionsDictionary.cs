@@ -15,7 +15,7 @@ namespace Iris.NET.Collections
         /// Adds an item to a channel.
         /// </summary>
         /// <param name="item">The item to be added.</param>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <returns>True if the operation succeeded.</returns>
         bool Add(T item, string channel);
 
@@ -30,23 +30,23 @@ namespace Iris.NET.Collections
         /// <summary>
         /// Returns a list of items subscribed to the channel.
         /// </summary>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <returns>A list of items subscribed to the channel.</returns>
         List<T> this[string channel] { get; }
 
         /// <summary>
         /// Returns a list of items subscribed to the channel.
         /// </summary>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <param name="includeFullHierarchy">If set to true, it will include all the subscriptions to the child channels of the specified parent channel.</param>
         /// <returns>A list of items subscribed to the channel.</returns>
         List<T> GetSubscriptions(string channel, bool includeFullHierarchy = false);
 
         /// <summary>
-        /// Returns a list of head channels, which are the ones that have no parent channel.
+        /// Returns a list of root channels, which are the ones that have no parent channel.
         /// </summary>
-        /// <returns>A list of head channels.</returns>
-        List<string> GetChannelsHeads();
+        /// <returns>A list of root channels.</returns>
+        List<string> GetChannelsRoots();
 
         /// <summary>
         /// Returns a list of channels, which are children of the specified parent channel.
@@ -59,7 +59,7 @@ namespace Iris.NET.Collections
         /// Removes an item from a channel.
         /// </summary>
         /// <param name="item">The item to be removed.</param>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <returns>True if the operation succeeded.</returns>
         bool Remove(T item, string channel);
 

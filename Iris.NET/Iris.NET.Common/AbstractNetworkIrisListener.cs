@@ -38,13 +38,13 @@ namespace Iris.NET
         /// <returns>The data as object</returns>
         protected override object ReadObject()
         {
-            object @object = null;
+            object obj = null;
             _memoryStream = _networkStream.ReadNext();
 
             if (_memoryStream.Length > 0)
-                @object = _memoryStream.DeserializeFromMemoryStream();
+                obj = _memoryStream.DeserializeFromMemoryStream();
 
-            return @object;
+            return obj;
         }
 
         /// <summary>

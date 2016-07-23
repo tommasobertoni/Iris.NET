@@ -23,7 +23,7 @@ namespace Iris.NET.Collections
         /// <summary>
         /// Returns a list of items subscribed to the channel.
         /// </summary>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <returns>A list of items subscribed to the channel.</returns>
         public List<T> this[string channel]
         {
@@ -37,7 +37,7 @@ namespace Iris.NET.Collections
         /// Adds an item to a channel.
         /// </summary>
         /// <param name="item">The item to be added.</param>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <returns>True if the operation succeeded.</returns>
         public bool Add(T item, string channel) => Add(item, channel.Split(ChannelsSeparator));
 
@@ -50,53 +50,49 @@ namespace Iris.NET.Collections
         public bool Add(T item, params string[] channelsHierarchy)
         {
             if (item == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(item));
 
             CheckChannelsNamesValidity(channelsHierarchy);
 
+            ChannelTreeNode<T> node = null;
             var rootChannel = channelsHierarchy[0];
 
-            if (_root.Childs.ContainsKey(rootChannel))
+            if (_root.Childs.ContainsKey(rootChannel)) // If root already exists
             {
-                ChannelTreeNode<T> node = _root.Childs[rootChannel];
-                var firstNewChannelIndex = 1;
+                // Get the root
+                node = _root.Childs[rootChannel];
+
+                // Find if all channels hierarchy exists
+                var firstNewChannelIndex = 1; // Index of the first new channel to be added to the hierarchy
                 for (; firstNewChannelIndex < channelsHierarchy.Length; firstNewChannelIndex++)
                 {
                     var currentChannelName = channelsHierarchy[firstNewChannelIndex];
                     if (!node.Childs.ContainsKey(currentChannelName))
                         break;
 
+                    // Move the current node "down" the hierarchy
                     node = node.Childs[currentChannelName];
                 }
 
+                // If there is a new branch to be created
                 if (firstNewChannelIndex < channelsHierarchy.Length)
-                    node = CreateNewHierarchy(node, channelsHierarchy, firstNewChannelIndex);   
-
-                if (node != null)
-                {
-                    node.Items.Add(item);
-                    return true;
-                }
+                    node = CreateNewHierarchy(node, channelsHierarchy, firstNewChannelIndex);
+                // node is representing the last channel in this hierarchy
             }
-            else // New hierarchy
+            else // New root hierarchy
             {
-                ChannelTreeNode<T> node = new ChannelTreeNode<T>(_root, rootChannel);
-                _root.Childs.TryAdd(node.Name, node);
-                node = CreateNewHierarchy(node, channelsHierarchy, 1);
-                if (node != null)
-                {
-                    node.Items.Add(item);
-                    return true;
-                }
+                node = new ChannelTreeNode<T>(_root, rootChannel);
+                // Start creating the hierarchy from 1 because index 0 is the root channel
+                node = CreateNewHierarchy(node, channelsHierarchy, fromIndex: 1);
             }
 
-            return false;
+            return node?.Items.Add(item) ?? false;
         }
 
         /// <summary>
         /// Returns a list of items subscribed to the channel.
         /// </summary>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         /// <param name="includeFullHierarchy">If set to true, it will include all the subscriptions to the child channels of the specified parent channel.</param>
         /// <returns>A list of items subscribed to the channel.</returns>
         public List<T> GetSubscriptions(string channel, bool includeFullHierarchy = false)
@@ -108,23 +104,19 @@ namespace Iris.NET.Collections
             {
                 subscriptions = new List<T>();
                 if (includeFullHierarchy)
-                {
                     GetFullSubscriptions(node, subscriptions);
-                }
                 else
-                {
                     subscriptions.AddRange(node.Items.ToList());
-                }
             }
 
             return subscriptions;
         }
 
         /// <summary>
-        /// Returns a list of head channels, which are the ones that have no parent channel.
+        /// Returns a list of root channels, which are the ones that have no parent channel.
         /// </summary>
-        /// <returns>A list of head channels.</returns>
-        public List<string> GetChannelsHeads() => _root.Childs.Keys.ToList();
+        /// <returns>A list of root channels.</returns>
+        public List<string> GetChannelsRoots() => _root.Childs.Keys.ToList();
 
         /// <summary>
         /// Returns a list of channels, which are children of the specified parent channel.
@@ -143,7 +135,7 @@ namespace Iris.NET.Collections
         /// Removes an item from a channel.
         /// </summary>
         /// <param name="item">The item to be removed.</param>
-        /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <param name="channel">The name of the root channel or a hierarchy.</param>
         public bool Remove(T item, string channel)
         {
             var success = false;
@@ -215,13 +207,13 @@ namespace Iris.NET.Collections
         private void CheckChannelsNamesValidity(string[] channelsHierarchy)
         {
             if (channelsHierarchy == null || channelsHierarchy.Length < 1)
-                throw new ArgumentException();
+                throw new ArgumentNullException(nameof(channelsHierarchy));
 
             for (int i = 0; i < channelsHierarchy.Length; i++)
             {
                 var name = channelsHierarchy[i];
                 if (string.IsNullOrWhiteSpace(name) || name.Contains(ChannelsSeparator))
-                    throw new ArgumentException();
+                    throw new ArgumentException(nameof(channelsHierarchy));
                 else
                     channelsHierarchy[i] = name.ToLower();
             }
@@ -326,12 +318,7 @@ namespace Iris.NET.Collections
         {
             StringBuilder sb = new StringBuilder();
             sb.Append($"{Name} ({Items.Count}) -> {{");
-
-            foreach (var child in Childs)
-            {
-                sb.Append(child.Value);
-            }
-
+            Childs.ForEach(child => sb.Append(child.Value));
             sb.Append("}");
             return sb.ToString();
         }

@@ -13,7 +13,7 @@ namespace Iris.NET
     public sealed class IrisContextHook
     {
         /// <summary>
-        /// Indicates if the node is unsubscribing from the channel of the content handler
+        /// Indicates if the node is unsubscribing from the channel.
         /// </summary>
         public bool Unsubscribing { get; internal set; }
 
@@ -22,6 +22,9 @@ namespace Iris.NET
         /// </summary>
         public string TargetChannel { get; internal set; }
 
+        /// <summary>
+        /// Indicates the content's publication datetime.
+        /// </summary>
         public DateTime PublicationDateTime { get; internal set; }
     }
 }

@@ -82,7 +82,7 @@ namespace Iris.NET.Server
             _thread = new Thread(Run);
             _thread.Start();
             // Loop until worker thread activates.
-            while (!_thread.IsAlive) ;
+            while (!_thread.IsAlive);
 
             OnStarted?.BeginInvoke(null, null);
         }

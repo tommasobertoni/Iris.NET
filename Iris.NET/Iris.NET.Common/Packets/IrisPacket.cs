@@ -29,5 +29,10 @@ namespace Iris.NET
         /// Guid of the client who sent this packet.
         /// </summary>
         public Guid PublisherId { get; }
+
+        /// <summary>
+        /// Indicates if this packet was sent by a client in response to an api call and it is not an internal communication.
+        /// </summary>
+        public bool IsClientSubmitted { get; protected set; }
     }
 }

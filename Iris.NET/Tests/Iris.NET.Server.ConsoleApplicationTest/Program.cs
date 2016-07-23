@@ -74,29 +74,30 @@ namespace Iris.NET.Server.ConsoleApplicationTest
 
         static void LocalClientTest(IrisServerConfig config)
         {
-            var node = new IrisServerLocalNode();
-            node.Connect(config);
+            var local = new IrisServerLocalNode();
+            local.Connect(config);
+            var subscriptionToBroadcast = local.SubscribeToBroadcast((c, h) => Console.WriteLine($"Content: {c} [received from broadcast]"));
 
             string root = "tch"; // test channel
             string leaf = $"{root}/deep";
 
             var otherNode = new IrisServerLocalNode();
             otherNode.Connect(config);
-            var subscriptionToBroadcast = otherNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(otherNode)} received from broadcast: {c}"));
-            var subscription = otherNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(otherNode)} received @{root} for {h.TargetChannel}: {c}"));
+            var otherSubscriptionToBroadcast = otherNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(otherNode)} received from broadcast: {c}"));
+            var otherSubscription = otherNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(otherNode)} received @{root} for {h.TargetChannel}: {c}"));
 
             var deepNode = new IrisServerLocalNode();
             deepNode.Connect(config);
-            var deepsubscriptionToBroadcast = deepNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(deepNode)} received from broadcast: {c}"));
+            var deepSubscriptionToBroadcast = deepNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(deepNode)} received from broadcast: {c}"));
             var deepSubscription = deepNode.Subscribe(leaf, (c, h) => Console.WriteLine($"{nameof(deepNode)} received @{leaf} for {h.TargetChannel}: {c}"));
 
             var superNode = new IrisServerLocalNode();
             superNode.Connect(config);
-            var supersubscriptionToBroadcast = superNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(superNode)} received from broadcast: {c}"));
+            var superSubscriptionToBroadcast = superNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(superNode)} received from broadcast: {c}"));
             var superSubscription1 = superNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(superNode)} received @{root} for {h.TargetChannel}: {c}"));
             var superSubscription2 = superNode.Subscribe(leaf, (c, h) => Console.WriteLine($"{nameof(superNode)} received @{leaf} for {h.TargetChannel}: {c}"));
 
-            Console.WriteLine($"Current id: {node.Id}");
+            Console.WriteLine($"Current id: {local.Id}");
             Console.WriteLine($"{nameof(otherNode)} id: {otherNode.Id}");
             Console.WriteLine($"{nameof(deepNode)} id: {deepNode.Id}");
             Console.WriteLine($"{nameof(superNode)} id: {superNode.Id}");
@@ -121,19 +122,19 @@ namespace Iris.NET.Server.ConsoleApplicationTest
                     switch (command[0])
                     {
                         case "SUB":
-                            if (handled = command.Length == 2 && node.Subscribe(command[1], GenericContentHandler) != null)
+                            if (handled = command.Length == 2 && local.Subscribe(command[1], GenericContentHandler) != null)
                                 Console.WriteLine("- Subscribed");
                             break;
 
                         case "UNSUB":
-                            if (handled = command.Length == 2 && node.Unsubscribe(command[1], GenericContentHandler))
+                            if (handled = command.Length == 2 && local.Unsubscribe(command[1], GenericContentHandler))
                                 Console.WriteLine("- Unsubscribed");
                             break;
 
                         case "SEND":
                         case "SEND-F":
-                            if (handled = (command.Length == 3 && node.Send(command[2], command[1], command[0] == "SEND-F")) ||
-                                          (command.Length == 2 && node.SendToBroadcast(command[1])))
+                            if (handled = (command.Length == 3 && local.Send(command[2], command[1], command[0] == "SEND-F")) ||
+                                          (command.Length == 2 && local.SendToBroadcast(command[1])))
                                 Console.WriteLine("- Message sent");
                             break;
 
@@ -150,18 +151,18 @@ namespace Iris.NET.Server.ConsoleApplicationTest
 
             } while (input.ToUpper() != "QUIT" && input.ToUpper() != "Q");
 
-            superSubscription2.Dispose();
-            superSubscription1.Dispose();
-            supersubscriptionToBroadcast.Dispose();
-            deepSubscription.Dispose();
-            deepsubscriptionToBroadcast.Dispose();
-            subscription.Dispose();
-            subscriptionToBroadcast.Dispose();
+            superSubscription2?.Dispose();
+            superSubscription1?.Dispose();
+            superSubscriptionToBroadcast?.Dispose();
+            deepSubscription?.Dispose();
+            deepSubscriptionToBroadcast?.Dispose();
+            otherSubscription?.Dispose();
+            otherSubscriptionToBroadcast?.Dispose();
 
             superNode.Dispose();
             deepNode.Dispose();
             otherNode.Dispose();
-            node.Dispose();
+            local.Dispose();
         }
 
         static void GenericContentHandler(object content, IrisContextHook hook)

@@ -46,7 +46,8 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             {
                 client.Connect(config);
                 Console.WriteLine($"Is client connected? {client.IsConnected} (Press Enter)");
-                
+
+                client.OnDisposed += () => Console.WriteLine("Client disposed");
                 client.OnException += ExceptionHandler;
                 Console.WriteLine("Exception/Log events hooked");
 
@@ -87,7 +88,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\n{sep}\nException:\n{ex.GetFullException()}\n{sep}\n");
+                Console.WriteLine($"\n{sep}\nException:\n{ex.GetFullExceptionMessage()}\n{sep}\n");
             }
             finally
             {
@@ -126,7 +127,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
         private static void ExceptionHandler(Exception ex)
         {
-            Console.WriteLine($"\n{sep}\nEXCEPTION: {ex.GetFullException()}\n{sep}\n");
+            Console.WriteLine($"\n{sep}\nEXCEPTION: {ex.GetFullExceptionMessage()}\n{sep}\n");
         }
 
         private static void ClientFull()
@@ -137,7 +138,8 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 Hostname = "127.0.0.1",
                 Port = 22000
             };
-            
+
+            client.OnDisposed += () => Console.WriteLine("Client disposed");
             client.OnException += ExceptionHandler;
             client.Connect(config);
             var subscriptionToBroadcast = client.SubscribeToBroadcast((c, h) => Console.WriteLine($"Content: {c} [received from broadcast]"));

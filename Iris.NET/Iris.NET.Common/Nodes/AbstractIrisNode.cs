@@ -156,6 +156,7 @@ namespace Iris.NET
                 OnDisposed?.BeginInvoke(null, null);
 
 #if DEBUG && TEST
+                // This is temporary...
                 Console.WriteLine($"{this.GetType().Name}:{this.Id} STOPPED");
 #endif
             }
@@ -180,10 +181,12 @@ namespace Iris.NET
             return SendUnsafe(targetChannel.ToLower(), content, propagateThroughHierarchy);
         }
 
-        public bool SendToBroadcast(object content)
-        {
-            return SendUnsafe(null, content, false);
-        }
+        /// <summary>
+        /// Submits the content to every node in the pubsub network.
+        /// </summary>
+        /// <param name="content">The content to send.</param>
+        /// <returns>True if the operation succeeded.</returns>
+        public bool SendToBroadcast(object content) => SendUnsafe(null, content, false);
 
         private bool SendUnsafe(string targetChannel, object content, bool propagateThroughHierarchy)
         {
@@ -224,9 +227,14 @@ namespace Iris.NET
                 }
             }
 
-            return null;
+            return null; // #Note Return already disposed IrisDisposableSubscription?
         }
 
+        /// <summary>
+        /// Subscribes the conten handler to the broadcast communication.
+        /// </summary>
+        /// <param name="contentHandler">A handler for the content received in broadcast.</param>
+        /// <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
         public IDisposableSubscription SubscribeToBroadcast(ContentHandler contentHandler)
         {
             if (!IsConnected)
@@ -241,7 +249,7 @@ namespace Iris.NET
                     return new IrisDisposableSubscription(this, null, contentHandler);
             }
 
-            return null;
+            return null; // #Note Return already disposed IrisDisposableSubscription?
         }
 
         /// <summary>
@@ -249,17 +257,9 @@ namespace Iris.NET
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
+        /// <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
         /// <returns>True if the operation succeeded.</returns>
-        public virtual bool Unsubscribe(string channel, ContentHandler contentHandler) => Unsubscribe(channel, contentHandler, false);
-
-        /// <summary>
-        /// Removes the content handler from the subscription.
-        /// </summary>
-        /// <param name="channel">The channel from which unsubscribe.</param>
-        /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
-        /// <param name="keepUnderlyingNetworkSubscription"></param>
-        /// <returns>True if the operation succeeded.</returns>
-        public virtual bool Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingNetworkSubscription)
+        public virtual bool Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingSubscription = false)
         {
             if (!IsConnected)
                 return false;
@@ -275,16 +275,14 @@ namespace Iris.NET
             bool result = false;
             lock (_channelsSubscriptions)
             {
-                result = _channelsSubscriptions.Remove(contentHandler, channel);
-                if (result)
+                if (result = _channelsSubscriptions.Remove(contentHandler, channel))
                 {
                     contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
                     
-                    // If there aren't any subscriptions and there's no request of keeping the underlying network subscription
-                    if (!_channelsSubscriptions.GetSubscriptions(channel, true).Any() && !keepUnderlyingNetworkSubscription)
+                    // If there aren't any subscriptions and there's no request of keeping the underlying subscription
+                    if (!_channelsSubscriptions.GetSubscriptions(channel, true).Any() && !keepUnderlyingSubscription)
                     {
-                        var unsub = new IrisUnsubscribe(Id, channel);
-                        Send(unsub);
+                        Send(new IrisUnsubscribe(Id, channel));
                     }
                 }
             }
@@ -292,6 +290,11 @@ namespace Iris.NET
             return result;
         }
 
+        /// <summary>
+        /// Removes the content handler from the broadcast communication.
+        /// </summary>
+        /// <param name="contentHandler">The content handler to be removed from the broadcast.</param>
+        /// <returns>True if the operation succeeded.</returns>
         public bool UnsubscribeFromBroadcast(ContentHandler contentHandler)
         {
             if (!IsConnected)
@@ -331,8 +334,7 @@ namespace Iris.NET
                 List<ContentHandler> subs = _channelsSubscriptions.GetSubscriptions(channel);
                 if (subs != null && _channelsSubscriptions.RemoveChannel(channel))
                 {
-                    var unsub = new IrisUnsubscribe(Id, channel);
-                    Send(unsub);
+                    Send(new IrisUnsubscribe(Id, channel));
                     return true;
                 }
             }
@@ -353,7 +355,7 @@ namespace Iris.NET
             
             if (subscriptionsListener != null)
             {
-                subscriptionsListener.OnUserSubmittedPacketReceived += OnUserSubmittedPacketReceived;
+                subscriptionsListener.OnClientSubmittedPacketReceived += OnClientSubmittedPacketReceived;
                 subscriptionsListener.OnMetaReceived += OnMetaReceived;
                 subscriptionsListener.OnErrorReceived += OnError;
                 subscriptionsListener.OnInvalidDataReceived += OnInvalidDataReceived;
@@ -373,7 +375,7 @@ namespace Iris.NET
 
             if (subscriptionsListener != null)
             {
-                subscriptionsListener.OnUserSubmittedPacketReceived -= OnUserSubmittedPacketReceived;
+                subscriptionsListener.OnClientSubmittedPacketReceived -= OnClientSubmittedPacketReceived;
                 subscriptionsListener.OnMetaReceived -= OnMetaReceived;
                 subscriptionsListener.OnErrorReceived -= OnError;
                 subscriptionsListener.OnInvalidDataReceived -= OnInvalidDataReceived;
@@ -439,7 +441,7 @@ namespace Iris.NET
         /// </summary>
         /// <param name="ex">The exception that occurred.</param>
         /// <returns>A log string.</returns>
-        protected string GetLogForException(Exception ex) => $"[Exception];{ex.GetFullException()}";
+        protected string GetLogForException(Exception ex) => $"[Exception];{ex.GetFullExceptionMessage()}";
 
         /// <summary>
         /// Handler for exceptions coming from the IrisListener.
@@ -473,7 +475,7 @@ namespace Iris.NET
         /// </summary>
         /// <param name="error">The IrisError received.</param>
         /// <returns>A log string.</returns>
-        protected string GetLogForError(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.Exception)}: {error.Exception?.GetFullException()}";
+        protected string GetLogForError(IrisError error) => $"[Error];{nameof(error.PublisherId)}: {error.PublisherId};{nameof(error.Exception)}: {error.Exception?.GetFullExceptionMessage()}";
 
         /// <summary>
         /// Handler for an IrisError.
@@ -494,12 +496,12 @@ namespace Iris.NET
         protected virtual string GetLogForMessageReceived(IrisMessage message) => $"[Message];{nameof(message.TargetChannel)}: {message.TargetChannel};{nameof(message.PublicationDateTime)}: {message.PublicationDateTime};{nameof(message.PropagateThroughHierarchy)}: {message.PropagateThroughHierarchy}";
 
         /// <summary>
-        /// Handler for a user submitted packet received from the IrisListener.
+        /// Handler for a packet received from the IrisListener.
         /// If the packet is of IrisMessage type, invokes the ContentHandlers subscribed to the reception of the message.
         /// Fires a log event if LogMessagesEnable is true and the packet is of IrisMessage type.
         /// </summary>
-        /// <param name="packet">The IUserSubmittedPacket packet received.</param>
-        protected virtual void OnUserSubmittedPacketReceived(IUserSubmittedPacket packet)
+        /// <param name="packet">The packet received.</param>
+        protected virtual void OnClientSubmittedPacketReceived(IrisPacket packet)
         {
             if (packet is IrisMessage)
             {

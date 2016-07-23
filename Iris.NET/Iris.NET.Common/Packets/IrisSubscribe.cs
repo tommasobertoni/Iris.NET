@@ -8,7 +8,7 @@ namespace Iris.NET
     /// Class for requesting to subscribe to a channel.
     /// </summary>
     [Serializable]
-    public sealed class IrisSubscribe : IrisPacket, IUserSubmittedPacket
+    public sealed class IrisSubscribe : IrisPacket
     {
         /// <summary>
         /// Constructor
@@ -18,6 +18,7 @@ namespace Iris.NET
         public IrisSubscribe(Guid publisherId, string channel) : base(publisherId)
         {
             Channel = channel;
+            IsClientSubmitted = true;
         }
 
         /// <summary>
