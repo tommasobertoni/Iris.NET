@@ -30,7 +30,7 @@ namespace Iris.NET.Server
         /// Allows the node to receive broadcast messages.
         /// </summary>
         /// <param name="node">The node to register.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Register(IMessageSubscriber node)
         {
             if (_nodes.ContainsKey(node))
@@ -43,7 +43,7 @@ namespace Iris.NET.Server
         /// Unregisters a node. This also deletes every subscription of that node.
         /// </summary>
         /// <param name="node">The node to unregister.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Unregister(IMessageSubscriber node)
         {
             if (!_nodes.ContainsKey(node))
@@ -70,16 +70,20 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="sender">The submitter node.</param>
         /// <param name="message">The message to submit.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool SubmitMessage(IMessageSubscriber sender, IrisMessage message)
         {
             if (message.Content == null || message.PublisherId == null || !_nodes.ContainsKey(sender))
                 return false;
 
+            IrisConcurrentHashSet<Guid> _deliveryNodes = new IrisConcurrentHashSet<Guid>();
             Action<IMessageSubscriber> sendMessageToOthersAction = (n) =>
             {
-                if (n != sender)
+                if (n != sender && !_deliveryNodes.Contains(n.Id))
+                {
+                    _deliveryNodes.Add(n.Id);
                     n.ReceiveMessage(message);
+                }
             };
 
             if (message.TargetChannel == null)
@@ -103,7 +107,7 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="node">The node to subscribe.</param>
         /// <param name="channel">The channel to which subscribe.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Subscribe(IMessageSubscriber node, string channel)
         {
             if (!_nodes.ContainsKey(node))
@@ -133,7 +137,7 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="node">The node to unsubscribe.</param>
         /// <param name="channel">The channel from which unsubscribe.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Unsubscribe(IMessageSubscriber node, string channel) => Unsubscribe(node, channel, true);
 
         /// <summary>
@@ -157,7 +161,7 @@ namespace Iris.NET.Server
         /// <param name="node">The node to unsubscribe.</param>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="removeChannelFromRegisteredNode">If true, removes the channel from the main nodes list.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         private bool Unsubscribe(IMessageSubscriber node, string channel, bool removeChannelFromRegisteredNode)
         {
             if (!_nodes.ContainsKey(node))

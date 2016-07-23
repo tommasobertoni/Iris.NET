@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Iris.NET
@@ -14,9 +15,11 @@ namespace Iris.NET
 
     class IrisDisposableSubscription : IDisposableSubscription
     {
+        public bool IsDisposed { get; private set; }
+
         public string Channel { get; }
 
-        public ContentHandler ContentHandler { get; }
+        public ContentHandler ContentHandler { get; private set; }
 
         private IIrisNode _irisNode;
 
@@ -25,11 +28,23 @@ namespace Iris.NET
             _irisNode = irisNode;
             Channel = channel;
             ContentHandler = contentHandler;
+            IsDisposed = false;
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void Dispose()
         {
-            _irisNode?.Unsubscribe(Channel, ContentHandler);
+            if (!IsDisposed)
+            {
+                if (Channel == null)
+                    _irisNode?.UnsubscribeFromBroadcast(ContentHandler);
+                else
+                    _irisNode?.Unsubscribe(Channel, ContentHandler);
+
+                _irisNode = null;
+                this.ContentHandler = null;
+                IsDisposed = true;
+            }
         }
     }
 }

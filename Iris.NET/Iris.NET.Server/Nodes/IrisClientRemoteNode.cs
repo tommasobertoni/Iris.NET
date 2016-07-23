@@ -107,7 +107,7 @@ namespace Iris.NET.Server
 
             if (result.HasValue)
             {
-                Send(new IrisMeta(NodeId) { ACK = result.Value });
+                Send(new IrisMeta(Id) { ACK = result.Value });
             }
         }
 
@@ -118,7 +118,7 @@ namespace Iris.NET.Server
         /// <param name="data">The invalid data received.</param>
         protected override void OnInvalidDataReceived(object data)
         {
-            Send(new IrisMeta(NodeId)
+            Send(new IrisMeta(Id)
             {
                 Request = Request.Resend,
                 ACK = false

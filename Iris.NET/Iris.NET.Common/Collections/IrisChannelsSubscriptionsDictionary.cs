@@ -38,7 +38,7 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="item">The item to be added.</param>
         /// <param name="channel">The name of the head channel or a hierarchy.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Add(T item, string channel) => Add(item, channel.Split(ChannelsSeparator));
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="channelsHierarchy">The hierarchy of channels of which the last is the channel to which the item will be added.</param>
         /// <param name="item">The item to be added.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public bool Add(T item, params string[] channelsHierarchy)
         {
             if (item == null)
@@ -157,17 +157,19 @@ namespace Iris.NET.Collections
         /// Removes all subscriptions of the item from all the channels.
         /// </summary>
         /// <param name="item">The item to be removed.</param>
-        public void RemoveAll(T item)
+        public bool RemoveAll(T item)
         {
+            bool nodeFound = false;
             foreach (var node in _root.Childs)
-                RemoveAll(node.Value, item);
+                nodeFound |= RemoveAll(node.Value, item);
+            return nodeFound;
         }
 
         /// <summary>
         /// Removes a channel and its children.
         /// </summary>
         /// <param name="channel">The parent channel to be removed.</param>
-        public bool RemoveChannel(string fullChannelName)
+        public bool RemoveChannel(string fullChannelName, bool includeFullHierarchy = false)
         {
             var success = false;
             ChannelTreeNode<T> outer;
@@ -195,11 +197,12 @@ namespace Iris.NET.Collections
         public void Clear() => _root = new ChannelTreeNode<T>(null, null);
         #endregion
 
-        private void RemoveAll(ChannelTreeNode<T> node, T itemToBeRemoved)
+        private bool RemoveAll(ChannelTreeNode<T> node, T itemToBeRemoved)
         {
-            node.Items.Remove(itemToBeRemoved);
+            var nodeFound = node.Items.Remove(itemToBeRemoved);
             foreach (var subnode in node.Childs)
-                RemoveAll(subnode.Value, itemToBeRemoved);
+                nodeFound |= RemoveAll(subnode.Value, itemToBeRemoved);
+            return nodeFound;
         }
 
         private void GetFullSubscriptions(ChannelTreeNode<T> node, List<T> subscriptions)

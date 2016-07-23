@@ -12,7 +12,7 @@ namespace Iris.NET
         /// <summary>
         /// Guid of this node.
         /// </summary>
-        Guid NodeId { get; }
+        Guid Id { get; }
 
         /// <summary>
         /// Submits the content to the pubsub network.
@@ -20,8 +20,15 @@ namespace Iris.NET
         /// <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
         /// <param name="content">The content to send.</param>
         /// <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         bool Send(string targetChannel, object content, bool propagateThroughHierarchy = false);
+
+        /// <summary>
+        /// Submits the content to every node in the pubsub network.
+        /// </summary>
+        /// <param name="content">The content to send.</param>
+        /// <returns>True if the operation succeeded.</returns>
+        bool SendToBroadcast(object content);
 
         /// <summary>
         /// Subscribes this node to a channel.
@@ -32,19 +39,33 @@ namespace Iris.NET
         IDisposableSubscription Subscribe(string channel, ContentHandler contentHandler);
 
         /// <summary>
+        /// Subscribes the conten handler to the broadcast communication.
+        /// </summary>
+        /// <param name="contentHandler">A handler for the content received in broadcast.</param>
+        /// <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
+        IDisposableSubscription SubscribeToBroadcast(ContentHandler contentHandler);
+
+        /// <summary>
         /// Removes the content handler from the subscription.
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         bool Unsubscribe(string channel, ContentHandler contentHandler);
+
+        /// <summary>
+        /// Removes the content handler from the broadcast communication.
+        /// </summary>
+        /// <param name="contentHandler">The content handler to be removed from the broadcast.</param>
+        /// <returns>True if the operation succeeded.</returns>
+        bool UnsubscribeFromBroadcast(ContentHandler contentHandler);
 
         /// <summary>
         /// Unsubscribes this node from a channel.
         /// All the content handlers subscribed to this channel will be lost.
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         bool Unsubscribe(string channel);
     }
 

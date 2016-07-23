@@ -73,12 +73,38 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             var node = new IrisServerLocalNode();
             node.Connect(config);
 
+            string root = "tch"; // test channel
+            string leaf = $"{root}/deep";
+
+            var otherNode = new IrisServerLocalNode();
+            otherNode.Connect(config);
+            var subscriptionToBroadcast = otherNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(otherNode)} received in broadcast: {c}"));
+            var subscription = otherNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(otherNode)} received @{root} for {h.TargetChannel}: {c}"));
+
+            var deepNode = new IrisServerLocalNode();
+            deepNode.Connect(config);
+            var deepsubscriptionToBroadcast = deepNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(deepNode)} received in broadcast: {c}"));
+            var deepSubscription = deepNode.Subscribe(leaf, (c, h) => Console.WriteLine($"{nameof(deepNode)} received @{leaf} for {h.TargetChannel}: {c}"));
+
+            var superNode = new IrisServerLocalNode();
+            superNode.Connect(config);
+            var supersubscriptionToBroadcast = superNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(superNode)} received in broadcast: {c}"));
+            var superSubscription1 = superNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(superNode)} received @{root} for {h.TargetChannel}: {c}"));
+            var superSubscription2 = superNode.Subscribe(leaf, (c, h) => Console.WriteLine($"{nameof(superNode)} received @{leaf} for {h.TargetChannel}: {c}"));
+
+            Console.WriteLine($"Current id: {node.Id}");
+            Console.WriteLine($"{nameof(otherNode)} id: {otherNode.Id}");
+            Console.WriteLine($"{nameof(deepNode)} id: {deepNode.Id}");
+            Console.WriteLine($"{nameof(superNode)} id: {superNode.Id}");
+            Console.WriteLine();
+
             string input;
             do
             {
                 Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
                 Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
                 Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
+                Console.WriteLine("- Use \"SEND-F\" to send a message to the whole hierarchy");
                 Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
                 Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
                 Console.WriteLine();
@@ -102,8 +128,9 @@ namespace Iris.NET.Server.ConsoleApplicationTest
                             break;
 
                         case "SEND":
-                            if (handled = (command.Length == 3 && node.Send(command[1], command[2])) ||
-                                          (command.Length == 2 && node.Send(null, command[1])))
+                        case "SEND-F":
+                            if (handled = (command.Length == 3 && node.Send(command[2], command[1], command[0] == "SEND-F")) ||
+                                          (command.Length == 2 && node.SendToBroadcast(command[1])))
                                 Console.WriteLine("- Message sent");
                             break;
 
@@ -120,6 +147,17 @@ namespace Iris.NET.Server.ConsoleApplicationTest
 
             } while (input.ToUpper() != "QUIT" && input.ToUpper() != "Q");
 
+            superSubscription2.Dispose();
+            superSubscription1.Dispose();
+            supersubscriptionToBroadcast.Dispose();
+            deepSubscription.Dispose();
+            deepsubscriptionToBroadcast.Dispose();
+            subscription.Dispose();
+            subscriptionToBroadcast.Dispose();
+
+            superNode.Dispose();
+            deepNode.Dispose();
+            otherNode.Dispose();
             node.Dispose();
         }
 

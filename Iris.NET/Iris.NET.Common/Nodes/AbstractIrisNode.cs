@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iris.NET.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -19,7 +20,7 @@ namespace Iris.NET
         /// <summary>
         /// Guid of this node.
         /// </summary>
-        public Guid NodeId { get; } = Guid.NewGuid();
+        public Guid Id { get; } = Guid.NewGuid();
 
         /// <summary>
         /// Triggers a log event when a message is received.
@@ -76,7 +77,8 @@ namespace Iris.NET
         #endregion
         
         private AbstractIrisListener _subscriptionsListener;
-        protected volatile Dictionary<string, LinkedList<ContentHandler>> _channelsSubscriptions = new Dictionary<string, LinkedList<ContentHandler>>();
+        protected volatile IrisConcurrentHashSet<ContentHandler> _broadcastHandlers = new IrisConcurrentHashSet<ContentHandler>();
+        protected volatile IChannelsSubscriptionsDictionary<ContentHandler> _channelsSubscriptions = new IrisChannelsSubscriptionsDictionary<ContentHandler>();
         protected bool _isDisposing;
         protected T _config;
 
@@ -122,7 +124,7 @@ namespace Iris.NET
         /// Connects the node to it's network.
         /// </summary>
         /// <param name="config">The connection's configuration.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public bool Connect(T config)
         {
@@ -154,7 +156,7 @@ namespace Iris.NET
                 OnDisposed?.BeginInvoke(null, null);
 
 #if DEBUG && TEST
-                Console.WriteLine($"{this.GetType().Name}:{this.NodeId} STOPPED");
+                Console.WriteLine($"{this.GetType().Name}:{this.Id} STOPPED");
 #endif
             }
         }
@@ -163,19 +165,33 @@ namespace Iris.NET
         /// <summary>
         /// Submits the content to the pubsub network.
         /// </summary>
-        /// <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
+        /// <param name="targetChannel">The channel targeted by the content.</param>
         /// <param name="content">The content to send.</param>
         /// <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public virtual bool Send(string targetChannel, object content, bool propagateThroughHierarchy = false)
         {
             if (!IsConnected)
                 return false;
 
-            var message = new IrisMessage(NodeId, targetChannel, propagateThroughHierarchy);
-            message.PublicationDateTime = DateTime.Now;
-            message.Content = content;
-            Send(message);
+            if (string.IsNullOrWhiteSpace(targetChannel))
+                throw new ArgumentNullException(nameof(targetChannel));
+
+            return SendUnsafe(targetChannel.ToLower(), content, propagateThroughHierarchy);
+        }
+
+        public bool SendToBroadcast(object content)
+        {
+            return SendUnsafe(null, content, false);
+        }
+
+        private bool SendUnsafe(string targetChannel, object content, bool propagateThroughHierarchy)
+        {
+            Send(new IrisMessage(Id, targetChannel, propagateThroughHierarchy)
+            {
+                PublicationDateTime = DateTime.Now,
+                Content = content
+            });
 
             return true;
         }
@@ -191,23 +207,41 @@ namespace Iris.NET
             if (!IsConnected)
                 return null;
 
+            if (string.IsNullOrWhiteSpace(channel))
+                throw new ArgumentNullException(nameof(channel));
+
+            if (contentHandler == null)
+                throw new ArgumentNullException(nameof(contentHandler));
+
+            channel = channel.ToLower();
+            
             lock (_channelsSubscriptions)
             {
-                LinkedList<ContentHandler> subs = null;
-                if (_channelsSubscriptions.TryGetValue(channel, out subs))
+                if (_channelsSubscriptions.Add(contentHandler, channel))
                 {
-                    subs.AddLast(contentHandler);
-                }
-                else
-                {
-                    subs = new LinkedList<ContentHandler>();
-                    subs.AddFirst(contentHandler);
-                    _channelsSubscriptions.Add(channel, subs);
+                    Send(new IrisSubscribe(Id, channel));
+                    return new IrisDisposableSubscription(this, channel, contentHandler);
                 }
             }
 
-            Send(new IrisSubscribe(NodeId, channel));
-            return new IrisDisposableSubscription(this, channel, contentHandler);
+            return null;
+        }
+
+        public IDisposableSubscription SubscribeToBroadcast(ContentHandler contentHandler)
+        {
+            if (!IsConnected)
+                return null;
+
+            if (contentHandler == null)
+                throw new ArgumentNullException(nameof(contentHandler));
+            
+            lock (_broadcastHandlers)
+            {
+                if (_broadcastHandlers.Add(contentHandler))
+                    return new IrisDisposableSubscription(this, null, contentHandler);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -215,7 +249,7 @@ namespace Iris.NET
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public virtual bool Unsubscribe(string channel, ContentHandler contentHandler) => Unsubscribe(channel, contentHandler, false);
 
         /// <summary>
@@ -224,35 +258,56 @@ namespace Iris.NET
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
         /// <param name="keepUnderlyingNetworkSubscription"></param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public virtual bool Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingNetworkSubscription)
         {
             if (!IsConnected)
                 return false;
 
+            if (string.IsNullOrWhiteSpace(channel))
+                throw new ArgumentNullException(nameof(channel));
+
+            if (contentHandler == null)
+                throw new ArgumentNullException(nameof(contentHandler));
+
+            channel = channel.ToLower();
+
+            bool result = false;
             lock (_channelsSubscriptions)
             {
-                LinkedList<ContentHandler> subs = null;
-                if (_channelsSubscriptions.TryGetValue(channel, out subs))
+                result = _channelsSubscriptions.Remove(contentHandler, channel);
+                if (result)
                 {
-                    if (subs.Remove(contentHandler))
+                    contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
+                    
+                    // If there aren't any subscriptions and there's no request of keeping the underlying network subscription
+                    if (!_channelsSubscriptions.GetSubscriptions(channel, true).Any() && !keepUnderlyingNetworkSubscription)
                     {
-                        contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
-
-                        // If there aren't any subscriptions and there's no request of keeping the underlying network subscription
-                        if (!subs.Any() && !keepUnderlyingNetworkSubscription)
-                        {
-                            var unsub = new IrisUnsubscribe(NodeId, channel);
-                            Send(unsub);
-                        }
-                        
-                        return true;
-
+                        var unsub = new IrisUnsubscribe(Id, channel);
+                        Send(unsub);
                     }
                 }
             }
 
-            return false;
+            return result;
+        }
+
+        public bool UnsubscribeFromBroadcast(ContentHandler contentHandler)
+        {
+            if (!IsConnected)
+                return false;
+
+            if (contentHandler == null)
+                throw new ArgumentNullException(nameof(contentHandler));
+
+            bool result = false;
+            lock (_broadcastHandlers)
+            {
+                if (result = _broadcastHandlers.Remove(contentHandler))
+                    contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -260,21 +315,23 @@ namespace Iris.NET
         /// All the content handlers subscribed to this channel will be lost.
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         public virtual bool Unsubscribe(string channel)
         {
             if (!IsConnected)
                 return false;
 
+            if (string.IsNullOrWhiteSpace(channel))
+                throw new ArgumentNullException(nameof(channel));
+
+            channel = channel.ToLower();
+
             lock (_channelsSubscriptions)
             {
-                LinkedList<ContentHandler> subs = null;
-                if (_channelsSubscriptions.TryGetValue(channel, out subs))
+                List<ContentHandler> subs = _channelsSubscriptions.GetSubscriptions(channel);
+                if (subs != null && _channelsSubscriptions.RemoveChannel(channel))
                 {
-                    subs.ForEach(s => s.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null));
-                    subs.Clear();
-                    _channelsSubscriptions.Remove(channel);
-                    var unsub = new IrisUnsubscribe(NodeId, channel);
+                    var unsub = new IrisUnsubscribe(Id, channel);
                     Send(unsub);
                     return true;
                 }
@@ -333,7 +390,7 @@ namespace Iris.NET
         {
             try
             {
-                Send(new IrisMeta(NodeId)
+                Send(new IrisMeta(Id)
                 {
                     ACK = null,
                     Request = Request.AreYouAlive
@@ -447,26 +504,38 @@ namespace Iris.NET
             if (packet is IrisMessage)
             {
                 var message = packet as IrisMessage;
-                LinkedList<ContentHandler> handlers = null;
-                
-                if (message.TargetChannel != null)
-                    _channelsSubscriptions.TryGetValue(message.TargetChannel, out handlers);
+                IEnumerable<ContentHandler> handlers = null;
 
-                // TODO: message.PropagateThroughHierarchy
+                if (message.TargetChannel != null)
+                    handlers = _channelsSubscriptions.GetSubscriptions(message.TargetChannel, message.PropagateThroughHierarchy);
+                else
+                {
+                    lock (_broadcastHandlers)
+                    {
+                        var broadcastHandlers = new List<ContentHandler>();
+                        broadcastHandlers.AddRange(_broadcastHandlers);
+                        handlers = broadcastHandlers;
+                    }
+                }
+
                 if (handlers != null)
+                {
+                    var ctxHook = new IrisContextHook()
+                    {
+                        TargetChannel = message.TargetChannel,
+                        PublicationDateTime = message.PublicationDateTime
+                    };
+
                     foreach (var hander in handlers)
-                        hander.BeginInvoke(message.Content, new IrisContextHook()
-                        {
-                            TargetChannel = message.TargetChannel,
-                            PublicationDateTime = message.PublicationDateTime
-                        }, null, null);
+                        hander.BeginInvoke(message.Content, ctxHook, null, null);
+                }
 
                 if (LogMessagesEnable)
                     OnLog?.BeginInvoke(GetLogForMessageReceived(message), null, null);
 
                 // No subscription found for this message
                 if (handlers == null)
-                    OnLog?.BeginInvoke(GetLogForError(new IrisError(NodeId)
+                    OnLog?.BeginInvoke(GetLogForError(new IrisError(Id)
                     {
                         Log = $"Unable to find subscriptions for the channel {message.TargetChannel}. [Message]{GetLogForMessageReceived(message)}."
                     }), null, null);
@@ -477,7 +546,7 @@ namespace Iris.NET
         /// Builds a string for logging null data received.
         /// </summary>
         /// <returns>A log string.</returns>
-        protected virtual string GetLogForNullReceived() => $"[NullReceived] Node: {NodeId}";
+        protected virtual string GetLogForNullReceived() => $"[NullReceived] Node: {Id}";
 
         /// <summary>
         /// Handler for null data received from the IrisListener.

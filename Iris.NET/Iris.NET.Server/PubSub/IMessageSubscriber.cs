@@ -7,6 +7,8 @@ namespace Iris.NET.Server
 {
     public interface IMessageSubscriber : IDisposable
     {
+        Guid Id { get; }
+
         void ReceiveMessage(IrisMessage message);
     }
 }

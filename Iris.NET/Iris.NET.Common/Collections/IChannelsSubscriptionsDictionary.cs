@@ -16,7 +16,7 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="item">The item to be added.</param>
         /// <param name="channel">The name of the head channel or a hierarchy.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         bool Add(T item, string channel);
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="channelsHierarchy">The hierarchy of channels of which the last is the channel to which the item will be added.</param>
         /// <param name="item">The item to be added.</param>
-        /// <returns>Operation succeeded.</returns>
+        /// <returns>True if the operation succeeded.</returns>
         bool Add(T item, params string[] channelsHierarchy);
 
         /// <summary>
@@ -60,19 +60,23 @@ namespace Iris.NET.Collections
         /// </summary>
         /// <param name="item">The item to be removed.</param>
         /// <param name="channel">The name of the head channel or a hierarchy.</param>
+        /// <returns>True if the operation succeeded.</returns>
         bool Remove(T item, string channel);
 
         /// <summary>
         /// Removes all subscriptions of the item from all the channels.
         /// </summary>
         /// <param name="item">The item to be removed.</param>
-        void RemoveAll(T item);
+        /// <returns>True if the operation succeeded.</returns>
+        bool RemoveAll(T item);
 
         /// <summary>
         /// Removes a channel and its children.
         /// </summary>
         /// <param name="channel">The parent channel to be removed.</param>
-        bool RemoveChannel(string channel);
+        /// <param name="includeFullHierarchy">If set to true, it will remove all the subscriptions to the child channels of the specified parent channel.</param>
+        /// <returns>True if the operation succeeded.</returns>
+        bool RemoveChannel(string channel, bool includeFullHierarchy = false);
 
         /// <summary>
         /// Clears all the channels and subscriptions.
