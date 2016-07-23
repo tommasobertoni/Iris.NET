@@ -15,13 +15,17 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
         public static void Main(string[] args)
         {
+#if FULL
+            ClientFull();
+#else
             if (args != null && args.Length > 0 && args[0].ToLower() == "full")
-                Full();
+                ClientFull();
             else
-                Base(args);
+                ClientBase(args);
+#endif
         }
 
-        private static void Base(string[] args)
+        private static void ClientBase(string[] args)
         {
             Console.WriteLine($"{typeof(Program).Namespace}");
             Console.WriteLine("Press Enter to start (or insert parameters below)");
@@ -42,8 +46,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             {
                 client.Connect(config);
                 Console.WriteLine($"Is client connected? {client.IsConnected} (Press Enter)");
-
-                client.OnDisposed += Client_OnClientDisposed;
+                
                 client.OnException += ExceptionHandler;
                 Console.WriteLine("Exception/Log events hooked");
 
@@ -113,11 +116,6 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             Console.ReadLine();
         }
 
-        private static void Client_OnClientDisposed()
-        {
-            Process.GetCurrentProcess().CloseMainWindow();
-        }
-
         private static void ContentHandler(object content, IrisContextHook hook)
         {
             if (content != null)
@@ -131,7 +129,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             Console.WriteLine($"\n{sep}\nEXCEPTION: {ex.GetFullException()}\n{sep}\n");
         }
 
-        private static void Full()
+        private static void ClientFull()
         {
             IrisClientNode client = new IrisClientNode();
             IrisClientConfig config = new IrisClientConfig()
@@ -139,27 +137,29 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                 Hostname = "127.0.0.1",
                 Port = 22000
             };
-
-            client.OnDisposed += Client_OnClientDisposed;
+            
             client.OnException += ExceptionHandler;
             client.Connect(config);
-            Console.WriteLine("- Client connected");
+            var subscriptionToBroadcast = client.SubscribeToBroadcast((c, h) => Console.WriteLine($"Content: {c} [received from broadcast]"));
+
+            Console.WriteLine($"- Client connected (id {client.Id})");
+            Console.WriteLine();
+            Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
+            Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
+            Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
+            Console.WriteLine("- Use \"SEND-F\" to send a message to the whole hierarchy");
+            Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
+            Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
+            Console.WriteLine();
 
             string input;
             do
             {
-                Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
-                Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
-                Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
-                Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
-                Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
-                Console.WriteLine();
-
                 input = Console.ReadLine();
                 string[] command = input.ToUpper().Split(' ');
                 bool handled = false;
 
-                if (command.Length > 1)
+                if (command.Length > 0)
                 {
                     switch (command[0])
                     {
@@ -174,8 +174,9 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                             break;
 
                         case "SEND":
-                            if (handled = (command.Length == 3 && client.Send(command[1], command[2])) ||
-                                          (command.Length == 2 && client.Send(null, command[1])))
+                        case "SEND-F":
+                            if (handled = (command.Length == 3 && client.Send(command[2], command[1], command[0] == "SEND-F")) ||
+                                            (command.Length == 2 && client.SendToBroadcast(command[1])))
                                 Console.WriteLine("- Message sent");
                             break;
 
@@ -192,6 +193,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
 
             } while (input.ToUpper() != "QUIT" && input.ToUpper() != "Q");
 
+            subscriptionToBroadcast.Dispose();
             client.Dispose();
         }
 

@@ -169,6 +169,12 @@ namespace Iris.NET.Server
             _pubSubRouter = null;
         }
 
-        public void ReceiveMessage(IrisMessage message) => Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
+        public void ReceiveMessage(IrisMessage message)
+        {
+            if (message.TargetChannel == null)
+                SendToBroadcast(message.Content);
+            else
+                Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
+        }
     }
 }

@@ -9,13 +9,17 @@ namespace Iris.NET.Server.ConsoleApplicationTest
     {
         public static void Main(string[] args)
         {
+#if FULL
+            ServerFull();
+#else
             if (args != null && args.Length > 0 && args[0].ToLower() == "full")
-                FullTest(args);
+                ServerFull();
             else
-                ServerTest(args);
+                ServerBase(args);
+#endif
         }
 
-        static void FullTest(string[] args)
+        static void ServerFull()
         {
             IrisServer server = new IrisServer();
             server.Start(22000);
@@ -29,7 +33,7 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             Console.ReadLine();
         }
 
-        static void ServerTest(string[] args)
+        static void ServerBase(string[] args)
         {
             Console.WriteLine($"{typeof(Program).Namespace}");
             if (args?.Length == 0)
@@ -78,17 +82,17 @@ namespace Iris.NET.Server.ConsoleApplicationTest
 
             var otherNode = new IrisServerLocalNode();
             otherNode.Connect(config);
-            var subscriptionToBroadcast = otherNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(otherNode)} received in broadcast: {c}"));
+            var subscriptionToBroadcast = otherNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(otherNode)} received from broadcast: {c}"));
             var subscription = otherNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(otherNode)} received @{root} for {h.TargetChannel}: {c}"));
 
             var deepNode = new IrisServerLocalNode();
             deepNode.Connect(config);
-            var deepsubscriptionToBroadcast = deepNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(deepNode)} received in broadcast: {c}"));
+            var deepsubscriptionToBroadcast = deepNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(deepNode)} received from broadcast: {c}"));
             var deepSubscription = deepNode.Subscribe(leaf, (c, h) => Console.WriteLine($"{nameof(deepNode)} received @{leaf} for {h.TargetChannel}: {c}"));
 
             var superNode = new IrisServerLocalNode();
             superNode.Connect(config);
-            var supersubscriptionToBroadcast = superNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(superNode)} received in broadcast: {c}"));
+            var supersubscriptionToBroadcast = superNode.SubscribeToBroadcast((c, h) => Console.WriteLine($"{nameof(superNode)} received from broadcast: {c}"));
             var superSubscription1 = superNode.Subscribe(root, (c, h) => Console.WriteLine($"{nameof(superNode)} received @{root} for {h.TargetChannel}: {c}"));
             var superSubscription2 = superNode.Subscribe(leaf, (c, h) => Console.WriteLine($"{nameof(superNode)} received @{leaf} for {h.TargetChannel}: {c}"));
 
@@ -97,23 +101,22 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             Console.WriteLine($"{nameof(deepNode)} id: {deepNode.Id}");
             Console.WriteLine($"{nameof(superNode)} id: {superNode.Id}");
             Console.WriteLine();
+            Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
+            Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
+            Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
+            Console.WriteLine("- Use \"SEND-F\" to send a message to the whole hierarchy");
+            Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
+            Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
+            Console.WriteLine();
 
             string input;
             do
             {
-                Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
-                Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
-                Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
-                Console.WriteLine("- Use \"SEND-F\" to send a message to the whole hierarchy");
-                Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
-                Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
-                Console.WriteLine();
-
                 input = Console.ReadLine();
                 string[] command = input.ToUpper().Split(' ');
                 bool handled = false;
 
-                if (command.Length > 1)
+                if (command.Length > 0)
                 {
                     switch (command[0])
                     {
