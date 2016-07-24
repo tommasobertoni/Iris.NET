@@ -15,6 +15,9 @@ namespace Iris.NET.Collections
     /// <typeparam name="T">The subscription type.</typeparam>
     public class IrisChannelsSubscriptionsDictionary<T> : IChannelsSubscriptionsDictionary<T>
     {
+        /// <summary>
+        /// Constant character that identifies the channels separator in a given channels hierarchy.
+        /// </summary>
         public const char ChannelsSeparator = '/';
 
         private ChannelTreeNode<T> _root = new ChannelTreeNode<T>(null, null);
@@ -161,19 +164,25 @@ namespace Iris.NET.Collections
         /// Removes a channel and its children.
         /// </summary>
         /// <param name="channel">The parent channel to be removed.</param>
-        public bool RemoveChannel(string fullChannelName, bool includeFullHierarchy = false)
+        /// <param name="includeFullHierarchy">If set to true, it will remove all the subscriptions to the child channels of the specified parent channel.</param>
+        /// <returns>True if the operation succeeded.</returns>
+        public bool RemoveChannel(string channel, bool includeFullHierarchy = false)
         {
             var success = false;
             ChannelTreeNode<T> outer;
-            var node = FindNode(fullChannelName);
+            var node = FindNode(channel);
             if (node != null)
             {
-                var channelName = fullChannelName.Split(ChannelsSeparator).Last();
+                var channelName = channel.Split(ChannelsSeparator).Last();
                 success = node.Parent?.Childs.TryRemove(channelName, out outer) ?? false;
             }
             return success;
         }
 
+        /// <summary>
+        /// Returns a string representing the current hierarchy of channels.
+        /// </summary>
+        /// <returns>A string.</returns>
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -186,6 +195,9 @@ namespace Iris.NET.Collections
             return toString;
         }
 
+        /// <summary>
+        /// Clears the dictionary from all the channels.
+        /// </summary>
         public void Clear() => _root = new ChannelTreeNode<T>(null, null);
         #endregion
 

@@ -56,12 +56,22 @@ namespace Iris.NET
         /// Triggered when an exception occurs.
         /// </summary>
         public event ExceptionHandler OnException;
+
+        /// <summary>
+        /// Delegate for the OnException event.
+        /// </summary>
+        /// <param name="ex">The exception to be handled.</param>
         public delegate void ExceptionHandler(Exception ex);
 
         /// <summary>
         /// Triggered when an operation generates a log.
         /// </summary>
         public event LogHandler OnLog;
+
+        /// <summary>
+        /// Delegate for the OnLog event.
+        /// </summary>
+        /// <param name="log">The log to be handled.</param>
         public delegate void LogHandler(string log);
 
         /// <summary>
@@ -73,13 +83,33 @@ namespace Iris.NET
         /// Triggered when the client is disposed.
         /// </summary>
         public event VoidHandler OnDisposed;
+
+        /// <summary>
+        /// Delegate for the OnConnected and OnDisposed events.
+        /// </summary>
         public delegate void VoidHandler();
         #endregion
         
         private AbstractIrisListener _subscriptionsListener;
+
+        /// <summary>
+        /// Set of content handlers for the broadcast communication.
+        /// </summary>
         protected volatile IrisConcurrentHashSet<ContentHandler> _broadcastHandlers = new IrisConcurrentHashSet<ContentHandler>();
+
+        /// <summary>
+        /// Instance of IChannelsSubscriptionsDictionary used to store content handlers subscriptions.
+        /// </summary>
         protected volatile IChannelsSubscriptionsDictionary<ContentHandler> _channelsSubscriptions = new IrisChannelsSubscriptionsDictionary<ContentHandler>();
-        protected bool _isDisposing;
+
+        /// <summary>
+        /// Indicates if this node is disposed.
+        /// </summary>
+        protected bool _isDisposed;
+
+        /// <summary>
+        /// The Iris configuration for this node.
+        /// </summary>
         protected T _config;
 
         /// <summary>
@@ -147,9 +177,9 @@ namespace Iris.NET
         [MethodImpl(MethodImplOptions.Synchronized)]
         public virtual void Dispose()
         {
-            if (!_isDisposing)
+            if (!_isDisposed)
             {
-                _isDisposing = true;
+                _isDisposed = true;
                 UnhookEventsFromListener();
                 _subscriptionsListener?.Stop();
                 OnDispose();

@@ -39,8 +39,19 @@ namespace Iris.NET
     /// </summary>
     public enum Request
     {
+        /// <summary>
+        /// No request, used for sending a ping.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Request to send again the last packet.
+        /// </summary>
         Resend,
+
+        /// <summary>
+        /// Checks whether or not the receiver is still connected.
+        /// </summary>
         AreYouAlive
     }
 }

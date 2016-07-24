@@ -7,6 +7,9 @@ using System.Text;
 
 namespace Iris.NET
 {
+    /// <summary>
+    /// Extension methods for IO types.
+    /// </summary>
     public static class IOExtensions
     {
         /// <summary>
@@ -24,11 +27,11 @@ namespace Iris.NET
         }
 
         /// <summary>
-        /// Deserializes a memory stream into an instance of type <T>.
+        /// Deserializes a memory stream into an instance of type {T}.
         /// </summary>
         /// <typeparam name="T">The type of the deserialized object.</typeparam>
         /// <param name="stream">The memory stram to deserialize.</param>
-        /// <returns>The deserialized object as <T>.</returns>
+        /// <returns>The deserialized object as {T}.</returns>
         public static T DeserializeFromMemoryStream<T>(this MemoryStream stream) where T : class => DeserializeFromMemoryStream(stream) as T;
 
         /// <summary>

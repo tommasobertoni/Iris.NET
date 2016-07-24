@@ -20,7 +20,11 @@ namespace Iris.NET
         public bool IsListening => _thread != null && _keepListening;
         #endregion
 
+        /// <summary>
+        /// The thread that runs the listening cycle.
+        /// </summary>
         protected Thread _thread;
+
         private volatile bool _keepListening;
 
         #region Events

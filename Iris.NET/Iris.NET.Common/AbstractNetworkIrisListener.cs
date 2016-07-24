@@ -12,7 +12,14 @@ namespace Iris.NET
     /// </summary>
     public class AbstractNetworkIrisListener : AbstractIrisListener
     {
+        /// <summary>
+        /// The network stream from which listen for incoming data.
+        /// </summary>
         protected NetworkStream _networkStream;
+
+        /// <summary>
+        /// The memory stream for storing the incoming data.
+        /// </summary>
         protected MemoryStream _memoryStream;
 
         /// <summary>

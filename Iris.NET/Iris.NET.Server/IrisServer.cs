@@ -39,17 +39,40 @@ namespace Iris.NET.Server
         #endregion
 
         #region Events
+        /// <summary>
+        /// Triggered when an exception occurs while the server is running.
+        /// </summary>
         public event ServerExceptionHandler OnServerException;
+
+        /// <summary>
+        /// Delegate for the OnServerException event.
+        /// </summary>
+        /// <param name="ex"></param>
         public delegate void ServerExceptionHandler(Exception ex);
 
+        /// <summary>
+        /// Triggered when the server started.
+        /// </summary>
         public event VoidHandler OnStarted;
-        public event VoidHandler OnStoped;
+
+        /// <summary>
+        /// Triggered when the server stopped.
+        /// </summary>
+        public event VoidHandler OnStopped;
+
+        /// <summary>
+        /// Delegate for the OnStarted and OnStopped events.
+        /// </summary>
         public delegate void VoidHandler();
         #endregion
 
         private IPubSubRouter _pubSubRouter;
         private TcpListener _serverSocket;
         private volatile bool _isRunning;
+
+        /// <summary>
+        /// The thread that runs the cycle that accepts tcp connections.
+        /// </summary>
         protected Thread _thread;
 
         /// <summary>
@@ -62,11 +85,24 @@ namespace Iris.NET.Server
         }
 
         #region Public
+        /// <summary>
+        /// Returns an IrisServerConfig with the reference to the IPubSubRouter used by this server.
+        /// </summary>
+        /// <returns></returns>
         public IrisServerConfig GetServerConfig() => new IrisServerConfig(_pubSubRouter);
 
+        /// <summary>
+        /// Starts the server and asynchronously runs the cycle that accepts tcp connections.
+        /// </summary>
+        /// <param name="port">The listening tcp port.</param>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Start(int port) => Start(IPAddress.Any, port);
 
+        /// <summary>
+        /// Starts the server and asynchronously runs the cycle that accepts tcp connections.
+        /// </summary>
+        /// <param name="address">The tcp address for this server.</param>
+        /// <param name="port">The listening tcp port.</param>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Start(IPAddress address, int port)
         {
@@ -87,6 +123,9 @@ namespace Iris.NET.Server
             OnStarted?.BeginInvoke(null, null);
         }
 
+        /// <summary>
+        /// Stops the server and 
+        /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Stop()
         {
@@ -98,7 +137,9 @@ namespace Iris.NET.Server
             Port = null;
             _serverSocket?.Stop();
             _pubSubRouter.Dispose();
-            OnStoped?.BeginInvoke(null, null);
+            _thread.Join();
+            _thread = null;
+            OnStopped?.BeginInvoke(null, null);
         }
         #endregion
 

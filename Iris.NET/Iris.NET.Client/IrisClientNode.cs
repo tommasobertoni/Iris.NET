@@ -18,7 +18,14 @@ namespace Iris.NET.Client
         public override bool IsConnected => _socket?.Connected ?? false;
         #endregion
 
+        /// <summary>
+        /// TCP client used to communicate with the remote iris network.
+        /// </summary>
         protected TcpClient _socket;
+
+        /// <summary>
+        /// Network IO stream.
+        /// </summary>
         protected volatile NetworkStream _networkStream;
 
         /// <summary>
@@ -70,8 +77,8 @@ namespace Iris.NET.Client
         {
             if (!IsPeerAlive())
                 Dispose();
-
-            base.OnListenerException(ex);
+            else
+                OnListenerException(ex);
         }
 
         /// <summary>

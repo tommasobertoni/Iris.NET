@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Iris.NET
 {
+    /// <summary>
+    /// Generic extension methods.
+    /// </summary>
     public static class GenericExtensions
     {
         /// <summary>
