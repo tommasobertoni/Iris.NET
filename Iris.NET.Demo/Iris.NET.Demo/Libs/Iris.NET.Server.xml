@@ -157,11 +157,66 @@
             The port on which this server is currently running.
             </summary>
         </member>
+        <member name="E:Iris.NET.Server.IrisServer.OnServerException">
+            <summary>
+            Triggered when an exception occurs while the server is running.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Server.IrisServer.ServerExceptionHandler">
+            <summary>
+            Delegate for the OnServerException event.
+            </summary>
+            <param name="ex"></param>
+        </member>
+        <member name="E:Iris.NET.Server.IrisServer.OnStarted">
+            <summary>
+            Triggered when the server started.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Server.IrisServer.OnStopped">
+            <summary>
+            Triggered when the server stopped.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Server.IrisServer.VoidHandler">
+            <summary>
+            Delegate for the OnStarted and OnStopped events.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Server.IrisServer._thread">
+            <summary>
+            The thread that runs the cycle that accepts tcp connections.
+            </summary>
+        </member>
         <member name="M:Iris.NET.Server.IrisServer.#ctor(Iris.NET.Server.IPubSubRouter)">
             <summary>
             Constructor.
             </summary>
             <param name="pubSubRouter">An implementation of IPubSubRouter. If not specified, it will use an instance of IrisPubSubRouter.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServer.GetServerConfig">
+            <summary>
+            Returns an IrisServerConfig with the reference to the IPubSubRouter used by this server.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServer.Start(System.Int32)">
+            <summary>
+            Starts the server and asynchronously runs the cycle that accepts tcp connections.
+            </summary>
+            <param name="port">The listening tcp port.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServer.Start(System.Net.IPAddress,System.Int32)">
+            <summary>
+            Starts the server and asynchronously runs the cycle that accepts tcp connections.
+            </summary>
+            <param name="address">The tcp address for this server.</param>
+            <param name="port">The listening tcp port.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServer.Stop">
+            <summary>
+            Stops the server and 
+            </summary>
         </member>
         <member name="T:Iris.NET.Server.IrisServerConfig">
             <summary>
@@ -184,10 +239,17 @@
             Local client node.
             </summary>
         </member>
-        <member name="F:Iris.NET.Server.IrisServerLocalNode._isConnected">
+        <member name="P:Iris.NET.Server.IrisServerLocalNode.IsConnected">
             <summary>
             Indicates if this node is connected.
             </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerLocalNode.OnConnect(Iris.NET.Server.IrisServerConfig)">
+            <summary>
+            Invoked when the node is connecting.
+            </summary>
+            <param name="config">The connection's configuration.</param>
+            <returns>An AbstractIrisListener instance.</returns>
         </member>
         <member name="M:Iris.NET.Server.IrisServerLocalNode.OnDispose">
             <summary>

@@ -88,6 +88,11 @@
             </summary>
             <typeparam name="T">The subscription type.</typeparam>
         </member>
+        <member name="F:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.ChannelsSeparator">
+            <summary>
+            Constant character that identifies the channels separator in a given channels hierarchy.
+            </summary>
+        </member>
         <member name="P:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.Item(System.String)">
             <summary>
             Returns a list of items subscribed to the channel.
@@ -150,6 +155,19 @@
             Removes a channel and its children.
             </summary>
             <param name="channel">The parent channel to be removed.</param>
+            <param name="includeFullHierarchy">If set to true, it will remove all the subscriptions to the child channels of the specified parent channel.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.ToString">
+            <summary>
+            Returns a string representing the current hierarchy of channels.
+            </summary>
+            <returns>A string.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.Clear">
+            <summary>
+            Clears the dictionary from all the channels.
+            </summary>
         </member>
         <member name="T:Iris.NET.Collections.ChannelTreeNode`1">
             <summary>
@@ -202,7 +220,13 @@
             </summary>
             <returns>The hash code of this node.</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "T:Iris.NET.Collections.IrisConcurrentHashSet`1" -->
+        <member name="T:Iris.NET.Collections.IrisConcurrentHashSet`1">
+            <summary>
+            Basic implementation of a generic concurrent hash set.
+            It uses a System.Collections.Concurrent.ConcurrentDictionary{T, byte} to store the unique values as keys.
+            </summary>
+            <typeparam name="T">The generic type.</typeparam>
+        </member>
         <member name="P:Iris.NET.Collections.IrisConcurrentHashSet`1.Count">
             <summary>
             The items count.
@@ -278,6 +302,17 @@
             Resets the head of the enumerator.
             </summary>
         </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.ToString">
+            <summary>
+            Returns a string representing the current items in the set.
+            </summary>
+            <returns>A string.</returns>
+        </member>
+        <member name="T:Iris.NET.GenericExtensions">
+            <summary>
+            Generic extension methods.
+            </summary>
+        </member>
         <member name="M:Iris.NET.GenericExtensions.GetFullExceptionMessage(System.Exception)">
             <summary>
             Builds a string containing the messages and stacktraces of all the inner exceptions.
@@ -293,6 +328,11 @@
             <param name="enumerable">The enumerable to iterate.</param>
             <param name="action">The action to invoke for each item.</param>
         </member>
+        <member name="T:Iris.NET.IOExtensions">
+            <summary>
+            Extension methods for IO types.
+            </summary>
+        </member>
         <member name="M:Iris.NET.IOExtensions.SerializeToMemoryStream(System.Object)">
             <summary>
             Serializes an object into a memory stream.
@@ -300,7 +340,14 @@
             <param name="o">The object to serialize.</param>
             <returns>A memory stream containing the serialized object.</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Iris.NET.IOExtensions.DeserializeFromMemoryStream``1(System.IO.MemoryStream)" -->
+        <member name="M:Iris.NET.IOExtensions.DeserializeFromMemoryStream``1(System.IO.MemoryStream)">
+            <summary>
+            Deserializes a memory stream into an instance of type {T}.
+            </summary>
+            <typeparam name="T">The type of the deserialized object.</typeparam>
+            <param name="stream">The memory stram to deserialize.</param>
+            <returns>The deserialized object as {T}.</returns>
+        </member>
         <member name="M:Iris.NET.IOExtensions.DeserializeFromMemoryStream(System.IO.MemoryStream)">
             <summary>
             Deserializes a memory stream into an object.
@@ -331,6 +378,11 @@
         <member name="P:Iris.NET.AbstractIrisListener.IsListening">
             <summary>
             Indicates if it's listening to incoming data.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractIrisListener._thread">
+            <summary>
+            The thread that runs the listening cycle.
             </summary>
         </member>
         <member name="E:Iris.NET.AbstractIrisListener.OnInvalidDataReceived">
@@ -498,10 +550,22 @@
             Triggered when an exception occurs.
             </summary>
         </member>
+        <member name="T:Iris.NET.AbstractIrisNode`1.ExceptionHandler">
+            <summary>
+            Delegate for the OnException event.
+            </summary>
+            <param name="ex">The exception to be handled.</param>
+        </member>
         <member name="E:Iris.NET.AbstractIrisNode`1.OnLog">
             <summary>
             Triggered when an operation generates a log.
             </summary>
+        </member>
+        <member name="T:Iris.NET.AbstractIrisNode`1.LogHandler">
+            <summary>
+            Delegate for the OnLog event.
+            </summary>
+            <param name="log">The log to be handled.</param>
         </member>
         <member name="E:Iris.NET.AbstractIrisNode`1.OnConnected">
             <summary>
@@ -511,6 +575,31 @@
         <member name="E:Iris.NET.AbstractIrisNode`1.OnDisposed">
             <summary>
             Triggered when the client is disposed.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.AbstractIrisNode`1.VoidHandler">
+            <summary>
+            Delegate for the OnConnected and OnDisposed events.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractIrisNode`1._broadcastHandlers">
+            <summary>
+            Set of content handlers for the broadcast communication.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractIrisNode`1._channelsSubscriptions">
+            <summary>
+            Instance of IChannelsSubscriptionsDictionary used to store content handlers subscriptions.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractIrisNode`1._isDisposed">
+            <summary>
+            Indicates if this node is disposed.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractIrisNode`1._config">
+            <summary>
+            The Iris configuration for this node.
             </summary>
         </member>
         <member name="F:Iris.NET.AbstractIrisNode`1._lastException">
@@ -715,6 +804,16 @@
             Abstract implementation of AbstractIrisListener targeting network communications
             </summary>
         </member>
+        <member name="F:Iris.NET.AbstractNetworkIrisListener._networkStream">
+            <summary>
+            The network stream from which listen for incoming data.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractNetworkIrisListener._memoryStream">
+            <summary>
+            The memory stream for storing the incoming data.
+            </summary>
+        </member>
         <member name="M:Iris.NET.AbstractNetworkIrisListener.#ctor(System.Net.Sockets.NetworkStream)">
             <summary>
             Constructor.
@@ -893,6 +992,21 @@
         <member name="T:Iris.NET.Request">
             <summary>
             Enum that defines the purpose of meta packets.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Request.None">
+            <summary>
+            No request, used for sending a ping.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Request.Resend">
+            <summary>
+            Request to send again the last packet.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Request.AreYouAlive">
+            <summary>
+            Checks whether or not the receiver is still connected.
             </summary>
         </member>
         <member name="T:Iris.NET.IrisPacket">

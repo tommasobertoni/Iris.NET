@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Iris.NET.Demo.Local")]
+[assembly: AssemblyTitle("Iris.NET.Demo")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Iris.NET.Demo.Local")]
+[assembly: AssemblyProduct("Iris.NET.Demo")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("5b503ee5-d8e1-4902-bea4-8c17581d62a6")]
+[assembly: Guid("b42c65e6-0d98-4b0e-ab71-32f8d9e8e0ed")]
 
 // Version information for an assembly consists of the following four values:
 //

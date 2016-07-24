@@ -14,6 +14,16 @@
             Indicates if this node is connected.
             </summary>
         </member>
+        <member name="F:Iris.NET.Client.IrisClientNode._socket">
+            <summary>
+            TCP client used to communicate with the remote iris network.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Client.IrisClientNode._networkStream">
+            <summary>
+            Network IO stream.
+            </summary>
+        </member>
         <member name="M:Iris.NET.Client.IrisClientNode.OnConnect(Iris.NET.Client.IrisClientConfig)">
             <summary>
             Invoked when the node is connecting.

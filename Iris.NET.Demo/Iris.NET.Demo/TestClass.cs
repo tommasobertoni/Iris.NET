@@ -6,9 +6,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Iris.NET.Demo.Local
+namespace Iris.NET.Demo
 {
-    class TestClass
+    class LocalTestClass
     {
         private IrisServerConfig _config = new IrisServerConfig(new IrisPubSubRouter());
         private IrisServerLocalNode localNode1 = new IrisServerLocalNode();
