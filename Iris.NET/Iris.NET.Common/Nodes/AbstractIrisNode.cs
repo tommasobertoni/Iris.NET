@@ -154,11 +154,6 @@ namespace Iris.NET
                 _subscriptionsListener?.Stop();
                 OnDispose();
                 OnDisposed?.BeginInvoke(null, null);
-
-#if DEBUG && TEST
-                // This is temporary...
-                Console.WriteLine($"{this.GetType().Name}:{this.Id} STOPPED");
-#endif
             }
         }
 

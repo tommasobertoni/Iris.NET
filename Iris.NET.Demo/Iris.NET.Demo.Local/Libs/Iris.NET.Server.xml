@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Iris.NET.Server</name>
+    </assembly>
+    <members>
+        <member name="T:Iris.NET.Server.IrisServerNetworkListener">
+            <summary>
+            Network server node listener.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerNetworkListener.#ctor(System.Net.Sockets.NetworkStream)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="networkStream">The network stream that the node is connected to</param>
+        </member>
+        <member name="T:Iris.NET.Server.IPubSubRouter">
+            <summary>
+            Interface for pub/sub routing operations.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IPubSubRouter.Register(Iris.NET.Server.IMessageSubscriber)">
+            <summary>
+            Registers a node. This is required for a node in order to publish and subscribe.
+            Allows the node to receive broadcast messages.
+            </summary>
+            <param name="node">The node to register.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IPubSubRouter.Unregister(Iris.NET.Server.IMessageSubscriber)">
+            <summary>
+            Unregisters a node. This also deletes every subscription of that node.
+            </summary>
+            <param name="node">The node to unregister.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IPubSubRouter.SubmitMessage(Iris.NET.Server.IMessageSubscriber,Iris.NET.IrisMessage)">
+            <summary>
+            Submits a message to its channel's subscribers.
+            </summary>
+            <param name="sender">The submitter node.</param>
+            <param name="message">The message to submit.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IPubSubRouter.Subscribe(Iris.NET.Server.IMessageSubscriber,System.String)">
+            <summary>
+            Subscribes a node to a channel in order to receive target messages.
+            </summary>
+            <param name="node">The node to subscribe.</param>
+            <param name="channel">The channel to which subscribe.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IPubSubRouter.Unsubscribe(Iris.NET.Server.IMessageSubscriber,System.String)">
+            <summary>
+            Unsubscribes a node from a channel in order to stop receiving target messages.
+            </summary>
+            <param name="node">The node to unsubscribe.</param>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="T:Iris.NET.Server.IrisClientRemoteNode">
+            <summary>
+            Network client remote node.
+            Represents the connection to a remote client node.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IrisClientRemoteNode.IsConnected">
+            <summary>
+            Indicates if this node is connected.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.#ctor(System.Net.Sockets.TcpClient)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="clientSocket">The tcp socket connection to the remote client.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnConnect(Iris.NET.Server.IrisServerConfig)">
+            <summary>
+            Invoked when the node is connecting.
+            </summary>
+            <param name="config">The connection's configuration.</param>
+            <returns>An IrisServerListener instance.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.Send(Iris.NET.IrisPacket)">
+            <summary>
+            Sends the packet to the remote client.
+            </summary>
+            <param name="packet">The packet to send.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnMetaReceived(Iris.NET.IrisMeta)">
+            <summary>
+            Handler for a meta packet received from the network.
+            </summary>
+            <param name="meta">The IrisMeta received.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnClientSubmittedPacketReceived(Iris.NET.IrisPacket)">
+            <summary>
+            Handler for a packet received from the IrisListener.
+            If the data is valid, it's given to the IPubSubRouter to be handled.
+            If the data is valid, it sends an IrisMeta packet with positive ACK.
+            </summary>
+            <param name="packet">The packet received.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnInvalidDataReceived(System.Object)">
+            <summary>
+            Handler for invalid data received from the IrisListener.
+            Sends an IrisMeta packet with a "Resend" request.
+            </summary>
+            <param name="data">The invalid data received.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnListenerException(System.Exception)">
+            <summary>
+            Handler for exceptions coming from the IrisListener.
+            Checks if the peer is alive: if it's not it disposes.
+            Fires a OnException event.
+            Fires a log event if LogExceptionsEnable is true.
+            </summary>
+            <param name="ex">The exception that occurred.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnNullReceived">
+            <summary>
+            Handler for null data received from the IrisListener.
+            Checks if the peer is alive: if it's not it disposes.
+            Fires a log event if LogNullsEnable is true.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnDispose">
+            <summary>
+            Invoked when the node is disposing.
+            Closes all network streams and unregister this node from the IPubSubRouter instance.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Server.IrisServer">
+            <summary>
+            Network IrisServer.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IrisServer.Id">
+            <summary>
+            Guid of this server.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IrisServer.IsRunning">
+            <summary>
+            Indicates if this server is running.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IrisServer.Address">
+            <summary>
+            The address on which this server is currently running.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IrisServer.Port">
+            <summary>
+            The port on which this server is currently running.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServer.#ctor(Iris.NET.Server.IPubSubRouter)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="pubSubRouter">An implementation of IPubSubRouter. If not specified, it will use an instance of IrisPubSubRouter.</param>
+        </member>
+        <member name="T:Iris.NET.Server.IrisServerConfig">
+            <summary>
+            Server node configuration.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IrisServerConfig.PubSubRouter">
+            <summary>
+            The IPubSubRouter instance to interact with.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerConfig.#ctor(Iris.NET.Server.IPubSubRouter)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="pubSubRouter">An implementation of IPubSubRouter.</param>
+        </member>
+        <member name="T:Iris.NET.Server.IrisServerLocalNode">
+            <summary>
+            Local client node.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Server.IrisServerLocalNode._isConnected">
+            <summary>
+            Indicates if this node is connected.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerLocalNode.OnDispose">
+            <summary>
+            Invoked when the node is disposing.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerLocalNode.OnMetaReceived(Iris.NET.IrisMeta)">
+            <summary>
+            Handler for a meta packet received from the network.
+            </summary>
+            <param name="meta">The IrisMeta received.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerLocalNode.Send(Iris.NET.IrisPacket)">
+            <summary>
+            Sends the packet to the network.
+            </summary>
+            <param name="packet">The packet to send.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisServerLocalNode.ReceiveMessage(Iris.NET.IrisMessage)">
+            <summary>
+            Invoked when a new message is sent to this subscriber.
+            </summary>
+            <param name="message">The message sent.</param>
+        </member>
+        <member name="T:Iris.NET.Server.IrisPubSubRouter">
+            <summary>
+            Implementation of IPubSubRouter.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.#ctor(Iris.NET.Collections.IChannelsSubscriptionsDictionary{Iris.NET.Server.IMessageSubscriber})">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="subsDictionary">An implementation of IChannelsSubscriptionsDictionary. If not specified, it will use an instance of IrisChannelsSubscriptionsDictionary.</param>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.Register(Iris.NET.Server.IMessageSubscriber)">
+            <summary>
+            Registers a node. This is required for a node in order to publish and subscribe.
+            Allows the node to receive broadcast messages.
+            </summary>
+            <param name="node">The node to register.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.Unregister(Iris.NET.Server.IMessageSubscriber)">
+            <summary>
+            Unregisters a node. This also deletes every subscription of that node.
+            </summary>
+            <param name="node">The node to unregister.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.SubmitMessage(Iris.NET.Server.IMessageSubscriber,Iris.NET.IrisMessage)">
+            <summary>
+            Submits a message to its channel's subscribers.
+            </summary>
+            <param name="sender">The submitter node.</param>
+            <param name="message">The message to submit.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.Subscribe(Iris.NET.Server.IMessageSubscriber,System.String)">
+            <summary>
+            Subscribes a node to a channel in order to receive target messages.
+            </summary>
+            <param name="node">The node to subscribe.</param>
+            <param name="channel">The channel to which subscribe.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.Unsubscribe(Iris.NET.Server.IMessageSubscriber,System.String)">
+            <summary>
+            Unsubscribes a node from a channel in order to stop receiving target messages.
+            </summary>
+            <param name="node">The node to unsubscribe.</param>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.Dispose">
+            <summary>
+            Disposes the instance and every registered node.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IrisPubSubRouter.Unsubscribe(Iris.NET.Server.IMessageSubscriber,System.String,System.Boolean)">
+            <summary>
+            Method used to avoid having concurrent modifications over the subscriptions when the Unregister is invoked.
+            </summary>
+            <param name="node">The node to unsubscribe.</param>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <param name="removeChannelFromRegisteredNode">If true, removes the channel from the main nodes list.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="T:Iris.NET.Server.IMessageSubscriber">
+            <summary>
+            Interface used by IPubSubRouter to interact with message subscribers.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Server.IMessageSubscriber.Id">
+            <summary>
+            Guid of this message subscriber.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Server.IMessageSubscriber.ReceiveMessage(Iris.NET.IrisMessage)">
+            <summary>
+            Invoked when a new message is sent to this subscriber.
+            </summary>
+            <param name="message">The message sent.</param>
+        </member>
+    </members>
+</doc>

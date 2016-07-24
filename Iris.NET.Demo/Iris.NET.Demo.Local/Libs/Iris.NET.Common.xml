@@ -1,0 +1,959 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Iris.NET.Common</name>
+    </assembly>
+    <members>
+        <member name="T:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1">
+            <summary>
+            Interface for a channels-subscriptions handler class.
+            </summary>
+            <typeparam name="T">The subscription type.</typeparam>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.Add(`0,System.String)">
+            <summary>
+            Adds an item to a channel.
+            </summary>
+            <param name="item">The item to be added.</param>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.Add(`0,System.String[])">
+            <summary>
+            Adds an item to a channel.
+            </summary>
+            <param name="channelsHierarchy">The hierarchy of channels of which the last is the channel to which the item will be added.</param>
+            <param name="item">The item to be added.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="P:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.Item(System.String)">
+            <summary>
+            Returns a list of items subscribed to the channel.
+            </summary>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <returns>A list of items subscribed to the channel.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.GetSubscriptions(System.String,System.Boolean)">
+            <summary>
+            Returns a list of items subscribed to the channel.
+            </summary>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <param name="includeFullHierarchy">If set to true, it will include all the subscriptions to the child channels of the specified parent channel.</param>
+            <returns>A list of items subscribed to the channel.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.GetChannelsRoots">
+            <summary>
+            Returns a list of root channels, which are the ones that have no parent channel.
+            </summary>
+            <returns>A list of root channels.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.GetChannelsHierarchy(System.String)">
+            <summary>
+            Returns a list of channels, which are children of the specified parent channel.
+            </summary>
+            <param name="parentChannel"></param>
+            <returns>A list of child channels.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.Remove(`0,System.String)">
+            <summary>
+            Removes an item from a channel.
+            </summary>
+            <param name="item">The item to be removed.</param>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.RemoveAll(`0)">
+            <summary>
+            Removes all subscriptions of the item from all the channels.
+            </summary>
+            <param name="item">The item to be removed.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.RemoveChannel(System.String,System.Boolean)">
+            <summary>
+            Removes a channel and its children.
+            </summary>
+            <param name="channel">The parent channel to be removed.</param>
+            <param name="includeFullHierarchy">If set to true, it will remove all the subscriptions to the child channels of the specified parent channel.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1.Clear">
+            <summary>
+            Clears all the channels and subscriptions.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1">
+            <summary>
+            Implementation of IChannelsSubscriptionsDictionary.
+            </summary>
+            <typeparam name="T">The subscription type.</typeparam>
+        </member>
+        <member name="P:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.Item(System.String)">
+            <summary>
+            Returns a list of items subscribed to the channel.
+            </summary>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <returns>A list of items subscribed to the channel.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.Add(`0,System.String)">
+            <summary>
+            Adds an item to a channel.
+            </summary>
+            <param name="item">The item to be added.</param>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.Add(`0,System.String[])">
+            <summary>
+            Adds an item to a channel.
+            </summary>
+            <param name="channelsHierarchy">The hierarchy of channels of which the last is the channel to which the item will be added.</param>
+            <param name="item">The item to be added.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.GetSubscriptions(System.String,System.Boolean)">
+            <summary>
+            Returns a list of items subscribed to the channel.
+            </summary>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+            <param name="includeFullHierarchy">If set to true, it will include all the subscriptions to the child channels of the specified parent channel.</param>
+            <returns>A list of items subscribed to the channel.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.GetChannelsRoots">
+            <summary>
+            Returns a list of root channels, which are the ones that have no parent channel.
+            </summary>
+            <returns>A list of root channels.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.GetChannelsHierarchy(System.String)">
+            <summary>
+            Returns a list of channels, which are children of the specified parent channel.
+            </summary>
+            <param name="parentChannel"></param>
+            <returns>A list of child channels.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.Remove(`0,System.String)">
+            <summary>
+            Removes an item from a channel.
+            </summary>
+            <param name="item">The item to be removed.</param>
+            <param name="channel">The name of the root channel or a hierarchy.</param>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.RemoveAll(`0)">
+            <summary>
+            Removes all subscriptions of the item from all the channels.
+            </summary>
+            <param name="item">The item to be removed.</param>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisChannelsSubscriptionsDictionary`1.RemoveChannel(System.String,System.Boolean)">
+            <summary>
+            Removes a channel and its children.
+            </summary>
+            <param name="channel">The parent channel to be removed.</param>
+        </member>
+        <member name="T:Iris.NET.Collections.ChannelTreeNode`1">
+            <summary>
+            Class used to identify a node in the channels-subscriptions data structure.
+            </summary>
+            <typeparam name="T">The subscription type.</typeparam>
+        </member>
+        <member name="P:Iris.NET.Collections.ChannelTreeNode`1.Name">
+            <summary>
+            The name of the channel this node represents.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Collections.ChannelTreeNode`1.FullName">
+            <summary>
+            The name of the channel this node represents. Uses IrisChannelsSubscriptionsDictionary.ChannelsSeparator to build the string.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Collections.ChannelTreeNode`1.Items">
+            <summary>
+            Set of items that are subscribed to this channel.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Collections.ChannelTreeNode`1.Childs">
+            <summary>
+            Dictionary of child nodes.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Collections.ChannelTreeNode`1.Parent">
+            <summary>
+            The parent node.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Collections.ChannelTreeNode`1.#ctor(Iris.NET.Collections.ChannelTreeNode{`0},System.String)">
+            <summary>
+            Constructor. It adds itself as a child to the parent node.
+            </summary>
+            <param name="parent">The parent node.</param>
+            <param name="channelName">The channel this node represents.</param>
+        </member>
+        <member name="M:Iris.NET.Collections.ChannelTreeNode`1.Equals(System.Object)">
+            <summary>
+            Defines equality to another node if their fullname matches.
+            </summary>
+            <param name="obj">Another object.</param>
+            <returns>True if the comparison object is a node and has the same fullname.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.ChannelTreeNode`1.GetHashCode">
+            <summary>
+            Defines the hash code as the fullname's hash code.
+            </summary>
+            <returns>The hash code of this node.</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:Iris.NET.Collections.IrisConcurrentHashSet`1" -->
+        <member name="P:Iris.NET.Collections.IrisConcurrentHashSet`1.Count">
+            <summary>
+            The items count.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Add(`0)">
+            <summary>
+            Adds an item to the hash set.
+            </summary>
+            <param name="item">The item to be added.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Remove(`0)">
+            <summary>
+            Removes the item from the hash set.
+            </summary>
+            <param name="item">The item to be removed.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Contains(`0)">
+            <summary>
+            Checks if the hash set contains the item.
+            </summary>
+            <param name="item">The target item.</param>
+            <returns>Item is contained in the hash set.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Clear">
+            <summary>
+            Clear all the items.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.GetEnumerator">
+            <summary>
+            Returns the generic enumerator.
+            </summary>
+            <returns>The generic enumerator.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.System#Collections#IEnumerable#GetEnumerator">
+            <summary>
+            Returns the enumerator.
+            </summary>
+            <returns>The enumerator.</returns>
+        </member>
+        <member name="T:Iris.NET.Collections.IrisConcurrentHashSet`1.Enumerator`1">
+            <summary>
+            Enumerator of IrisConcurrentHashSet
+            </summary>
+            <typeparam name="U">The type of the IrisConcurrentHashSet.</typeparam>
+        </member>
+        <member name="P:Iris.NET.Collections.IrisConcurrentHashSet`1.Enumerator`1.Current">
+            <summary>
+            Returns the current item.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Collections.IrisConcurrentHashSet`1.Enumerator`1.System#Collections#IEnumerator#Current">
+            <summary>
+            Returns the current item as object.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Enumerator`1.Dispose">
+            <summary>
+            Disposes the enumerator.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Enumerator`1.MoveNext">
+            <summary>
+            Moves to the next item.
+            </summary>
+            <returns>If the next item is not null.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.IrisConcurrentHashSet`1.Enumerator`1.Reset">
+            <summary>
+            Resets the head of the enumerator.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.GenericExtensions.GetFullExceptionMessage(System.Exception)">
+            <summary>
+            Builds a string containing the messages and stacktraces of all the inner exceptions.
+            </summary>
+            <param name="ex">The root exception.</param>
+            <returns>The full exception message.</returns>
+        </member>
+        <member name="M:Iris.NET.GenericExtensions.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
+            <summary>
+            Helper method to iterate through an IEnumerable and invoke an action for every item in it.
+            </summary>
+            <typeparam name="T">The generic type of the IEnumerable.</typeparam>
+            <param name="enumerable">The enumerable to iterate.</param>
+            <param name="action">The action to invoke for each item.</param>
+        </member>
+        <member name="M:Iris.NET.IOExtensions.SerializeToMemoryStream(System.Object)">
+            <summary>
+            Serializes an object into a memory stream.
+            </summary>
+            <param name="o">The object to serialize.</param>
+            <returns>A memory stream containing the serialized object.</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Iris.NET.IOExtensions.DeserializeFromMemoryStream``1(System.IO.MemoryStream)" -->
+        <member name="M:Iris.NET.IOExtensions.DeserializeFromMemoryStream(System.IO.MemoryStream)">
+            <summary>
+            Deserializes a memory stream into an object.
+            </summary>
+            <param name="stream">The memory stream to deserialize.</param>
+            <returns>The deserialized object.</returns>
+        </member>
+        <member name="M:Iris.NET.IOExtensions.ReadNext(System.IO.Stream,System.Int32)">
+            <summary>
+            Reads the next data coming from the stream.
+            </summary>
+            <param name="input">The input stream.</param>
+            <param name="size">Maximum size to read. The default is 16 * 1024.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Iris.NET.IrisBaseConfig">
+            <summary>
+            Base class for node configuration.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.AbstractIrisListener">
+            <summary>
+            Abstract class that listens to incoming data and deserializes it into packets and sends them
+            through events. Handles errors and exceptions.
+            The listening cycle is on a different thread.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisListener.IsListening">
+            <summary>
+            Indicates if it's listening to incoming data.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisListener.OnInvalidDataReceived">
+            <summary>
+            Triggered when the data received could not be deserialized.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisListener.OnException">
+            <summary>
+            Triggered when an exception occurs.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisListener.OnErrorReceived">
+            <summary>
+            Triggered when an IrisError is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisListener.OnClientSubmittedPacketReceived">
+            <summary>
+            Triggered when a user submitted packet is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisListener.OnMetaReceived">
+            <summary>
+            Triggered when an IrisMeta packet is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisListener.OnNullReceived">
+            <summary>
+            Triggered when null data is received.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisListener.InitListenCycle">
+            <summary>
+            Initialize the listening cycle.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisListener.ReadObject">
+            <summary>
+            Reads the incoming data and return it as object.
+            </summary>
+            <returns>The data as object</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisListener.OnStop">
+            <summary>
+            Invoked when this listener is stopping.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisListener.Start">
+            <summary>
+            Starts the listening cycle.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisListener.Stop">
+            <summary>
+            Stops the listening cycle.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisListener.Listen">
+            <summary>
+            Executes the listening cycle. When some data is received, the appropriate event is fired
+            in order to notify whoever is listening for the data using this instance.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisContextHook">
+            <summary>
+            Class used to inform a content handler about the context of the operation
+            (e.g.: content is null because peer is disconnected or because
+            the node is unsubscribing from the channel).
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisContextHook.Unsubscribing">
+            <summary>
+            Indicates if the node is unsubscribing from the channel.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisContextHook.TargetChannel">
+            <summary>
+            Indicates the target channel of the current context.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisContextHook.PublicationDateTime">
+            <summary>
+            Indicates the content's publication datetime.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IDisposableSubscription">
+            <summary>
+            Interface for a handler that when disposed unsubscribes the content handler from the channel.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IDisposableSubscription.Channel">
+            <summary>
+            The channel from which unsubscribe.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IDisposableSubscription.ContentHandler">
+            <summary>
+            The content handler to unsubscribe.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisDisposableSubscription">
+            <summary>
+            An implementation of IDisposableSubscription.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisDisposableSubscription.IsDisposed">
+            <summary>
+            Indicates if this subscription is already disposed.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisDisposableSubscription.Channel">
+            <summary>
+            The channel from which unsubscribe.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisDisposableSubscription.ContentHandler">
+            <summary>
+            The content handler to unsubscribe.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.AbstractIrisNode`1">
+            <summary>
+            Abstract implementation of IIrisNode, with the addition of events and connection methods.
+            Uses a AbstractIrisListener to listen for incoming packets from the network and handles channels subscriptions.
+            It also provides a method for testing if the connection is working properly: IsPeerAlive().
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.Id">
+            <summary>
+            Guid of this node.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.LogMessagesEnable">
+            <summary>
+            Triggers a log event when a message is received.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.LogExceptionsEnable">
+            <summary>
+            Triggers a log event when an exception occurs.
+            Default value is true.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.LogErrorsEnable">
+            <summary>
+            Triggers a log event when an error is received.
+            Default value is true.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.LogInvalidDataEnable">
+            <summary>
+            Triggers a log event when invalid data is received.
+            Default value is true.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.LogNullsEnable">
+            <summary>
+            Triggers a log event when null is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisNode`1.OnException">
+            <summary>
+            Triggered when an exception occurs.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisNode`1.OnLog">
+            <summary>
+            Triggered when an operation generates a log.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisNode`1.OnConnected">
+            <summary>
+            Triggered when the connection succeeded.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.AbstractIrisNode`1.OnDisposed">
+            <summary>
+            Triggered when the client is disposed.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.AbstractIrisNode`1._lastException">
+            <summary>
+            Used to store the last exception occurred, to avoid triggering multiple times
+            the associate events if the exception occurs again right after
+            </summary>
+        </member>
+        <member name="P:Iris.NET.AbstractIrisNode`1.IsConnected">
+            <summary>
+            Indicates if this node is connected.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnConnect(`0)">
+            <summary>
+            Invoked when the node is connecting.
+            </summary>
+            <param name="config">The connection's configuration.</param>
+            <returns>An AbstractIrisListener instance.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnDispose">
+            <summary>
+            Invoked when the node is disposing.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Send(Iris.NET.IrisPacket)">
+            <summary>
+            Sends the packet to the network.
+            </summary>
+            <param name="packet">The packet to send.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnMetaReceived(Iris.NET.IrisMeta)">
+            <summary>
+            Handler for a meta packet received from the network.
+            </summary>
+            <param name="meta">The IrisMeta received.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Connect(`0)">
+            <summary>
+            Connects the node to it's network.
+            </summary>
+            <param name="config">The connection's configuration.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Dispose">
+            <summary>
+            Closes the connection and disposes all the connection resources.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Send(System.String,System.Object,System.Boolean)">
+            <summary>
+            Submits the content to the pubsub network.
+            </summary>
+            <param name="targetChannel">The channel targeted by the content.</param>
+            <param name="content">The content to send.</param>
+            <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.SendToBroadcast(System.Object)">
+            <summary>
+            Submits the content to every node in the pubsub network.
+            </summary>
+            <param name="content">The content to send.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Subscribe(System.String,Iris.NET.ContentHandler)">
+            <summary>
+            Subscribes this node to a channel.
+            </summary>
+            <param name="channel">The channel to which subscribe.</param>
+            <param name="contentHandler">A handler for the content received through this subscription.</param>
+            <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.SubscribeToBroadcast(Iris.NET.ContentHandler)">
+            <summary>
+            Subscribes the conten handler to the broadcast communication.
+            </summary>
+            <param name="contentHandler">A handler for the content received in broadcast.</param>
+            <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Unsubscribe(System.String,Iris.NET.ContentHandler,System.Boolean)">
+            <summary>
+            Removes the content handler from the subscription.
+            </summary>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <param name="contentHandler">The content handler to be removed from this subscription.</param>
+            <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.UnsubscribeFromBroadcast(Iris.NET.ContentHandler)">
+            <summary>
+            Removes the content handler from the broadcast communication.
+            </summary>
+            <param name="contentHandler">The content handler to be removed from the broadcast.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.Unsubscribe(System.String)">
+            <summary>
+            Unsubscribes this node from a channel.
+            All the content handlers subscribed to this channel will be lost.
+            </summary>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.HookEventsToListener(Iris.NET.AbstractIrisListener)">
+            <summary>
+            Attaches handlers to the IrisListener events.
+            </summary>
+            <param name="subscriptionsListener">The target IrisListener.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.UnhookEventsFromListener(Iris.NET.AbstractIrisListener)">
+            <summary>
+            Detaches the handlers from the IrisListener events.
+            </summary>
+            <param name="subscriptionsListener">The target IrisListener.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.IsPeerAlive">
+            <summary>
+            Checks if the connection is working properly by sending a meta packet.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.GetLogForInvalidDataReceived(System.Object)">
+            <summary>
+            Builds a string for logging the invalid data received.
+            </summary>
+            <param name="data">The invalid data received.</param>
+            <returns>A log string.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnInvalidDataReceived(System.Object)">
+            <summary>
+            Handler for invalid data received from the IrisListener.
+            Fires a log event if LogInvalidDataEnable is true.
+            </summary>
+            <param name="data">The invalid data received.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.GetLogForException(System.Exception)">
+            <summary>
+            Builds a string for logging the exception that occurred.
+            </summary>
+            <param name="ex">The exception that occurred.</param>
+            <returns>A log string.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.HandleListenerException(System.Exception)">
+            <summary>
+            Handler for exceptions coming from the IrisListener.
+            Checks wether this exception was already caught right before and invokes the method OnListenerException.
+            </summary>
+            <param name="ex">The exception that occurred.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnListenerException(System.Exception)">
+            <summary>
+            Handler for exceptions coming from the IrisListener.
+            Fires a OnException event.
+            Fires a log event if LogExceptionsEnable is true.
+            </summary>
+            <param name="ex">The exception that occurred.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.GetLogForError(Iris.NET.IrisError)">
+            <summary>
+            Builds a string for logging the error received.
+            </summary>
+            <param name="error">The IrisError received.</param>
+            <returns>A log string.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnError(Iris.NET.IrisError)">
+            <summary>
+            Handler for an IrisError.
+            Fires a log event if LogErrorsEnable is true.
+            </summary>
+            <param name="error">The IrisError received.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.GetLogForMessageReceived(Iris.NET.IrisMessage)">
+            <summary>
+            Builds a string for logging the message received.
+            </summary>
+            <param name="message">The IrisMessage received.</param>
+            <returns>A log string.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnClientSubmittedPacketReceived(Iris.NET.IrisPacket)">
+            <summary>
+            Handler for a packet received from the IrisListener.
+            If the packet is of IrisMessage type, invokes the ContentHandlers subscribed to the reception of the message.
+            Fires a log event if LogMessagesEnable is true and the packet is of IrisMessage type.
+            </summary>
+            <param name="packet">The packet received.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.GetLogForNullReceived">
+            <summary>
+            Builds a string for logging null data received.
+            </summary>
+            <returns>A log string.</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnNullReceived">
+            <summary>
+            Handler for null data received from the IrisListener.
+            Fires a log event if LogNullsEnable is true.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.AbstractNetworkIrisListener">
+            <summary>
+            Abstract implementation of AbstractIrisListener targeting network communications
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractNetworkIrisListener.#ctor(System.Net.Sockets.NetworkStream)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="networkStream">The network stream that the node is connected to</param>
+        </member>
+        <member name="M:Iris.NET.AbstractNetworkIrisListener.InitListenCycle">
+            <summary>
+            Initialize the listening cycle.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.AbstractNetworkIrisListener.ReadObject">
+            <summary>
+            Reads the incoming data and return it as object.
+            </summary>
+            <returns>The data as object</returns>
+        </member>
+        <member name="M:Iris.NET.AbstractNetworkIrisListener.OnStop">
+            <summary>
+            Invoked when this listener is stopping.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IIrisNode">
+            <summary>
+            Base interface for a network node.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IIrisNode.Id">
+            <summary>
+            Guid of this node.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.Send(System.String,System.Object,System.Boolean)">
+            <summary>
+            Submits the content to the pubsub network.
+            </summary>
+            <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
+            <param name="content">The content to send.</param>
+            <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.SendToBroadcast(System.Object)">
+            <summary>
+            Submits the content to every node in the pubsub network.
+            </summary>
+            <param name="content">The content to send.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.Subscribe(System.String,Iris.NET.ContentHandler)">
+            <summary>
+            Subscribes this node to a channel.
+            </summary>
+            <param name="channel">The channel to which subscribe.</param>
+            <param name="contentHandler">A handler for the content received through this subscription.</param>
+            <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.SubscribeToBroadcast(Iris.NET.ContentHandler)">
+            <summary>
+            Subscribes the conten handler to the broadcast communication.
+            </summary>
+            <param name="contentHandler">A handler for the content received in broadcast.</param>
+            <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.Unsubscribe(System.String,Iris.NET.ContentHandler,System.Boolean)">
+            <summary>
+            Removes the content handler from the subscription.
+            </summary>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <param name="contentHandler">The content handler to be removed from this subscription.</param>
+            <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.UnsubscribeFromBroadcast(Iris.NET.ContentHandler)">
+            <summary>
+            Removes the content handler from the broadcast communication.
+            </summary>
+            <param name="contentHandler">The content handler to be removed from the broadcast.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="M:Iris.NET.IIrisNode.Unsubscribe(System.String)">
+            <summary>
+            Unsubscribes this node from a channel.
+            All the content handlers subscribed to this channel will be lost.
+            </summary>
+            <param name="channel">The channel from which unsubscribe.</param>
+            <returns>True if the operation succeeded.</returns>
+        </member>
+        <member name="T:Iris.NET.ContentHandler">
+            <summary>
+            Delegate definition for a content handler.
+            </summary>
+            <param name="content">The content received.</param>
+            <param name="hook">Iris context hook for other information.</param>
+        </member>
+        <member name="T:Iris.NET.IrisError">
+            <summary>
+            Class for internal/logical error within the library.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IrisError.#ctor(System.Guid)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="publisherId">Guid of the client who sent this packet.</param>
+        </member>
+        <member name="P:Iris.NET.IrisError.Exception">
+            <summary>
+            The exception that caused the sending of this packet.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisError.Log">
+            <summary>
+            A log string.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisMessage">
+            <summary>
+            Class for pubsub communication
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IrisMessage.#ctor(System.Guid,System.String,System.Boolean)">
+            <summary>
+            Constructor-
+            </summary>
+            <param name="publisherId">Guid of the client who sent this packet.</param>
+            <param name="targetChannel">The channel targeted by this message. If it is "null" the message targets every client (broadcast).</param>
+            <param name="propagateThroughHierarchy">Indicates if the message also targets all the clients who are subscribed to child channels compared to the target channel.</param>
+        </member>
+        <member name="P:Iris.NET.IrisMessage.TargetChannel">
+            <summary>
+            The channel targeted by this message. If it is "null" the message targets every client (broadcast).
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisMessage.PropagateThroughHierarchy">
+            <summary>
+            Indicates if the message also targets all the clients who are subscribed to child channels compared to the target channel.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisMessage.PublicationDateTime">
+            <summary>
+            Timestamp of publication.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisMessage.Content">
+            <summary>
+            The content sent by the client.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisMeta">
+            <summary>
+            Class for meta communication between clients.
+            #Note This has not a concrete purpose yet... maybe it will be removed
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IrisMeta.#ctor(System.Guid)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="publisherId">Guid of the client who sent this packet.</param>
+        </member>
+        <member name="P:Iris.NET.IrisMeta.Request">
+            <summary>
+            Enum that defines the purpose of this meta packet.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisMeta.TargetPacketId">
+            <summary>
+            Optional: the packet Id that this meta is referring to.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisMeta.ACK">
+            <summary>
+            Acknowledgement.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Request">
+            <summary>
+            Enum that defines the purpose of meta packets.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisPacket">
+            <summary>
+            Base abstract class for objects sent between clients through the server.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IrisPacket.#ctor(System.Guid)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="publisherId">Guid of the client who sent this packet.</param>
+        </member>
+        <member name="P:Iris.NET.IrisPacket.PacketId">
+            <summary>
+            Guid of this packet.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisPacket.PublisherId">
+            <summary>
+            Guid of the client who sent this packet.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.IrisPacket.IsClientSubmitted">
+            <summary>
+            Indicates if this packet was sent by a client in response to an api call and it is not an internal communication.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisSubscribe">
+            <summary>
+            Class for requesting to subscribe to a channel.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IrisSubscribe.#ctor(System.Guid,System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="publisherId">Guid of the client who sent this packet.</param>
+            <param name="channel">The channel to which subscribe.</param>
+        </member>
+        <member name="P:Iris.NET.IrisSubscribe.Channel">
+            <summary>
+            The channel to which subscribe.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.IrisUnsubscribe">
+            <summary>
+            Class for requesting to unsubscribe from a channel.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.IrisUnsubscribe.#ctor(System.Guid,System.String)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="publisherId">Guid of the client who sent this packet.</param>
+            <param name="channel">The channel from which unsubscribe.</param>
+        </member>
+        <member name="P:Iris.NET.IrisUnsubscribe.Channel">
+            <summary>
+            The channel from which unsubscribe.
+            </summary>
+        </member>
+    </members>
+</doc>
