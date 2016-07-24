@@ -55,7 +55,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestClass.cs" />
+    <Compile Include="LocalTestClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Libs\Iris.NET.Client.dll" />

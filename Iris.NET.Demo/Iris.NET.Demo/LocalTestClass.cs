@@ -44,6 +44,7 @@ namespace Iris.NET.Demo
 
         public void Setup()
         {
+            // Connect all nodes using the IrisServerConfig
             bool result1 = localNode1.Connect(_config);
             bool result2 = localNode2.Connect(_config);
             bool result3 = localNode3.Connect(_config);
@@ -56,6 +57,11 @@ namespace Iris.NET.Demo
         {
             List<IDisposableSubscription> disposableSubscriptions = new List<IDisposableSubscription>();
 
+            // Subscribe the nodes to the broadcast communication
+            // Every subscription requires a delegate with the following parameters: object content, IrisContextHook hook.
+            // The content is the data that is sent by the nodes, the IrisContextHook is an internal managed object that gives context
+            // information to the handler about the content and the subscription state.
+            // GenericContentHandler is a local method that simply prints to the console the content in a pretty and standard way.
             var subscription1 = localNode1.SubscribeToBroadcast((c, h) => GenericContentHandler(nameof(localNode1), "broadcast", c, h));
             bool result1 = subscription1 != null;
             var subscription2 = localNode2.SubscribeToBroadcast((c, h) => GenericContentHandler(nameof(localNode2), "broadcast", c, h));
@@ -68,6 +74,7 @@ namespace Iris.NET.Demo
 
             string message = "Hello!";
             Console.WriteLine($"{nameof(localNode1)} sends \"{message}\" in broadcast.");
+            // The message will be received by all the nodes subscribed to the broadcast, except the sender.
             result1 = localNode1.SendToBroadcast(message);
 
             CheckThatEverythingIsOk(result1);
@@ -78,6 +85,8 @@ namespace Iris.NET.Demo
         {
             List<IDisposableSubscription> disposableSubscriptions = new List<IDisposableSubscription>();
 
+            // In this test, subscription1 is actually useless because localNode1 is sending the messages, so it won't receive any content.
+            // Note that a subscription to a channel is not needed to send a content to that channel, and the same goes for the broadcast.
             var subscription1 = localNode1.Subscribe(_channel, (c, h) => GenericContentHandler(nameof(localNode1), _channel, c, h));
             bool result1 = subscription1 != null;
 
@@ -114,6 +123,8 @@ namespace Iris.NET.Demo
         {
             List<IDisposableSubscription> disposableSubscriptions = new List<IDisposableSubscription>();
 
+            // The library interprets the nested channels using the path convention and the slash '/' as the delimiting character.
+            // So the "nestedChannelHierarchy" describes that the "_nestedChannelName" is a nested channel (or a child channel) of "_channel".
             var nestedChannelHierarchy = $"{_channel}/{_nestedChannelName}";
 
             string message = $"Hey, I'm {nameof(localNode1)}. Those who want to talk about programming head over to the {nestedChannelHierarchy} channel!";
@@ -147,6 +158,8 @@ namespace Iris.NET.Demo
         {
             string message = $"System announcement: this channel and all its subchannels will be closed soon.";
             Console.WriteLine($"{nameof(localNode1)} sends \"{message}\" to the \"{_channel}\" channel and all its subchannels.");
+            // By setting the "propagateThroughHierarchy" parameter to "true" the content will be sent to every content handler in the target channel
+            // and to every content handler in all the child channels, recursively.
             bool result1 = localNode1.Send(_channel, message, propagateThroughHierarchy: true);
             CheckThatEverythingIsOk(result1);
         }
@@ -170,17 +183,17 @@ namespace Iris.NET.Demo
             disposableSubscriptions.Add(subscription2);
             disposableSubscriptions.Add(subscription3);
 
+            // Until now the test only sent strings, but the content expected by the Send method is actually of type object.
+
             double d = 0.42;
             Console.WriteLine($"{nameof(localNode1)} sends \"{d}\" to the {nameof(localNode2)} personal channel.");
             result1 = localNode1.Send(localNode2.Id.ToString(), d);
             CheckThatEverythingIsOk(result1);
+
             WaitALittle();
             Console.WriteLine();
 
-            var obj = new TestType($"\"A present for {nameof(localNode3)}\"")
-            {
-                Count = 42
-            };
+            var obj = new TestType($"\"A present for {nameof(localNode3)}\"") { Count = 42 };
             Console.WriteLine($"{nameof(localNode2)} sends \"{obj}\" to the {nameof(localNode3)} personal channel.");
             result2 = localNode2.Send(localNode3.Id.ToString(), obj);
             CheckThatEverythingIsOk(result2);
@@ -190,6 +203,8 @@ namespace Iris.NET.Demo
 
         public void Unsubscribe()
         {
+            // To remove a subscription you can use the Unsubscribe method, or dispose the IDisposableSubscription returned by the Subscribe method.
+
             _disposableSubscriptions.ForEach(ds => ds.Dispose());
             Console.WriteLine("All the subscriptions have been disposed.");
             if (_IDontBelieveIt)
@@ -204,6 +219,7 @@ namespace Iris.NET.Demo
             }
         }
 
+        #region Helper methods
         public void ExecuteAndPrettifyVoid(string targetFunction, Action action)
         {
             ExecuteAndPrettify(targetFunction, () =>
@@ -250,6 +266,7 @@ namespace Iris.NET.Demo
         {
             Thread.Sleep(300); // Gives some time to the asyncronous operations to complete
         }
+        #endregion
     }
 
     class TestType
