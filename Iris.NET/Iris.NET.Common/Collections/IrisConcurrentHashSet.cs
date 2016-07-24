@@ -9,7 +9,7 @@ namespace Iris.NET.Collections
 {
     /// <summary>
     /// Basic implementation of a generic concurrent hash set.
-    /// It uses a System.Collections.Concurrent.ConcurrentDictionary<T, byte> to store the unique values as keys.
+    /// It uses a System.Collections.Concurrent.ConcurrentDictionary{T, byte} to store the unique values as keys.
     /// </summary>
     /// <typeparam name="T">The generic type.</typeparam>
     public class IrisConcurrentHashSet<T> : IEnumerable<T>
@@ -109,6 +109,10 @@ namespace Iris.NET.Collections
             public void Reset() => _dictionaryEnumerator = _concurrentHashSet._items.GetEnumerator();
         }
 
+        /// <summary>
+        /// Returns a string representing the current items in the set.
+        /// </summary>
+        /// <returns>A string.</returns>
         public override string ToString() => string.Join(",", _items.Keys.ToArray());
     }
 }

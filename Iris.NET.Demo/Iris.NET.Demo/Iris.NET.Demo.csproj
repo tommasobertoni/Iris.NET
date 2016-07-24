@@ -4,72 +4,63 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0692286E-6499-4F89-8971-C6F0252A54A1}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{B42C65E6-0D98-4B0E-AB71-32F8D9E8E0ED}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Iris.NET</RootNamespace>
-    <AssemblyName>Iris.NET.Common</AssemblyName>
+    <RootNamespace>Iris.NET.Demo</RootNamespace>
+    <AssemblyName>Iris.NET.Demo</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Documentation\Iris.NET.Common.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TEST|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\TEST\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;TEST</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>
-    </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Iris.NET.Client, Version=0.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\Iris.NET.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Iris.NET.Common, Version=0.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\Iris.NET.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Iris.NET.Server, Version=0.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\Iris.NET.Server.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\IChannelsSubscriptionsDictionary.cs" />
-    <Compile Include="Collections\IrisChannelsSubscriptionsDictionary.cs" />
-    <Compile Include="Extensions\GenericExtensions.cs" />
-    <Compile Include="Extensions\NetworkExtensions.cs" />
-    <Compile Include="IrisBaseConfig.cs" />
-    <Compile Include="Collections\IrisConcurrentHashSet.cs" />
-    <Compile Include="AbstractIrisListener.cs" />
-    <Compile Include="IrisContextHook.cs" />
-    <Compile Include="IDisposableSubscription.cs" />
-    <Compile Include="Nodes\AbstractIrisNode.cs" />
-    <Compile Include="AbstractNetworkIrisListener.cs" />
-    <Compile Include="Nodes\IIrisNode.cs" />
-    <Compile Include="Packets\IrisError.cs" />
-    <Compile Include="Packets\IrisMessage.cs" />
-    <Compile Include="Packets\IrisMeta.cs" />
-    <Compile Include="Packets\IrisPacket.cs" />
-    <Compile Include="Packets\IrisSubscribe.cs" />
-    <Compile Include="Packets\IrisUnsubscribe.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="LocalTestClass.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Libs\Iris.NET.Client.dll" />
+    <Content Include="Libs\Iris.NET.Common.dll" />
+    <Content Include="Libs\Iris.NET.Server.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

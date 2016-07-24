@@ -12,12 +12,17 @@ namespace Iris.NET.Server
     {
         private IPubSubRouter _pubSubRouter;
 
+        private bool _isConnected;
         /// <summary>
         /// Indicates if this node is connected.
         /// </summary>
-        private bool _isConnected;
         public override bool IsConnected => _isConnected;
 
+        /// <summary>
+        /// Invoked when the node is connecting.
+        /// </summary>
+        /// <param name="config">The connection's configuration.</param>
+        /// <returns>An AbstractIrisListener instance.</returns>
         protected override AbstractIrisListener OnConnect(IrisServerConfig config)
         {
             _pubSubRouter = _config.PubSubRouter;
