@@ -60,7 +60,8 @@ node.Unsubscribe("worldnews", MyContentHandler);
 For more examples and use cases head over to the *[Iris.NET.Demo project](Iris.NET.Demo/Iris.NET.Demo)*.
 <br><br><br>
 ## Technology info
-This project was developed using *Visual Studio 2015* and *C# 6*.
+This project was developed using *Visual Studio 2015* and *C# 6*.<br>
+**The library targets the .NET Framework 4.0.**
 <br><br><br>
 ## License
 **Iris.NET** is distributed under the [MIT License](https://github.com/tommasobertoni/Iris.NET/blob/master/LICENCE).
