@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.ConsoleApplicationTest", "Tests\Iris.NET.ConsoleApplicationTest\Iris.NET.ConsoleApplicationTest.csproj", "{0CBD69E3-EE95-4256-AF71-A46463198172}"
 EndProject
@@ -16,6 +16,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Server.ConsoleApplicationTest", "Tests\Iris.NET.Server.ConsoleApplicationTest\Iris.NET.Server.ConsoleApplicationTest.csproj", "{5502B6BB-B747-41DB-AAF5-7B26FFC8A0F2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Iris.NET.Common", "Iris.NET.Common\Iris.NET.Common.csproj", "{0692286E-6499-4F89-8971-C6F0252A54A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{67ED585A-2C27-44A9-BCA3-E0A2BD00038E}"
+	ProjectSection(SolutionItems) = preProject
+		Content\iris.ico = Content\iris.ico
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
