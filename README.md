@@ -1,5 +1,6 @@
 # Iris.NET
-*Current release: [v0.1 (beta 1)](https://github.com/tommasobertoni/Iris.NET/releases/latest)*
+*Current release: [v0.1 (beta 1)](https://github.com/tommasobertoni/Iris.NET/releases/latest)*<br>
+*Available to download from NuGet [here](https://www.nuget.org/packages/Iris.NET).*
 <br><br>
 Iris.NET is a TCP-based, Pub/Sub C# library. It was developed to allow an easy-to-use, channel-separated communication on a LAN infrastructure.
 <br><br>
