@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Iris.NET.Server
 {
     /// <summary>
     /// Local client node.
     /// </summary>
-    public class IrisServerLocalNode : AbstractIrisNode<IrisServerConfig>, IMessageSubscriber
+    public class IrisLocalNode : AbstractIrisNode<IrisServerConfig>, IMessageSubscriber
     {
         private IPubSubRouter _pubSubRouter;
 
@@ -23,14 +24,11 @@ namespace Iris.NET.Server
         /// </summary>
         /// <param name="config">The connection's configuration.</param>
         /// <returns>An AbstractIrisListener instance.</returns>
-        protected override AbstractIrisListener OnConnect(IrisServerConfig config)
+        protected override void OnConnect(IrisServerConfig config)
         {
             _pubSubRouter = _config.PubSubRouter;
             _pubSubRouter.Register(this);
             _isConnected = true;
-            // Return null because there's no need for a "listener",
-            // since the message are received by the invocation of ReceiveMessage.
-            return null;
         }
 
         /// <summary>
@@ -55,23 +53,28 @@ namespace Iris.NET.Server
         /// Sends the packet to the network.
         /// </summary>
         /// <param name="packet">The packet to send.</param>
-        protected override void Send(IrisPacket packet)
+        protected override Task<bool> Publish(IrisPacket packet)
         {
-            if (packet is IrisSubscribe)
+            return Task.Factory.StartNew(() =>
             {
-                var subscribeCommand = packet as IrisSubscribe;
-                _pubSubRouter.Subscribe(this, subscribeCommand.Channel);
-            }
-            else if (packet is IrisUnsubscribe)
-            {
-                var unsubscribeCommand = packet as IrisUnsubscribe;
-                _pubSubRouter.Unsubscribe(this, unsubscribeCommand.Channel);
-            }
-            else
-            {
-                var message = packet as IrisMessage;
-                _pubSubRouter.SubmitMessage(this, message);
-            }
+                if (packet is IrisSubscribe)
+                {
+                    var subscribeCommand = packet as IrisSubscribe;
+                    _pubSubRouter.Subscribe(this, subscribeCommand.Channel);
+                }
+                else if (packet is IrisUnsubscribe)
+                {
+                    var unsubscribeCommand = packet as IrisUnsubscribe;
+                    _pubSubRouter.Unsubscribe(this, unsubscribeCommand.Channel);
+                }
+                else
+                {
+                    var message = packet as IrisMessage;
+                    _pubSubRouter.SubmitMessage(this, message);
+                }
+
+                return true;
+            });
         }
 
         /// <summary>

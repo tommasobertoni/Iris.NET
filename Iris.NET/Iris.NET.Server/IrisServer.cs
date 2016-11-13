@@ -124,7 +124,7 @@ namespace Iris.NET.Server
         }
 
         /// <summary>
-        /// Stops the server and 
+        /// Stops the server
         /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Stop()

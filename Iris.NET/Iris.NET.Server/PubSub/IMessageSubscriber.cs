@@ -11,7 +11,7 @@ namespace Iris.NET.Server
     public interface IMessageSubscriber : IDisposable
     {
         /// <summary>
-        /// Guid of this message subscriber.
+        /// Id of this message subscriber.
         /// </summary>
         Guid Id { get; }
 

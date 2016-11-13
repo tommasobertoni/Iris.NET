@@ -44,6 +44,14 @@ namespace Iris.NET
 
         private IIrisNode _irisNode;
 
+        /// <summary>
+        /// Create an already disposed subscription.
+        /// </summary>
+        internal IrisDisposableSubscription()
+        {
+            IsDisposed = true;
+        }
+
         public IrisDisposableSubscription(IIrisNode irisNode, string channel, ContentHandler contentHandler)
         {
             _irisNode = irisNode;

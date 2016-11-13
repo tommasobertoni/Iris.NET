@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Iris.NET.Network;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Iris.NET.Server
 {
@@ -11,19 +13,18 @@ namespace Iris.NET.Server
     /// Network client remote node.
     /// Represents the connection to a remote client node.
     /// </summary>
-    internal class IrisClientRemoteNode : AbstractIrisNode<IrisServerConfig>, IMessageSubscriber
+    internal class IrisClientRemoteNode : AbstractIrisNetworkNode<IrisServerConfig>, IMessageSubscriber
     {
         #region Properties
         /// <summary>
         /// Indicates if this node is connected.
         /// </summary>
-        public override bool IsConnected => _pubSubRouter != null && _networkStream != null;
+        public override bool IsConnected => _pubSubRouter != null && base.IsConnected;
         #endregion
 
         private IPubSubRouter _pubSubRouter;
         private IrisServerConfig _serverConfig;
         private TcpClient _clientSocket;
-        private NetworkStream _networkStream;
 
         /// <summary>
         /// Constructor.
@@ -34,48 +35,19 @@ namespace Iris.NET.Server
             _clientSocket = clientSocket;
         }
 
+        protected override NetworkStream GetNetworkStream() => _clientSocket?.GetStream();
+
         /// <summary>
         /// Invoked when the node is connecting.
         /// </summary>
         /// <param name="config">The connection's configuration.</param>
         /// <returns>An IrisServerListener instance.</returns>
-        protected override AbstractIrisListener OnConnect(IrisServerConfig config)
+        protected override void OnConnect(IrisServerConfig config)
         {
-            if (_clientSocket == null)
-                throw new ObjectDisposedException(nameof(IrisClientRemoteNode));
-
-            if (IsConnected)
-                return null;
-
             _serverConfig = config;
             _pubSubRouter = _serverConfig.PubSubRouter;
-
-            _networkStream = _clientSocket.GetStream();
             _pubSubRouter.Register(this);
-            return new IrisServerNetworkListener(_networkStream);
-        }
-
-        /// <summary>
-        /// Sends the packet to the remote client.
-        /// </summary>
-        /// <param name="packet">The packet to send.</param>
-        protected override void Send(IrisPacket packet)
-        {
-            if (packet != null)
-            {
-                var stream = packet.SerializeToMemoryStream();
-                var rowData = stream.ToArray();
-                _networkStream.Write(rowData, 0, rowData.Length);
-                _networkStream.Flush();
-            }
-        }
-
-        /// <summary>
-        /// Handler for a meta packet received from the network.
-        /// </summary>
-        /// <param name="meta">The IrisMeta received.</param>
-        protected override void OnMetaReceived(IrisMeta meta)
-        {
+            base.OnConnect(config);
         }
 
         /// <summary>
@@ -86,29 +58,32 @@ namespace Iris.NET.Server
         /// <param name="packet">The packet received.</param>
         protected override void OnClientSubmittedPacketReceived(IrisPacket packet)
         {
-            bool? result = null;
+            Task.Factory.StartNew(() =>
+            {
+                bool? result = null;
 
-            if (packet is IrisMessage)
-            {
-                result = _pubSubRouter.SubmitMessage(this, packet as IrisMessage);
-            }
-            else if (packet is IrisSubscribe)
-            {
-                result = _pubSubRouter.Subscribe(this, (packet as IrisSubscribe).Channel);
-            }
-            else if (packet is IrisUnsubscribe)
-            {
-                result = _pubSubRouter.Unsubscribe(this, (packet as IrisUnsubscribe).Channel);
-            }
-            else
-            {
-                OnInvalidDataReceived(packet);
-            }
+                if (packet is IrisMessage)
+                {
+                    result = _pubSubRouter.SubmitMessage(this, packet as IrisMessage);
+                }
+                else if (packet is IrisSubscribe)
+                {
+                    result = _pubSubRouter.Subscribe(this, (packet as IrisSubscribe).Channel);
+                }
+                else if (packet is IrisUnsubscribe)
+                {
+                    result = _pubSubRouter.Unsubscribe(this, (packet as IrisUnsubscribe).Channel);
+                }
+                else
+                {
+                    OnInvalidDataReceived(packet);
+                }
 
-            if (result.HasValue)
-            {
-                Send(new IrisMeta(Id) { ACK = result.Value });
-            }
+                if (result.HasValue)
+                {
+                    Publish(new IrisMeta(Id) { ACK = result.Value });
+                }
+            });
         }
 
         /// <summary>
@@ -118,7 +93,7 @@ namespace Iris.NET.Server
         /// <param name="data">The invalid data received.</param>
         protected override void OnInvalidDataReceived(object data)
         {
-            Send(new IrisMeta(Id)
+            Publish(new IrisMeta(Id)
             {
                 Request = Request.Resend,
                 ACK = false
@@ -132,14 +107,14 @@ namespace Iris.NET.Server
         /// Fires a log event if LogExceptionsEnable is true.
         /// </summary>
         /// <param name="ex">The exception that occurred.</param>
-        protected override void OnListenerException(Exception ex)
+        protected override async void OnNetworkException(Exception ex)
         {
-            if (!IsPeerAlive())
+            if (!await IsPeerAlive())
                 Dispose();
             else
                 _lastException = null;
 
-            base.OnListenerException(ex);
+            base.OnNetworkException(ex);
         }
 
         /// <summary>
@@ -147,9 +122,9 @@ namespace Iris.NET.Server
         /// Checks if the peer is alive: if it's not it disposes.
         /// Fires a log event if LogNullsEnable is true.
         /// </summary>
-        protected override void OnNullReceived()
+        protected override async void OnNullReceived()
         {
-            if (!IsPeerAlive())
+            if (!await IsPeerAlive())
                 Dispose();
 
             base.OnNullReceived();
@@ -162,8 +137,6 @@ namespace Iris.NET.Server
         protected override void OnDispose()
         {
             _pubSubRouter.Unregister(this);
-            _networkStream.Close();
-            _networkStream = null;
             _clientSocket.Close();
             _clientSocket = null;
             _pubSubRouter = null;
@@ -172,9 +145,9 @@ namespace Iris.NET.Server
         public void ReceiveMessage(IrisMessage message)
         {
             if (message.TargetChannel == null)
-                SendToBroadcast(message.Content);
+                PublishToBroadcast(message.Content);
             else
-                Send(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
+                Publish(message.TargetChannel, message.Content, message.PropagateThroughHierarchy);
         }
     }
 }

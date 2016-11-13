@@ -8,10 +8,12 @@ using System.Text;
 namespace Iris.NET
 {
     /// <summary>
-    /// Extension methods for IO types.
+    /// Extension methods for network operations.
     /// </summary>
-    public static class IOExtensions
+    public static class NetworkExtensions
     {
+        private static volatile IFormatter _binaryFormatter = new BinaryFormatter();
+
         /// <summary>
         /// Serializes an object into a memory stream.
         /// </summary>
@@ -20,10 +22,20 @@ namespace Iris.NET
         public static MemoryStream SerializeToMemoryStream(this object o)
         {
             MemoryStream stream = new MemoryStream();
-            IFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, o);
-            stream.Seek(0, SeekOrigin.Begin);
+            SerializeToMemoryStream(o, stream);
             return stream;
+        }
+
+        /// <summary>
+        /// Serializes an object into a given memory stream.
+        /// </summary>
+        /// <param name="o">The object to serialize.</param>
+        /// <param name="stream">The memory stream into which serialize the object.</param>
+        public static void SerializeToMemoryStream(this object o, MemoryStream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            _binaryFormatter.Serialize(stream, o);
+            stream.Seek(0, SeekOrigin.Begin);
         }
 
         /// <summary>
@@ -41,9 +53,8 @@ namespace Iris.NET
         /// <returns>The deserialized object.</returns>
         public static object DeserializeFromMemoryStream(this MemoryStream stream)
         {
-            IFormatter formatter = new BinaryFormatter();
             stream.Seek(0, SeekOrigin.Begin);
-            object o = formatter.Deserialize(stream);
+            object o = _binaryFormatter.Deserialize(stream);
             return o;
         }
 
