@@ -17,38 +17,47 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             while (true)
             {
                 var cmd = Console.ReadLine();
-                if (cmd == "A")
+                if (cmd.ToUpper() == "A")
                 {
                     PerfAnalysis(receivedMessagesCount, start.Value, DateTime.Now);
+                }
+                else if (cmd.ToUpper() == "S")
+                {
+                    var task = actorNode.Publish(channel, "TEST");
                 }
                 else
                 {
                     Console.WriteLine($"{nameof(receivedMessagesCount)}: {receivedMessagesCount}");
                 }
+
+                Console.WriteLine($"{receivedMessagesCount * 100.0 / messagesCount}% received");
             }
         }
 
+        static string channel;
+        static IrisClientNode actorNode;
+        static volatile int messagesCount;
         static volatile int receivedMessagesCount;
+        static volatile object sync = new object();
         static DateTime? start = null;
 
         private static async void PerfTest()
         {
-            string channel = "perf";
+            channel = "perf";
 
             await TaskEx.Delay(1000); // Delay for the server to spawn.
             
-
             IrisClientConfig config = new IrisClientConfig
             {
                 Hostname = "127.0.0.1",
                 Port = 22000,
             };
 
-            IrisClientNode actorNode = new IrisClientNode();
+            actorNode = new IrisClientNode();
             actorNode.Connect(config);
             Console.WriteLine("Actor node connected");
 
-            int messagesCount = 100000;
+            messagesCount = 100000;
             start = null;
 
             receivedMessagesCount = 0;
@@ -57,17 +66,20 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             {
                 if (!h.Unsubscribing)
                 {
-                    receivedMessagesCount++;
+                    lock (sync)
+                    {
+                        receivedMessagesCount++;
+                    }
 
-                    //if (receivedMessagesCount % 1000 == 0)
-                        //Console.WriteLine($"Received: {c}");
+                    if (receivedMessagesCount % (messagesCount / 10) == 0)
+                        Console.WriteLine($"Received: {c} ({receivedMessagesCount * 100.0 / messagesCount}%)");
 
                     if (receivedMessagesCount == messagesCount)
                     {
                         var end = DateTime.Now;
                         var sub = asyncSubscription.Result; // Brutal!
                         sub.Dispose();
-                        PerfAnalysis(messagesCount, start.Value, end);
+                        PerfAnalysis(messagesCount, start.Value, end); // Pretty much consistent: ~0.23 milliseconds
                     }
                 }
             });

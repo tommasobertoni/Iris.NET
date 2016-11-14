@@ -12,11 +12,11 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             PerfTest();
             Console.ReadLine();
         }
-        
+
         private static async void PerfTest()
         {
             string channel = "perf";
-
+            
             IrisServer server = new IrisServer();
             server.Start(22000);
             Console.WriteLine("Server started");

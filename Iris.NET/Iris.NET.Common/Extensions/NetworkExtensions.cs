@@ -51,12 +51,7 @@ namespace Iris.NET
         /// </summary>
         /// <param name="stream">The memory stream to deserialize.</param>
         /// <returns>The deserialized object.</returns>
-        public static object DeserializeFromMemoryStream(this MemoryStream stream)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            object o = _binaryFormatter.Deserialize(stream);
-            return o;
-        }
+        public static object DeserializeFromMemoryStream(this MemoryStream stream) => _binaryFormatter.Deserialize(stream);
 
         /// <summary>
         /// Reads the next data coming from the stream.
