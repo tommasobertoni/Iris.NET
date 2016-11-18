@@ -36,7 +36,6 @@ namespace Iris.NET.Server.ConsoleApplicationTest
                 if (!h.Unsubscribing)
                 {
                     var echoMessage = $"ECHO: {c}";
-                    //Console.WriteLine(echoMessage);
                     echoNode.Publish(channel, echoMessage);
 
                     if ((c as Test)?.Data == null && (c as Test)?.Message == null)

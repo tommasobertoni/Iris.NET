@@ -135,8 +135,8 @@ namespace Iris.NET.Server
         /// </summary>
         protected override void OnDispose()
         {
-            _pubSubRouter.Unregister(this);
-            _clientSocket.Close();
+            _pubSubRouter?.Unregister(this);
+            _clientSocket?.Close();
             _clientSocket = null;
             _pubSubRouter = null;
         }

@@ -57,7 +57,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             actorNode.Connect(config);
             Console.WriteLine("Actor node connected");
 
-            messagesCount = 1000;
+            messagesCount = 100000;
             start = null;
 
             receivedMessagesCount = 0;
@@ -66,12 +66,9 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             {
                 if (!h.Unsubscribing)
                 {
-                    lock (sync)
-                    {
-                        receivedMessagesCount++;
-                    }
+                    Interlocked.Increment(ref receivedMessagesCount);
 
-                    if (receivedMessagesCount % (messagesCount / 10) == 0)
+                    if (messagesCount > 10 && receivedMessagesCount % (messagesCount / 10) == 0)
                         Console.WriteLine($"Received: {c} ({receivedMessagesCount * 100.0 / messagesCount}%)");
 
                     if (receivedMessagesCount == messagesCount)
@@ -92,11 +89,14 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             });
 
             IDisposableSubscription subscription = await asyncSubscription;
-
-            Console.WriteLine("Starting perf test");
+            
             Task[] publishTasks = new Task[messagesCount];
+            
+            object bigload = new byte[2 * 1010];
             start = DateTime.Now;
-            object bigload = new byte[((int)(2 * 1024))];
+
+            Console.WriteLine($"Started sending {messagesCount} messages");
+
             for (int i = 0; i < messagesCount; i++)
             {
                 var message = $"message#{i + 1}";

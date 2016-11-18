@@ -19,20 +19,19 @@ namespace Iris.NET
     {
         #region Static
         /// <summary>
-        /// Constant size of the "words" sent to the NetworkStream.
-        /// A Sentence is composed by 1-n workds (constant-size packets).
+        /// Size of the information sent that describes the length of the actual data.
         /// </summary>
-        protected static readonly int _WordSize = 2 * 1024;
+        protected const int _DataLengthSize = 58;
 
         /// <summary>
         /// Min value of the delay for the loop in the writer thread
         /// </summary>
-        protected static readonly double _MinDelayValueMillis = 10;
+        protected const double _MinDelayValueMillis = 10;
 
         /// <summary>
         /// Factor used to increase the delay for the loop in the writer thread
         /// </summary>
-        protected static readonly double _IncrementalDelayFactor = 1.02;
+        protected const double _IncrementalDelayFactor = 1.02;
         #endregion
 
         #region Events
@@ -187,10 +186,11 @@ namespace Iris.NET
             return asyncOperation.Task;
         }
 
+        #region Private
         private void DoWork()
         {
-            MemoryStream sentenceMemoryStream = new MemoryStream(_WordSize);
-            byte[] wordBuffer = new byte[_WordSize];
+            MemoryStream dataLengthMemoryStream = new MemoryStream(_DataLengthSize);
+            MemoryStream dataMemoryStream = new MemoryStream(_DataLengthSize);
 
             while (_isAlive)
             {
@@ -203,19 +203,22 @@ namespace Iris.NET
 
                         do
                         {
+                            dataLengthMemoryStream.SetLength(0); // Clear
+                            dataMemoryStream.SetLength(0); // Clear
+
                             object data = currentOperation.Data;
-                            Sentence sentence = new Sentence { Content = data, Void = new byte[0] };
-                            sentence.SerializeToMemoryStream(sentenceMemoryStream);
+                            data.SerializeToMemoryStream(dataMemoryStream); // Copy data into stream
 
-                            long bytesToFill = _WordSize - (sentenceMemoryStream.Length % _WordSize);
-                            sentence.Void = new byte[bytesToFill];
+                            var dataLength = (int)dataMemoryStream.Length; // Read data length
+                            dataLength.SerializeToMemoryStream(dataLengthMemoryStream);
+                            dataLengthMemoryStream.SetLength(_DataLengthSize); // Set constant-size data length chunk
 
-                            sentenceMemoryStream.SetLength(0);
-                            sentence.SerializeToMemoryStream(sentenceMemoryStream); // Sentence is ready to be sent
+                            var rawDataLength = dataLengthMemoryStream.ToArray(); // Send data length
+                            _networkStream.Write(rawDataLength, 0, rawDataLength.Length);
 
-                            var rawData = sentenceMemoryStream.ToArray();
+                            var rawData = dataMemoryStream.ToArray(); // Send data
                             _networkStream.Write(rawData, 0, rawData.Length);
-                            sentenceMemoryStream.SetLength(0);
+                            
                             currentOperation.SetComplete();
 
                         } while (_packetsQueue.TryDequeue(out currentOperation));
@@ -238,75 +241,68 @@ namespace Iris.NET
 
         private void Listen()
         {
-            MemoryStream incomingDataMemoryStream = new MemoryStream();
-            MemoryStream currentChunkMemoryStream = new MemoryStream();
-            
+            MemoryStream incomingDataMemoryStream = new MemoryStream(_DataLengthSize);
+
+            byte[] dataBuffer = null;
+            bool reset = false; // Indicates if the data has been read and the values must be reset to default
+            bool isData = false; // Indicates if it's expecting to read data or data length
+            int targetBytes = _DataLengthSize;
+            int bytesToReadNow;
+            int bytesRead = 0; // Bytes that were read in the previous cycle
+
             while (IsAlive)
             {
                 try
                 {
-                    // Temp stream contains the just-read data from the network
-                    var tempStream = _networkStream.ReadNext();
-                    tempStream.Seek(0, SeekOrigin.Begin);
-                    tempStream.CopyTo(incomingDataMemoryStream); // Copy to the full buffer
+                    // If in the previous cycle some bytes were read, but not all the expected ones
+                    bytesToReadNow = targetBytes - bytesRead; // Calculate the remaining bytes to reach the expected value
+                    
+                    if (bytesRead == 0) // If it's at default, initialize a new buffer
+                        dataBuffer = new byte[bytesToReadNow];
+                    // else: the values haven't been reset to default, hence the dataBuffer contains partial data bytes
 
-                    if (incomingDataMemoryStream.Length >= _WordSize) // If there's enough data for a Sentence
+                    bytesRead = _networkStream.Read(dataBuffer, bytesRead, bytesToReadNow);
+
+                    if (bytesRead == bytesToReadNow) // If the expected amount of bytes was read
                     {
-                        incomingDataMemoryStream.Seek(0, SeekOrigin.Begin); // Reset position
+                        reset = true; // Reset the values before the next cycle
+                        incomingDataMemoryStream.Write(dataBuffer, 0, dataBuffer.Length); // Write the bytes into the stream
+                        incomingDataMemoryStream.Position = 0; // Set the position to the begin of the stream
 
-                        while ((incomingDataMemoryStream.Length - incomingDataMemoryStream.Position) >= _WordSize) // While there's enough data for a Sentence
+                        object data = incomingDataMemoryStream.DeserializeFromMemoryStream();
+
+                        if (isData)
                         {
-                            byte[] current = new byte[_WordSize];
-                            incomingDataMemoryStream.Read(current, 0, _WordSize); // Copy into current raw data (of constant size)
-                            
-                            currentChunkMemoryStream.Write(current, 0, _WordSize); // Write raw data to the current chunk memory
-                            long currentPosition = currentChunkMemoryStream.Position;
-
-                            try
-                            {
-                                // TODO: implement a Sentence end key
-                                // Try to parse a Sentence
-                                currentChunkMemoryStream.Seek(0, SeekOrigin.Begin); // Reset position
-
-                                object obj = currentChunkMemoryStream.DeserializeFromMemoryStream(); // Deserialize into object
-                                if (obj is Sentence) // If is a valid Sentence
-                                {
-                                    var sentence = obj as Sentence;
-                                    HandleReceivedData(sentence.Content);
-                                }
-
-                                currentChunkMemoryStream.SetLength(0); // Clear the current chunk memory
-                            }
-                            catch (SerializationException)
-                            {
-                                currentChunkMemoryStream.Position = currentPosition;
-                                // Keep on reading bytes from the stream
-                            }
+                            HandleReceivedData(data);
+                            targetBytes = _DataLengthSize;
                         }
-
-                        // Reuse temp stream
-                        tempStream.SetLength(0); // Clear
-                        incomingDataMemoryStream.CopyTo(tempStream);
-                        incomingDataMemoryStream = tempStream; // Reference the temp stream that holds the remaining data
+                        else
+                        {
+                            // Is data length
+                            targetBytes = (int)data;
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
-                    if (IsAlive)
-                    {
-                        InvokeAsyncOnException(ex);
+                    HandleListenCycleException(ex);
 
-                        if (IsSocketResetException(ex))
-                        {
-                            // Remote socket closed!
-                            _isAlive = false;
-                            InvokeAsyncOnConnectionReset();
-                        }
+                    bytesRead = 0;
+                    incomingDataMemoryStream.SetLength(0);
+                }
+                finally
+                {
+                    if (reset)
+                    {
+                        isData ^= true;
+                        bytesRead = 0;
+                        incomingDataMemoryStream.SetLength(0);
+                        reset = false;
                     }
                 }
             }
         }
-
+        
         private void HandleReceivedData(object data)
         {
             try
@@ -341,7 +337,21 @@ namespace Iris.NET
             }
         }
 
-        #region Private
+        private void HandleListenCycleException(Exception ex)
+        {
+            if (IsAlive)
+            {
+                InvokeAsyncOnException(ex);
+
+                if (IsStreamDisposedException(ex) || IsSocketResetException(ex))
+                {
+                    // Remote socket closed!
+                    _isAlive = false;
+                    InvokeAsyncOnConnectionReset();
+                }
+            }
+        }
+
         #region Events invocation
         #region OnInvalidDataReceived
         private void InvokeAsyncOnInvalidDataReceived(object data) => OnInvalidDataReceived?.GetInvocationList().ForEach(e => ((InvalidDataHandler)e).BeginInvoke(data, EndAsyncEventForInvalidDataHandler, EventArgs.Empty));
@@ -426,29 +436,14 @@ namespace Iris.NET
         #endregion
         #endregion
 
+        private static bool IsStreamDisposedException(Exception ex) => ex is ObjectDisposedException;
+
         private static bool IsSocketResetException(Exception ex)
         {
             return ex is IOException &&
                    (ex.InnerException as SocketException)?.SocketErrorCode == SocketError.ConnectionReset;
         }
         #endregion
-
-        /// <summary>
-        /// Data wrapper used to send a constant-sized object into the NetworkStream.
-        /// </summary>
-        [Serializable]
-        class Sentence
-        {
-            /// <summary>
-            /// The content.
-            /// </summary>
-            public object Content { get; set; }
-
-            /// <summary>
-            /// Void data, used to reach the target sentence-size.
-            /// </summary>
-            public byte[] Void { get; set; }
-        }
 
         /// <summary>
         /// Wrapper for the data and its asynchronous operation.
