@@ -31,12 +31,7 @@ namespace Iris.NET
         /// </summary>
         /// <param name="o">The object to serialize.</param>
         /// <param name="stream">The memory stream into which serialize the object.</param>
-        public static void SerializeToMemoryStream(this object o, MemoryStream stream)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            _binaryFormatter.Serialize(stream, o);
-            stream.Seek(0, SeekOrigin.Begin);
-        }
+        public static void SerializeToMemoryStream(this object o, MemoryStream stream) => _binaryFormatter.Serialize(stream, o);
 
         /// <summary>
         /// Deserializes a memory stream into an instance of type {T}.

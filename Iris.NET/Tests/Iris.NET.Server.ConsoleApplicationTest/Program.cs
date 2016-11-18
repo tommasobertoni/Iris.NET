@@ -25,13 +25,29 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             echoNode.Connect(server.GetServerConfig());
             Console.WriteLine("Echo node connected");
 
-            var asyncSubscription = echoNode.Subscribe(channel, (c, h) =>
+            echoNode.OnDisposed += () =>
+            {
+                server.Stop();
+            };
+
+            System.Threading.Tasks.Task<IDisposableSubscription> asyncSubscription = null;
+            asyncSubscription = echoNode.Subscribe(channel, (c, h) =>
             {
                 if (!h.Unsubscribing)
                 {
                     var echoMessage = $"ECHO: {c}";
                     //Console.WriteLine(echoMessage);
                     echoNode.Publish(channel, echoMessage);
+
+                    if ((c as Test)?.Data == null && (c as Test)?.Message == null)
+                    {
+                        var sub = asyncSubscription.Result;
+                        sub.Dispose();
+                    }
+                }
+                else
+                {
+                    echoNode.Dispose();
                 }
             });
         }

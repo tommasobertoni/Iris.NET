@@ -89,6 +89,10 @@
       <Project>{0692286e-6499-4f89-8971-c6f0252a54a1}</Project>
       <Name>Iris.NET.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Iris.NET.ConsoleApplicationTest\Iris.NET.ConsoleApplicationTest.csproj">
+      <Project>{0cbd69e3-ee95-4256-af71-a46463198172}</Project>
+      <Name>Iris.NET.ConsoleApplicationTest</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

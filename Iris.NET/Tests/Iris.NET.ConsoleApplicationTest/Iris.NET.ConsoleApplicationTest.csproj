@@ -79,6 +79,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Test.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -92,14 +93,6 @@
     <ProjectReference Include="..\..\Iris.NET.Server\Iris.NET.Server.csproj">
       <Project>{856716E0-8895-410B-AEEC-88A27BDECD75}</Project>
       <Name>Iris.NET.Server</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Iris.NET.Client.ConsoleApplicationTest\Iris.NET.Client.ConsoleApplicationTest.csproj">
-      <Project>{ba640fed-f1af-4051-ae2a-d5adecea25d9}</Project>
-      <Name>Iris.NET.Client.ConsoleApplicationTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Iris.NET.Server.ConsoleApplicationTest\Iris.NET.Server.ConsoleApplicationTest.csproj">
-      <Project>{5502b6bb-b747-41db-aaf5-7b26ffc8a0f2}</Project>
-      <Name>Iris.NET.Server.ConsoleApplicationTest</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

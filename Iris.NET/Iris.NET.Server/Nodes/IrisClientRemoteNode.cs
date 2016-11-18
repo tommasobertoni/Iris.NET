@@ -58,7 +58,7 @@ namespace Iris.NET.Server
         /// <param name="packet">The packet received.</param>
         protected override void OnClientSubmittedPacketReceived(IrisPacket packet)
         {
-            Task.Factory.StartNew(() =>
+            try
             {
                 bool? result = null;
 
@@ -78,12 +78,11 @@ namespace Iris.NET.Server
                 {
                     OnInvalidDataReceived(packet);
                 }
-
-                if (result.HasValue)
-                {
-                    Publish(new IrisMeta(Id) { ACK = result.Value });
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+            }
         }
 
         /// <summary>

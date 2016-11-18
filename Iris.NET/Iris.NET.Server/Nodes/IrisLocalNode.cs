@@ -57,23 +57,31 @@ namespace Iris.NET.Server
         {
             return Task.Factory.StartNew(() =>
             {
-                if (packet is IrisSubscribe)
+                try
                 {
-                    var subscribeCommand = packet as IrisSubscribe;
-                    _pubSubRouter.Subscribe(this, subscribeCommand.Channel);
-                }
-                else if (packet is IrisUnsubscribe)
-                {
-                    var unsubscribeCommand = packet as IrisUnsubscribe;
-                    _pubSubRouter.Unsubscribe(this, unsubscribeCommand.Channel);
-                }
-                else
-                {
-                    var message = packet as IrisMessage;
-                    _pubSubRouter.SubmitMessage(this, message);
-                }
+                    if (packet is IrisSubscribe)
+                    {
+                        var subscribeCommand = packet as IrisSubscribe;
+                        _pubSubRouter.Subscribe(this, subscribeCommand.Channel);
+                    }
+                    else if (packet is IrisUnsubscribe)
+                    {
+                        var unsubscribeCommand = packet as IrisUnsubscribe;
+                        _pubSubRouter.Unsubscribe(this, unsubscribeCommand.Channel);
+                    }
+                    else
+                    {
+                        var message = packet as IrisMessage;
+                        _pubSubRouter.SubmitMessage(this, message);
+                    }
 
-                return true;
+                    return true;
+                }
+                catch (Exception  ex)
+                {
+                    HandleException(ex);
+                    return false;
+                }
             });
         }
 

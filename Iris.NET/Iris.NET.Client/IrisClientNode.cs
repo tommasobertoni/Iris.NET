@@ -63,6 +63,7 @@ namespace Iris.NET.Client
         /// </summary>
         protected override void OnDispose()
         {
+            base.OnDispose();
             _socket?.Close();
         }
     }

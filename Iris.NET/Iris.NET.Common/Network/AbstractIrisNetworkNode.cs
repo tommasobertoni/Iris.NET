@@ -68,6 +68,7 @@ namespace Iris.NET.Network
                 networkWorker.OnInvalidDataReceived += OnInvalidDataReceived;
                 networkWorker.OnException += HandleException;
                 networkWorker.OnNullReceived += OnNullReceived;
+                networkWorker.OnConnectionReset += OnDispose;
             }
         }
 
@@ -88,6 +89,7 @@ namespace Iris.NET.Network
                 networkWorker.OnInvalidDataReceived -= OnInvalidDataReceived;
                 networkWorker.OnException -= HandleException;
                 networkWorker.OnNullReceived -= OnNullReceived;
+                networkWorker.OnConnectionReset -= OnDispose;
             }
         }
 

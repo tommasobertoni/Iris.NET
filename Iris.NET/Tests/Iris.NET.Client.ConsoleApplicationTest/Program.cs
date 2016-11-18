@@ -57,7 +57,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             actorNode.Connect(config);
             Console.WriteLine("Actor node connected");
 
-            messagesCount = 100000;
+            messagesCount = 1000;
             start = null;
 
             receivedMessagesCount = 0;
@@ -79,7 +79,14 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                         var end = DateTime.Now;
                         var sub = asyncSubscription.Result; // Brutal!
                         sub.Dispose();
-                        PerfAnalysis(messagesCount, start.Value, end); // Pretty much consistent: ~0.23 milliseconds
+
+                        Task.Factory.StartNew(async () =>
+                        {
+                            await actorNode.Publish(channel, new Test());
+                            actorNode.Dispose();
+                        });
+
+                        PerfAnalysis(messagesCount, start.Value, end);
                     }
                 }
             });
@@ -89,15 +96,17 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             Console.WriteLine("Starting perf test");
             Task[] publishTasks = new Task[messagesCount];
             start = DateTime.Now;
+            object bigload = new byte[((int)(2 * 1024))];
             for (int i = 0; i < messagesCount; i++)
             {
-                var task = actorNode.Publish(channel, $"message#{i + 1}");
+                var message = $"message#{i + 1}";
+                var task = actorNode.Publish(channel, new Test { Message = message, Data = bigload });
                 publishTasks[i] = task;
             }
 
-            Console.WriteLine($"Sent {messagesCount} messages");
-
             await TaskEx.WhenAll(publishTasks);
+
+            Console.WriteLine($"Sent {messagesCount} messages");
         }
 
         private static void PerfAnalysis(int messagesCount, DateTime start, DateTime end)
