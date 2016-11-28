@@ -1,6 +1,6 @@
 # Iris.NET
-*Current release: [v0.1 (beta 1)](https://github.com/tommasobertoni/Iris.NET/releases/latest)*<br>
-*Available to download from NuGet [here](https://www.nuget.org/packages/Iris.NET).*
+[![Iris.NET on NuGet](https://img.shields.io/badge/source-browser-2B9CC6.svg?style=flat-square)](http://sourcebrowser.io/Browse/tommasobertoni/Iris.NET)
+[![Iris.NET on NuGet](https://img.shields.io/badge/nuget-v0.1.0-blue.svg?style=flat-square)](https://www.nuget.org/packages/Iris.NET/)
 <br><br>
 Iris.NET is a TCP-based, Pub/Sub C# library. It was developed to allow an easy-to-use, channel-separated communication on a LAN infrastructure.
 <br><br>
@@ -16,44 +16,44 @@ The **IrisServer** type handles the connections coming from the client nodes. Th
 <br><br>
 ## *How To*
 - Create and start a server:<br>
-```
+```csharp
 IrisServer server = new IrisServer();
 server.Start(22000); // Start on port 22000
 ```
 - Create and connect a local node:<br>
-```
+```csharp
 // If you have a server and you want to use the same subscription network
 IrisServerConfig config = server.GetServerConfig();
 ```
-```
+```csharp
 // If you just want to communicate locally or on a different local network
 IrisServerConfig config = new IrisServerConfig(new IrisPubSubRouter());
 ```
-```
+```csharp
 IrisServerLocalNode node = new IrisServerLocalNode();
 node.Connect(config);
 ```
 - Create and connect a network node:<br>
-```
+```csharp
 IrisClientConfig config = new IrisClientConfig() { Hostname = "127.0.0.1", Port = 22000 };
 IrisClientNode node = new IrisClientNode();
 node.Connect(config);
 ```
 - Subscribe to a channel
-```
+```csharp
 IDisposableSubscription subscription = node.Subscribe("worldnews", MyContentHandler);
 ```
 - Send a message
-```
+```csharp
 node.Send("worldnews", "something good happened");
 ```
 - Unsubscribe from a channel<br>
-```
+```csharp
 // If you have a reference to the IDisposableSubscription returned by the Subscribe method
 // you can simply write
 subscription.Dispose();
 ```
-```
+```csharp
 // Otherwise you can use the Unsubscribe method
 node.Unsubscribe("worldnews", MyContentHandler);
 ```
