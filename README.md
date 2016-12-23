@@ -20,19 +20,6 @@ The **IrisServer** type handles the connections coming from the client nodes. Th
 IrisServer server = new IrisServer();
 server.Start(22000); // Start on port 22000
 ```
-- Create and connect a local node:<br>
-```csharp
-// If you have a server and you want to use the same subscription network
-IrisServerConfig config = server.GetServerConfig();
-```
-```csharp
-// If you just want to communicate locally or on a different local network
-IrisServerConfig config = new IrisServerConfig(new IrisPubSubRouter());
-```
-```csharp
-IrisServerLocalNode node = new IrisServerLocalNode();
-node.Connect(config);
-```
 - Create and connect a network node:<br>
 ```csharp
 IrisClientConfig config = new IrisClientConfig() { Hostname = "127.0.0.1", Port = 22000 };
@@ -47,20 +34,10 @@ IDisposableSubscription subscription = node.Subscribe("worldnews", MyContentHand
 ```csharp
 node.Send("worldnews", "something good happened");
 ```
-- Unsubscribe from a channel<br>
-```csharp
-// If you have a reference to the IDisposableSubscription returned by the Subscribe method
-// you can simply write
-subscription.Dispose();
-```
-```csharp
-// Otherwise you can use the Unsubscribe method
-node.Unsubscribe("worldnews", MyContentHandler);
-```
 <br>
-For more examples and use cases head over to the *[Iris.NET.Demo project](Iris.NET.Demo/Iris.NET.Demo)*.
+A broader documentation is available in the ***[How-To](https://github.com/tommasobertoni/Iris.NET/wiki/How-To)*** page in the wiki.
 <br>
-To see the new features that are being developed and the breaking changes, head over to the ***[changelog](https://github.com/tommasobertoni/Iris.NET/wiki/Changelog)*** in the wiki.
+To see the new features that are being developed and the breaking changes head over to the ***[Changelog](https://github.com/tommasobertoni/Iris.NET/wiki/Changelog)*** in the wiki.
 <br><br><br>
 ## Technology info
 This project was developed using *Visual Studio 2015* and *C# 6*.<br>
