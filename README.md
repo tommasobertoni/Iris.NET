@@ -15,22 +15,22 @@ The **IrisServerLocalNode** type, instead, is used to communicate locally (witho
 The **IrisServer** type handles the connections coming from the client nodes. This and IrisServerLocalNode can be found in the *Iris.NET.Server* namespace.
 <br><br>
 ## *How To*
-- Create and start a server:<br>
+### Create and start a server:<br>
 ```csharp
 IrisServer server = new IrisServer();
-server.Start(22000); // Start on port 22000
+server.Start(2200); // Start on port 2200
 ```
-- Create and connect a network node:<br>
+### Create and connect a node over the network:<br>
 ```csharp
-IrisClientConfig config = new IrisClientConfig() { Hostname = "127.0.0.1", Port = 22000 };
+IrisClientConfig config = new IrisClientConfig() { Hostname = "127.0.0.1", Port = 2200 };
 IrisClientNode node = new IrisClientNode();
 node.Connect(config);
 ```
-- Subscribe to a channel
+### Subscribe to a channel
 ```csharp
 IDisposableSubscription subscription = node.Subscribe("worldnews", MyContentHandler);
 ```
-- Send a message
+### Send a message
 ```csharp
 node.Send("worldnews", "something good happened");
 ```
@@ -42,6 +42,6 @@ To see the new features that are being developed and the breaking changes head o
 ## Technology info
 This project was developed using *Visual Studio 2015* and *C# 6*.<br>
 **The library targets the .NET Framework 4.0.**
-<br><br><br>
+<br><br>
 ## License
 **Iris.NET** is distributed under the [MIT License](https://github.com/tommasobertoni/Iris.NET/blob/master/LICENCE).
