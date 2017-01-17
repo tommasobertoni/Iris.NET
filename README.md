@@ -1,5 +1,5 @@
 # Iris.NET
-[![Iris.NET on NuGet](https://img.shields.io/badge/source-browser-2B9CC6.svg?style=flat-square)](http://sourcebrowser.io/Browse/tommasobertoni/Iris.NET)
+[![Iris.NET on SourceBrowser](https://img.shields.io/badge/source-browser-2B9CC6.svg?style=flat-square)](http://sourcebrowser.io/Browse/tommasobertoni/Iris.NET)
 [![Iris.NET on NuGet](https://img.shields.io/badge/nuget-v0.1.0-blue.svg?style=flat-square)](https://www.nuget.org/packages/Iris.NET/)
 <br><br>
 Iris.NET is a TCP-based, Pub/Sub C# library. It was developed to allow an easy-to-use, channel-separated communication on a LAN infrastructure.
