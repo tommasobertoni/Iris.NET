@@ -87,6 +87,7 @@
     <Compile Include="IrisContextHook.cs" />
     <Compile Include="IDisposableSubscription.cs" />
     <Compile Include="Network\AbstractIrisNetworkNode.cs" />
+    <Compile Include="Network\BrokenConnectionException.cs" />
     <Compile Include="Network\NetworkWorker.cs" />
     <Compile Include="Nodes\AbstractIrisNode.cs" />
     <Compile Include="Nodes\IIrisNode.cs" />

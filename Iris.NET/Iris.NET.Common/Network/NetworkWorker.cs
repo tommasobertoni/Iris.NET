@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Iris.NET
+namespace Iris.NET.Network
 {
     /// <summary>
     /// Class used to handle asynchronous writing and reading from a NetworkStream.
@@ -32,6 +32,11 @@ namespace Iris.NET
         /// Factor used to increase the delay for the loop in the writer thread
         /// </summary>
         protected const double _IncrementalDelayFactor = 1.02;
+
+        /// <summary>
+        /// Arbitrary value that is used to identify a broken connection
+        /// </summary>
+        protected const double _FailedReadsAttempts = 5;
         #endregion
 
         #region Events
@@ -151,7 +156,7 @@ namespace Iris.NET
         public void Stop()
         {
             _isAlive = false;
-
+            
             try
             {
                 _networkStream?.Close();
@@ -242,13 +247,14 @@ namespace Iris.NET
         private void Listen()
         {
             MemoryStream incomingDataMemoryStream = new MemoryStream(_DataLengthSize);
-
+            
             byte[] dataBuffer = null;
             bool reset = false; // Indicates if the data has been read and the values must be reset to default
             bool isData = false; // Indicates if it's expecting to read data or data length
             int targetBytes = _DataLengthSize;
             int bytesToReadNow;
             int bytesRead = 0; // Bytes that were read in the previous cycle
+            int failedReadsCount = 0;
 
             while (IsAlive)
             {
@@ -256,7 +262,7 @@ namespace Iris.NET
                 {
                     // If in the previous cycle some bytes were read, but not all the expected ones
                     bytesToReadNow = targetBytes - bytesRead; // Calculate the remaining bytes to reach the expected value
-                    
+
                     if (bytesRead == 0) // If it's at default, initialize a new buffer
                         dataBuffer = new byte[bytesToReadNow];
                     // else: the values haven't been reset to default, hence the dataBuffer contains partial data bytes
@@ -282,13 +288,25 @@ namespace Iris.NET
                             targetBytes = (int)data;
                         }
                     }
+
+                    if (bytesRead == 0) // Possible broken connection
+                    {
+                        if (failedReadsCount++ >= _FailedReadsAttempts)
+                        {
+                            throw new BrokenConnectionException(failedReadsCount);
+                        }
+                    }
+                    else
+                    {
+                        failedReadsCount = 0;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    HandleListenCycleException(ex);
-
                     bytesRead = 0;
                     incomingDataMemoryStream.SetLength(0);
+
+                    HandleListenCycleException(ex);
                 }
                 finally
                 {
@@ -342,8 +360,10 @@ namespace Iris.NET
             if (IsAlive)
             {
                 InvokeAsyncOnException(ex);
-
-                if (IsStreamDisposedException(ex) || IsSocketResetException(ex))
+                
+                if (IsBrokenConnectionException(ex) ||
+                    IsStreamDisposedException(ex) ||
+                    IsSocketResetException(ex))
                 {
                     // Remote socket closed!
                     _isAlive = false;
@@ -435,6 +455,8 @@ namespace Iris.NET
         private void InvokeAsyncOnConnectionReset() => OnConnectionReset?.GetInvocationList().ForEach(e => ((VoidHandler)e).BeginInvoke(EndAsyncEventForVoidHandler, EventArgs.Empty));
         #endregion
         #endregion
+
+        private static bool IsBrokenConnectionException(Exception ex) => ex is BrokenConnectionException;
 
         private static bool IsStreamDisposedException(Exception ex) => ex is ObjectDisposedException;
 
