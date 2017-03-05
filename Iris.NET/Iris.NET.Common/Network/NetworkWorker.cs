@@ -17,28 +17,6 @@ namespace Iris.NET.Network
     /// </summary>
     public class NetworkWorker
     {
-        #region Static
-        /// <summary>
-        /// Size of the information sent that describes the length of the actual data.
-        /// </summary>
-        protected const int _DataLengthSize = 58;
-
-        /// <summary>
-        /// Min value of the delay for the loop in the writer thread
-        /// </summary>
-        protected const double _MinDelayValueMillis = 10;
-
-        /// <summary>
-        /// Factor used to increase the delay for the loop in the writer thread
-        /// </summary>
-        protected const double _IncrementalDelayFactor = 1.02;
-
-        /// <summary>
-        /// Arbitrary value that is used to identify a broken connection
-        /// </summary>
-        protected const double _FailedReadsAttempts = 5;
-        #endregion
-
         #region Events
         /// <summary>
         /// Triggered when the data received could not be deserialized.
@@ -126,8 +104,6 @@ namespace Iris.NET.Network
             _networkStream = networkStream;
             _writerThread = new Thread(DoWork);
             _listenerThread = new Thread(Listen);
-
-            _delay = _MinDelayValueMillis;
 
             OnConnectionReset += Stop; // Subscribe the Stop method to the connection reset event.
         }
@@ -246,7 +222,36 @@ namespace Iris.NET.Network
 
         private void Listen()
         {
-            MemoryStream incomingDataMemoryStream = new MemoryStream(_DataLengthSize);
+            while (IsAlive)
+            {
+                byte[] dataLengthBuffer = new byte[4];
+
+                try
+                {
+                    ReadExact(dataLengthBuffer, 0, dataLengthBuffer.Length);
+                    int dataLength = Bin
+                }
+                catch (Exception ex)
+                {
+                    if (IsAlive)
+                    {
+                        InvokeAsyncOnException(ex);
+
+                        if (ex is ObjectDisposedException ||
+                            ex is EndOfStreamException ||
+                            IsSocketResetException(ex))
+                        {
+                            // Remote socket closed!
+                            _isAlive = false;
+                            InvokeAsyncOnConnectionReset();
+                        }
+                    }
+                }
+            }
+
+
+
+                MemoryStream incomingDataMemoryStream = new MemoryStream(_DataLengthSize);
             
             byte[] dataBuffer = null;
             bool reset = false; // Indicates if the data has been read and the values must be reset to default
@@ -320,7 +325,23 @@ namespace Iris.NET.Network
                 }
             }
         }
-        
+
+        private void ReadExact(byte[] buffer, int offset, int count)
+        {
+            int bytesRead;
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            while (count != 0 && (bytesRead = _networkStream.Read(buffer, offset, count)) > 0)
+            {
+                offset += bytesRead;
+                count -= bytesRead;
+            }
+
+            if (count != 0)
+                throw new EndOfStreamException();
+        }
+
         private void HandleReceivedData(object data)
         {
             try
@@ -352,23 +373,6 @@ namespace Iris.NET.Network
             {
                 if (IsAlive)
                     InvokeAsyncOnException(ex);
-            }
-        }
-
-        private void HandleListenCycleException(Exception ex)
-        {
-            if (IsAlive)
-            {
-                InvokeAsyncOnException(ex);
-                
-                if (IsBrokenConnectionException(ex) ||
-                    IsStreamDisposedException(ex) ||
-                    IsSocketResetException(ex))
-                {
-                    // Remote socket closed!
-                    _isAlive = false;
-                    InvokeAsyncOnConnectionReset();
-                }
             }
         }
 
@@ -455,10 +459,6 @@ namespace Iris.NET.Network
         private void InvokeAsyncOnConnectionReset() => OnConnectionReset?.GetInvocationList().ForEach(e => ((VoidHandler)e).BeginInvoke(EndAsyncEventForVoidHandler, EventArgs.Empty));
         #endregion
         #endregion
-
-        private static bool IsBrokenConnectionException(Exception ex) => ex is BrokenConnectionException;
-
-        private static bool IsStreamDisposedException(Exception ex) => ex is ObjectDisposedException;
 
         private static bool IsSocketResetException(Exception ex)
         {
