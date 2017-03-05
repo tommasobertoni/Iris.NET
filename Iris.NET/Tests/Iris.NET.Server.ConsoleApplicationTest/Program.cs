@@ -13,7 +13,7 @@ namespace Iris.NET.Server.ConsoleApplicationTest
             Console.ReadLine();
         }
 
-        private static async void PerfTest()
+        private static void PerfTest()
         {
             string channel = "perf";
             

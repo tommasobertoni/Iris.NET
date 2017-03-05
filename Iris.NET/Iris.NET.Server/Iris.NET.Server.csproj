@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PubSub\IPubSubRouter.cs" />
-    <Compile Include="Nodes\IrisClientRemoteNode.cs" />
+    <Compile Include="Nodes\IrisRemoteClientNode.cs" />
     <Compile Include="IrisServer.cs" />
     <Compile Include="IrisServerConfig.cs" />
     <Compile Include="Nodes\IrisLocalNode.cs" />

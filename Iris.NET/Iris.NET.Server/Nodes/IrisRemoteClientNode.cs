@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 namespace Iris.NET.Server
 {
     /// <summary>
-    /// Network client remote node.
-    /// Represents the connection to a remote client node.
+    /// Network remote client node: represents the connection to a remote node.
     /// </summary>
-    internal class IrisClientRemoteNode : AbstractIrisNetworkNode<IrisServerConfig>, IMessageSubscriber
+    internal class IrisRemoteClientNode : AbstractIrisNetworkNode<IrisServerConfig>, IMessageSubscriber
     {
         #region Properties
         /// <summary>
@@ -30,7 +29,7 @@ namespace Iris.NET.Server
         /// Constructor.
         /// </summary>
         /// <param name="clientSocket">The tcp socket connection to the remote client.</param>
-        public IrisClientRemoteNode(TcpClient clientSocket)
+        public IrisRemoteClientNode(TcpClient clientSocket)
         {
             _clientSocket = clientSocket;
         }

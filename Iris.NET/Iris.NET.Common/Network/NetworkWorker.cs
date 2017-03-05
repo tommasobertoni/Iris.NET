@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using Iris.NET.Collections;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,28 +17,6 @@ namespace Iris.NET.Network
     /// </summary>
     public class NetworkWorker
     {
-        #region Static
-        /// <summary>
-        /// Size of the information sent that describes the length of the actual data.
-        /// </summary>
-        protected const int _DataLengthSize = 58;
-
-        /// <summary>
-        /// Min value of the delay for the loop in the writer thread
-        /// </summary>
-        protected const double _MinDelayValueMillis = 10;
-
-        /// <summary>
-        /// Factor used to increase the delay for the loop in the writer thread
-        /// </summary>
-        protected const double _IncrementalDelayFactor = 1.02;
-
-        /// <summary>
-        /// Arbitrary value that is used to identify a broken connection
-        /// </summary>
-        protected const double _FailedReadsAttempts = 5;
-        #endregion
-
         #region Events
         /// <summary>
         /// Triggered when the data received could not be deserialized.
@@ -87,9 +65,9 @@ namespace Iris.NET.Network
         #endregion
 
         /// <summary>
-        /// Concurrent queue used to store the packets yet to be sent.
+        /// Blocking queue used to store the packets yet to be sent.
         /// </summary>
-        protected ConcurrentQueue<AsyncNetworkOperation> _packetsQueue = new ConcurrentQueue<AsyncNetworkOperation>();
+        protected BlockingQueue<AsyncNetworkOperation> _packetsQueue = new BlockingQueue<AsyncNetworkOperation>();
 
         /// <summary>
         /// Thread dedicated to write to the NetworkStream.
@@ -109,13 +87,15 @@ namespace Iris.NET.Network
         /// <summary>
         /// Volatile variable used to indicate if this worker is alive and running.
         /// </summary>
-        protected volatile bool _isAlive;
+        private volatile bool _isAlive;
         /// <summary>
         /// Indicates if this worker is alive and running.
         /// </summary>
-        public bool IsAlive => _isAlive;
-
-        private double _delay;
+        public bool IsAlive
+        {
+            get { return _isAlive; }
+            protected set { _isAlive = value; }
+        }
 
         /// <summary>
         /// Creates a new NetworkWorker using the specific NetworkStream.
@@ -124,10 +104,8 @@ namespace Iris.NET.Network
         public NetworkWorker(NetworkStream networkStream)
         {
             _networkStream = networkStream;
-            _writerThread = new Thread(DoWork);
-            _listenerThread = new Thread(Listen);
-
-            _delay = _MinDelayValueMillis;
+            _writerThread = new Thread(WriteData);
+            _listenerThread = new Thread(ListenIncomingData);
 
             OnConnectionReset += Stop; // Subscribe the Stop method to the connection reset event.
         }
@@ -138,9 +116,9 @@ namespace Iris.NET.Network
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Start()
         {
-            if (!_isAlive)
+            if (!IsAlive)
             {
-                _isAlive = true;
+                IsAlive = true;
                 _writerThread.Start();
                 _listenerThread.Start();
 
@@ -155,7 +133,7 @@ namespace Iris.NET.Network
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Stop()
         {
-            _isAlive = false;
+            IsAlive = false;
             
             try
             {
@@ -166,15 +144,17 @@ namespace Iris.NET.Network
 
             try
             {
-                _writerThread?.Join();
-                _writerThread = null;
+                _listenerThread?.Join();
+                _listenerThread = null;
             }
             catch { }
 
+            _packetsQueue.Dispose(); // Unlocks the writer thread from the blocking Dequeue operation
+
             try
             {
-                _listenerThread?.Join();
-                _listenerThread = null;
+                _writerThread?.Join();
+                _writerThread = null;
             }
             catch { }
         }
@@ -182,8 +162,8 @@ namespace Iris.NET.Network
         /// <summary>
         /// Stores the data until asynchronously sending it to the NetworkStream.
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <param name="data">The object/data to send.</param>
+        /// <returns>A task which result indicates whether or not the data has been sent.</returns>
         public Task<bool> SendAsync(object data)
         {
             TaskCompletionSource<bool> asyncOperation = new TaskCompletionSource<bool>();
@@ -192,48 +172,28 @@ namespace Iris.NET.Network
         }
 
         #region Private
-        private void DoWork()
+        private void WriteData()
         {
-            MemoryStream dataLengthMemoryStream = new MemoryStream(_DataLengthSize);
-            MemoryStream dataMemoryStream = new MemoryStream(_DataLengthSize);
-
-            while (_isAlive)
+            while (IsAlive)
             {
                 try
                 {
-                    AsyncNetworkOperation currentOperation;
-                    if (_packetsQueue.TryDequeue(out currentOperation))
+                    AsyncNetworkOperation currentOperation = _packetsQueue.Dequeue(); // Dequeue (or wait)
+
+                    if (IsAlive) // Check again if the worker is alive ("dequeue" could have been unlocked during disposing)
                     {
-                        _delay = _MinDelayValueMillis; // Reset delay
+                        object data = currentOperation.Data;
 
-                        do
-                        {
-                            dataLengthMemoryStream.SetLength(0); // Clear
-                            dataMemoryStream.SetLength(0); // Clear
+                        var dataMemoryStream = new MemoryStream();
+                        data.SerializeToMemoryStream(dataMemoryStream); // Copy data into stream
 
-                            object data = currentOperation.Data;
-                            data.SerializeToMemoryStream(dataMemoryStream); // Copy data into stream
+                        var bytes = dataMemoryStream.ToArray(); // Bytes to send
+                        byte[] rawDataLength = BitConverter.GetBytes(bytes.Length); // Serialize the data's length into a byte[] (of length 4)
 
-                            var dataLength = (int)dataMemoryStream.Length; // Read data length
-                            dataLength.SerializeToMemoryStream(dataLengthMemoryStream);
-                            dataLengthMemoryStream.SetLength(_DataLengthSize); // Set constant-size data length chunk
+                        _networkStream?.Write(rawDataLength, 0, rawDataLength.Length); // First send the data's length
+                        _networkStream?.Write(bytes, 0, bytes.Length); // Then the actual data
 
-                            var rawDataLength = dataLengthMemoryStream.ToArray(); // Send data length
-                            _networkStream.Write(rawDataLength, 0, rawDataLength.Length);
-
-                            var rawData = dataMemoryStream.ToArray(); // Send data
-                            _networkStream.Write(rawData, 0, rawData.Length);
-                            
-                            currentOperation.SetComplete();
-
-                        } while (_packetsQueue.TryDequeue(out currentOperation));
-                    }
-                    else
-                    {
-                        Thread.Sleep((int)_delay);
-
-                        // No operation found in the queue
-                        _delay *= _IncrementalDelayFactor;
+                        currentOperation.SetComplete(); // Set operation complete
                     }
                 }
                 catch (Exception ex)
@@ -244,83 +204,68 @@ namespace Iris.NET.Network
             }
         }
 
-        private void Listen()
+        private void ListenIncomingData()
         {
-            MemoryStream incomingDataMemoryStream = new MemoryStream(_DataLengthSize);
-            
-            byte[] dataBuffer = null;
-            bool reset = false; // Indicates if the data has been read and the values must be reset to default
-            bool isData = false; // Indicates if it's expecting to read data or data length
-            int targetBytes = _DataLengthSize;
-            int bytesToReadNow;
-            int bytesRead = 0; // Bytes that were read in the previous cycle
-            int failedReadsCount = 0;
-
             while (IsAlive)
             {
+                // Since the data length is always 4 bytes, the buffer used is always the same
+                byte[] dataLengthBuffer = new byte[4];
+
                 try
                 {
-                    // If in the previous cycle some bytes were read, but not all the expected ones
-                    bytesToReadNow = targetBytes - bytesRead; // Calculate the remaining bytes to reach the expected value
+                    // Read the incoming data's lenght (first 4 bytes)
+                    ReadExact(dataLengthBuffer, 0, dataLengthBuffer.Length);
+                    int dataLength = BitConverter.ToInt32(dataLengthBuffer, 0);
 
-                    if (bytesRead == 0) // If it's at default, initialize a new buffer
-                        dataBuffer = new byte[bytesToReadNow];
-                    // else: the values haven't been reset to default, hence the dataBuffer contains partial data bytes
+                    // Read the actual incoming data
+                    byte[] dataBuffer = new byte[dataLength];
+                    ReadExact(dataBuffer, 0, dataBuffer.Length);
 
-                    bytesRead = _networkStream.Read(dataBuffer, bytesRead, bytesToReadNow);
-
-                    if (bytesRead == bytesToReadNow) // If the expected amount of bytes was read
-                    {
-                        reset = true; // Reset the values before the next cycle
-                        incomingDataMemoryStream.Write(dataBuffer, 0, dataBuffer.Length); // Write the bytes into the stream
-                        incomingDataMemoryStream.Position = 0; // Set the position to the begin of the stream
-
-                        object data = incomingDataMemoryStream.DeserializeFromMemoryStream();
-
-                        if (isData)
-                        {
-                            HandleReceivedData(data);
-                            targetBytes = _DataLengthSize;
-                        }
-                        else
-                        {
-                            // Is data length
-                            targetBytes = (int)data;
-                        }
-                    }
-
-                    if (bytesRead == 0) // Possible broken connection
-                    {
-                        if (failedReadsCount++ >= _FailedReadsAttempts)
-                        {
-                            throw new BrokenConnectionException(failedReadsCount);
-                        }
-                    }
-                    else
-                    {
-                        failedReadsCount = 0;
-                    }
+                    object data = new MemoryStream(dataBuffer).DeserializeFromMemoryStream();
+                    HandleReceivedData(data);
                 }
                 catch (Exception ex)
                 {
-                    bytesRead = 0;
-                    incomingDataMemoryStream.SetLength(0);
-
-                    HandleListenCycleException(ex);
-                }
-                finally
-                {
-                    if (reset)
+                    if (IsAlive)
                     {
-                        isData ^= true;
-                        bytesRead = 0;
-                        incomingDataMemoryStream.SetLength(0);
-                        reset = false;
+                        InvokeAsyncOnException(ex);
+
+                        if (ex is ObjectDisposedException ||
+                            ex is EndOfStreamException ||
+                            IsSocketResetException(ex))
+                        {
+                            // Remote socket closed!
+                            IsAlive = false;
+                            InvokeAsyncOnConnectionReset();
+                        }
                     }
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Reads from the network stream a defined number of bytes and stores them in the given buffer.
+        /// (inspired by Marc Gravell at http://blog.marcgravell.com/2013/02/how-many-ways-can-you-mess-up-io.html)
+        /// </summary>
+        /// <param name="buffer">The array of bytes that will contain the data read from the stream.</param>
+        /// <param name="offset">The location in buffer to begin storing the data to (usually 0).</param>
+        /// <param name="count">How many bytes to read.</param>
+        private void ReadExact(byte[] buffer, int offset, int count)
+        {
+            int bytesRead;
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            while (count != 0 && (bytesRead = _networkStream.Read(buffer, offset, count)) > 0)
+            {
+                offset += bytesRead; // Shifts the starting position of the next batch of bytes
+                count -= bytesRead; // Decreases the number of bytes to read
+            }
+
+            if (count != 0)
+                throw new EndOfStreamException();
+        }
+
         private void HandleReceivedData(object data)
         {
             try
@@ -352,23 +297,6 @@ namespace Iris.NET.Network
             {
                 if (IsAlive)
                     InvokeAsyncOnException(ex);
-            }
-        }
-
-        private void HandleListenCycleException(Exception ex)
-        {
-            if (IsAlive)
-            {
-                InvokeAsyncOnException(ex);
-                
-                if (IsBrokenConnectionException(ex) ||
-                    IsStreamDisposedException(ex) ||
-                    IsSocketResetException(ex))
-                {
-                    // Remote socket closed!
-                    _isAlive = false;
-                    InvokeAsyncOnConnectionReset();
-                }
             }
         }
 
@@ -455,10 +383,6 @@ namespace Iris.NET.Network
         private void InvokeAsyncOnConnectionReset() => OnConnectionReset?.GetInvocationList().ForEach(e => ((VoidHandler)e).BeginInvoke(EndAsyncEventForVoidHandler, EventArgs.Empty));
         #endregion
         #endregion
-
-        private static bool IsBrokenConnectionException(Exception ex) => ex is BrokenConnectionException;
-
-        private static bool IsStreamDisposedException(Exception ex) => ex is ObjectDisposedException;
 
         private static bool IsSocketResetException(Exception ex)
         {

@@ -57,7 +57,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             actorNode.Connect(config);
             Console.WriteLine("Actor node connected");
 
-            messagesCount = 100000;
+            messagesCount = 20;
             start = null;
 
             receivedMessagesCount = 0;
@@ -84,6 +84,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
                         });
 
                         PerfAnalysis(messagesCount, start.Value, end);
+                        actorNode.Dispose();
                     }
                 }
             });
@@ -92,7 +93,7 @@ namespace Iris.NET.Client.ConsoleApplicationTest
             
             Task[] publishTasks = new Task[messagesCount];
             
-            object bigload = new byte[2 * 1010];
+            object bigload = new byte[10000];
             start = DateTime.Now;
 
             Console.WriteLine($"Started sending {messagesCount} messages");
