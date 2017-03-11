@@ -17,7 +17,7 @@ namespace Iris.NET
         internal IrisError(Guid publisherId) : base(publisherId) { }
 
         /// <summary>
-        /// The exception that caused the sending of this packet.
+        /// The exception that caused this packet.
         /// </summary>
         public Exception Exception { get; internal set; }
 

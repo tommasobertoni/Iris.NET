@@ -124,7 +124,7 @@ namespace Iris.NET.Server
         }
 
         /// <summary>
-        /// Stops the server and 
+        /// Stops the server
         /// </summary>
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Stop()
@@ -150,7 +150,7 @@ namespace Iris.NET.Server
                 while (_isRunning)
                 {
                     TcpClient clientSocket = _serverSocket.AcceptTcpClient();
-                    var remote = new IrisClientRemoteNode(clientSocket);
+                    var remote = new IrisRemoteClientNode(clientSocket);
                     remote.Connect(GetServerConfig());
                 }
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iris.NET.Network;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -9,7 +10,7 @@ namespace Iris.NET.Client
     /// <summary>
     /// Network client node.
     /// </summary>
-    public class IrisClientNode : AbstractIrisNode<IrisClientConfig>
+    public class IrisClientNode : AbstractIrisNetworkNode<IrisClientConfig>
     {
         #region Properties
         /// <summary>
@@ -31,54 +32,17 @@ namespace Iris.NET.Client
         /// <summary>
         /// Invoked when the node is connecting.
         /// </summary>
+        /// <returns>The network stream used to communicate to the pubsub network.</returns>
+        protected override NetworkStream GetNetworkStream() => _socket?.GetStream();
+
+        /// <summary>
+        /// Invoked when the node is connecting.
+        /// </summary>
         /// <param name="config">The connection's configuration.</param>
-        /// <returns>An IrisClientListener instance.</returns>
-        protected override AbstractIrisListener OnConnect(IrisClientConfig config)
+        protected override void OnConnect(IrisClientConfig config)
         {
-            if (IsConnected)
-                return null;
-            
             _socket = new TcpClient(config.Hostname, config.Port);
-            _networkStream = _socket.GetStream();
-            return new IrisClientListener(_networkStream);
-        }
-
-        /// <summary>
-        /// Sends the packet to the network.
-        /// </summary>
-        /// <param name="packet">The packet to send.</param>
-        protected override void Send(IrisPacket packet)
-        {
-            if (packet != null)
-            {
-                var stream = packet.SerializeToMemoryStream();
-                var rowData = stream.ToArray();
-                _networkStream.Write(rowData, 0, rowData.Length);
-                _networkStream.Flush();
-            }
-        }
-
-        /// <summary>
-        /// Handler for a meta packet received from the network.
-        /// </summary>
-        /// <param name="meta">The IrisMeta received.</param>
-        protected override void OnMetaReceived(IrisMeta meta)
-        {
-        }
-
-        /// <summary>
-        /// Handler for exceptions coming from the IrisListener.
-        /// Disposes the node if the connection is down.
-        /// Fires a OnException event.
-        /// Fires a log event if LogExceptionsEnable is true.
-        /// </summary>
-        /// <param name="ex">The exception that occurred.</param>
-        protected override void OnListenerException(Exception ex)
-        {
-            if (!IsPeerAlive())
-                Dispose();
-            else
-                OnListenerException(ex);
+            base.OnConnect(config);
         }
 
         /// <summary>
@@ -86,9 +50,9 @@ namespace Iris.NET.Client
         /// Disposes the node if the connection is down.
         /// Fires a log event if LogNullsEnable is true.
         /// </summary>
-        protected override void OnNullReceived()
+        protected override async void OnNullReceived()
         {
-            if (!IsPeerAlive())
+            if (!await IsPeerAlive())
                 Dispose();
             else
                 _lastException = null;
@@ -99,7 +63,7 @@ namespace Iris.NET.Client
         /// </summary>
         protected override void OnDispose()
         {
-            _networkStream?.Close();
+            base.OnDispose();
             _socket?.Close();
         }
     }

@@ -4,6 +4,30 @@
         <name>Iris.NET.Common</name>
     </assembly>
     <members>
+        <member name="T:Iris.NET.Collections.BlockingQueue`1">
+            <summary>
+            This queue uses a Semaphore to block the dequeue method when the queue is empty,
+            until a new item is added to the queue.
+            (inspired by Stephen Toub at https://blogs.msdn.microsoft.com/toub/2006/04/12/blocking-queues/)
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Collections.BlockingQueue`1.Enqueue(`0)">
+            <summary>
+            Adds the item to the queue.
+            </summary>
+            <param name="item">A new item.</param>
+        </member>
+        <member name="M:Iris.NET.Collections.BlockingQueue`1.Dequeue">
+            <summary>
+            If the queue is empty, waits for a new item to be added to the queue, else returns the dequeued item.
+            </summary>
+            <returns>The item at the beginning of the queue.</returns>
+        </member>
+        <member name="M:Iris.NET.Collections.BlockingQueue`1.Dispose">
+            <summary>
+            Clear the semaphore and the queue.
+            </summary>
+        </member>
         <member name="T:Iris.NET.Collections.IChannelsSubscriptionsDictionary`1">
             <summary>
             Interface for a channels-subscriptions handler class.
@@ -328,19 +352,26 @@
             <param name="enumerable">The enumerable to iterate.</param>
             <param name="action">The action to invoke for each item.</param>
         </member>
-        <member name="T:Iris.NET.IOExtensions">
+        <member name="T:Iris.NET.NetworkExtensions">
             <summary>
-            Extension methods for IO types.
+            Extension methods for network operations.
             </summary>
         </member>
-        <member name="M:Iris.NET.IOExtensions.SerializeToMemoryStream(System.Object)">
+        <member name="M:Iris.NET.NetworkExtensions.SerializeToMemoryStream(System.Object)">
             <summary>
             Serializes an object into a memory stream.
             </summary>
             <param name="o">The object to serialize.</param>
             <returns>A memory stream containing the serialized object.</returns>
         </member>
-        <member name="M:Iris.NET.IOExtensions.DeserializeFromMemoryStream``1(System.IO.MemoryStream)">
+        <member name="M:Iris.NET.NetworkExtensions.SerializeToMemoryStream(System.Object,System.IO.MemoryStream)">
+            <summary>
+            Serializes an object into a given memory stream.
+            </summary>
+            <param name="o">The object to serialize.</param>
+            <param name="stream">The memory stream into which serialize the object.</param>
+        </member>
+        <member name="M:Iris.NET.NetworkExtensions.DeserializeFromMemoryStream``1(System.IO.MemoryStream)">
             <summary>
             Deserializes a memory stream into an instance of type {T}.
             </summary>
@@ -348,14 +379,14 @@
             <param name="stream">The memory stram to deserialize.</param>
             <returns>The deserialized object as {T}.</returns>
         </member>
-        <member name="M:Iris.NET.IOExtensions.DeserializeFromMemoryStream(System.IO.MemoryStream)">
+        <member name="M:Iris.NET.NetworkExtensions.DeserializeFromMemoryStream(System.IO.MemoryStream)">
             <summary>
             Deserializes a memory stream into an object.
             </summary>
             <param name="stream">The memory stream to deserialize.</param>
             <returns>The deserialized object.</returns>
         </member>
-        <member name="M:Iris.NET.IOExtensions.ReadNext(System.IO.Stream,System.Int32)">
+        <member name="M:Iris.NET.NetworkExtensions.ReadNext(System.IO.Stream,System.Int32)">
             <summary>
             Reads the next data coming from the stream.
             </summary>
@@ -366,85 +397,6 @@
         <member name="T:Iris.NET.IrisBaseConfig">
             <summary>
             Base class for node configuration.
-            </summary>
-        </member>
-        <member name="T:Iris.NET.AbstractIrisListener">
-            <summary>
-            Abstract class that listens to incoming data and deserializes it into packets and sends them
-            through events. Handles errors and exceptions.
-            The listening cycle is on a different thread.
-            </summary>
-        </member>
-        <member name="P:Iris.NET.AbstractIrisListener.IsListening">
-            <summary>
-            Indicates if it's listening to incoming data.
-            </summary>
-        </member>
-        <member name="F:Iris.NET.AbstractIrisListener._thread">
-            <summary>
-            The thread that runs the listening cycle.
-            </summary>
-        </member>
-        <member name="E:Iris.NET.AbstractIrisListener.OnInvalidDataReceived">
-            <summary>
-            Triggered when the data received could not be deserialized.
-            </summary>
-        </member>
-        <member name="E:Iris.NET.AbstractIrisListener.OnException">
-            <summary>
-            Triggered when an exception occurs.
-            </summary>
-        </member>
-        <member name="E:Iris.NET.AbstractIrisListener.OnErrorReceived">
-            <summary>
-            Triggered when an IrisError is received.
-            </summary>
-        </member>
-        <member name="E:Iris.NET.AbstractIrisListener.OnClientSubmittedPacketReceived">
-            <summary>
-            Triggered when a user submitted packet is received.
-            </summary>
-        </member>
-        <member name="E:Iris.NET.AbstractIrisListener.OnMetaReceived">
-            <summary>
-            Triggered when an IrisMeta packet is received.
-            </summary>
-        </member>
-        <member name="E:Iris.NET.AbstractIrisListener.OnNullReceived">
-            <summary>
-            Triggered when null data is received.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisListener.InitListenCycle">
-            <summary>
-            Initialize the listening cycle.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisListener.ReadObject">
-            <summary>
-            Reads the incoming data and return it as object.
-            </summary>
-            <returns>The data as object</returns>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisListener.OnStop">
-            <summary>
-            Invoked when this listener is stopping.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisListener.Start">
-            <summary>
-            Starts the listening cycle.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisListener.Stop">
-            <summary>
-            Stops the listening cycle.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisListener.Listen">
-            <summary>
-            Executes the listening cycle. When some data is received, the appropriate event is fired
-            in order to notify whoever is listening for the data using this instance.
             </summary>
         </member>
         <member name="T:Iris.NET.IrisContextHook">
@@ -504,13 +456,190 @@
             The content handler to unsubscribe.
             </summary>
         </member>
+        <member name="M:Iris.NET.IrisDisposableSubscription.#ctor">
+            <summary>
+            Create an already disposed subscription.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Network.AbstractIrisNetworkNode`1">
+            <summary>
+            Abstract implementation of AbstractIrisNode, targeting network communication.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Network.AbstractIrisNetworkNode`1.IsConnected">
+            <summary>
+            Indicates if this node is connected.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Network.AbstractIrisNetworkNode`1.GetNetworkStream">
+            <summary>
+            Invoked when the node is connecting.
+            </summary>
+            <returns>The network stream used to communicate to the pubsub network.</returns>
+        </member>
+        <member name="M:Iris.NET.Network.AbstractIrisNetworkNode`1.OnConnect(`0)">
+            <summary>
+            Invoked when the node is connecting.
+            </summary>
+            <param name="config">The connection's configuration.</param>
+        </member>
+        <member name="M:Iris.NET.Network.AbstractIrisNetworkNode`1.OnDispose">
+            <summary>
+            Invoked when the node is disposing.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Network.AbstractIrisNetworkNode`1.HookEventsToWorker(Iris.NET.Network.NetworkWorker)">
+            <summary>
+            Attaches handlers to the IrisListener events.
+            </summary>
+            <param name="networkWorker">The target IrisListener.</param>
+        </member>
+        <member name="M:Iris.NET.Network.AbstractIrisNetworkNode`1.UnhookEventsFromListener(Iris.NET.Network.NetworkWorker)">
+            <summary>
+            Detaches the handlers from the IrisListener events.
+            </summary>
+            <param name="networkWorker">The target IrisListener.</param>
+        </member>
+        <member name="M:Iris.NET.Network.AbstractIrisNetworkNode`1.Publish(Iris.NET.IrisPacket)">
+            <summary>
+            Publishes the packet to the network.
+            </summary>
+            <param name="packet">The packet to publish.</param>
+        </member>
+        <member name="T:Iris.NET.Network.NetworkWorker">
+            <summary>
+            Class used to handle asynchronous writing and reading from a NetworkStream.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnInvalidDataReceived">
+            <summary>
+            Triggered when the data received could not be deserialized.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnException">
+            <summary>
+            Triggered when an exception occurs.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnErrorReceived">
+            <summary>
+            Triggered when an IrisError is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnClientSubmittedPacketReceived">
+            <summary>
+            Triggered when a user submitted packet is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnMetaReceived">
+            <summary>
+            Triggered when an IrisMeta packet is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnNullReceived">
+            <summary>
+            Triggered when null data is received.
+            </summary>
+        </member>
+        <member name="E:Iris.NET.Network.NetworkWorker.OnConnectionReset">
+            <summary>
+            Triggered when the connection was reset by the remote peer.
+            </summary>
+        </member>
+        <member name="T:Iris.NET.Network.NetworkWorker.VoidHandler">
+            <summary>
+            Delegate for the OnNullReceived and OnConnectionReset events.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Network.NetworkWorker._packetsQueue">
+            <summary>
+            Blocking queue used to store the packets yet to be sent.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Network.NetworkWorker._writerThread">
+            <summary>
+            Thread dedicated to write to the NetworkStream.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Network.NetworkWorker._listenerThread">
+            <summary>
+            Thread dedicated to read from the NetworkStream.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Network.NetworkWorker._networkStream">
+            <summary>
+            The NetworkStream.
+            </summary>
+        </member>
+        <member name="F:Iris.NET.Network.NetworkWorker._isAlive">
+            <summary>
+            Volatile variable used to indicate if this worker is alive and running.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Network.NetworkWorker.IsAlive">
+            <summary>
+            Indicates if this worker is alive and running.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.#ctor(System.Net.Sockets.NetworkStream)">
+            <summary>
+            Creates a new NetworkWorker using the specific NetworkStream.
+            </summary>
+            <param name="networkStream">The NetworkStream to work with.</param>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.Start">
+            <summary>
+            Starts the worker and its write/read threads.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.Stop">
+            <summary>
+            Stops the server and its write/read threads, and closes the NetworkStream.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.SendAsync(System.Object)">
+            <summary>
+            Stores the data until asynchronously sending it to the NetworkStream.
+            </summary>
+            <param name="data">The object/data to send.</param>
+            <returns>A task which result indicates whether or not the data has been sent.</returns>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.ReadExact(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads from the network stream a defined number of bytes and stores them in the given buffer.
+            (inspired by Marc Gravell at http://blog.marcgravell.com/2013/02/how-many-ways-can-you-mess-up-io.html)
+            </summary>
+            <param name="buffer">The array of bytes that will contain the data read from the stream.</param>
+            <param name="offset">The location in buffer to begin storing the data to (usually 0).</param>
+            <param name="count">How many bytes to read.</param>
+        </member>
+        <member name="T:Iris.NET.Network.NetworkWorker.AsyncNetworkOperation">
+            <summary>
+            Wrapper for the data and its asynchronous operation.
+            </summary>
+        </member>
+        <member name="P:Iris.NET.Network.NetworkWorker.AsyncNetworkOperation.Data">
+            <summary>
+            The data.
+            </summary>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.AsyncNetworkOperation.#ctor(System.Object,System.Threading.Tasks.TaskCompletionSource{System.Boolean})">
+            <summary>
+            Creates a new AsyncNetworkOperation wrapper for the data provided.
+            </summary>
+            <param name="data">The data.</param>
+            <param name="asyncOperation">TaskCompletionSource for the asynchronous operation.</param>
+        </member>
+        <member name="M:Iris.NET.Network.NetworkWorker.AsyncNetworkOperation.SetComplete">
+            <summary>
+            Resolved the TaskCompletionSource provided for the asynchronous operation.
+            </summary>
+        </member>
         <member name="T:Iris.NET.AbstractIrisNode`1">
             <summary>
             Abstract implementation of IIrisNode, with the addition of events and connection methods.
-            Uses a AbstractIrisListener to listen for incoming packets from the network and handles channels subscriptions.
             It also provides a method for testing if the connection is working properly: IsPeerAlive().
             </summary>
-            <typeparam name="T"></typeparam>
         </member>
         <member name="P:Iris.NET.AbstractIrisNode`1.Id">
             <summary>
@@ -618,24 +747,17 @@
             Invoked when the node is connecting.
             </summary>
             <param name="config">The connection's configuration.</param>
-            <returns>An AbstractIrisListener instance.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.OnDispose">
             <summary>
             Invoked when the node is disposing.
             </summary>
         </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.Send(Iris.NET.IrisPacket)">
+        <member name="M:Iris.NET.AbstractIrisNode`1.Publish(Iris.NET.IrisPacket)">
             <summary>
-            Sends the packet to the network.
+            Publishes the packet to the network.
             </summary>
-            <param name="packet">The packet to send.</param>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.OnMetaReceived(Iris.NET.IrisMeta)">
-            <summary>
-            Handler for a meta packet received from the network.
-            </summary>
-            <param name="meta">The IrisMeta received.</param>
+            <param name="packet">The packet to publish.</param>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.Connect(`0)">
             <summary>
@@ -649,76 +771,64 @@
             Closes the connection and disposes all the connection resources.
             </summary>
         </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.Send(System.String,System.Object,System.Boolean)">
+        <member name="M:Iris.NET.AbstractIrisNode`1.Publish(System.String,System.Object,System.Boolean)">
             <summary>
-            Submits the content to the pubsub network.
+            Publish the content to the pubsub network asynchronously.
             </summary>
-            <param name="targetChannel">The channel targeted by the content.</param>
-            <param name="content">The content to send.</param>
+            <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
+            <param name="content">The content to publish.</param>
             <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.SendToBroadcast(System.Object)">
+        <member name="M:Iris.NET.AbstractIrisNode`1.PublishToBroadcast(System.Object)">
             <summary>
-            Submits the content to every node in the pubsub network.
+            Submits the content to every node in the pubsub network asynchronously.
             </summary>
-            <param name="content">The content to send.</param>
-            <returns>True if the operation succeeded.</returns>
+            <param name="content">The content to publish.</param>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.Subscribe(System.String,Iris.NET.ContentHandler)">
             <summary>
-            Subscribes this node to a channel.
+            Subscribes this node to a channel asynchronously.
             </summary>
             <param name="channel">The channel to which subscribe.</param>
             <param name="contentHandler">A handler for the content received through this subscription.</param>
-            <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+            <returns>A task which value is an IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.SubscribeToBroadcast(Iris.NET.ContentHandler)">
             <summary>
-            Subscribes the conten handler to the broadcast communication.
+            Subscribes the conten handler to the broadcast communication asynchronously.
             </summary>
             <param name="contentHandler">A handler for the content received in broadcast.</param>
-            <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
+            <returns>A task which value is an IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.Unsubscribe(System.String,Iris.NET.ContentHandler,System.Boolean)">
             <summary>
-            Removes the content handler from the subscription.
+            Removes the content handler from the subscription asynchronously.
             </summary>
             <param name="channel">The channel from which unsubscribe.</param>
             <param name="contentHandler">The content handler to be removed from this subscription.</param>
             <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.UnsubscribeFromBroadcast(Iris.NET.ContentHandler)">
             <summary>
-            Removes the content handler from the broadcast communication.
+            Removes the content handler from the broadcast communication asynchronously.
             </summary>
             <param name="contentHandler">The content handler to be removed from the broadcast.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.Unsubscribe(System.String)">
             <summary>
-            Unsubscribes this node from a channel.
+            Unsubscribes this node from a channel asynchronously.
             All the content handlers subscribed to this channel will be lost.
             </summary>
             <param name="channel">The channel from which unsubscribe.</param>
-            <returns>True if the operation succeeded.</returns>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.HookEventsToListener(Iris.NET.AbstractIrisListener)">
-            <summary>
-            Attaches handlers to the IrisListener events.
-            </summary>
-            <param name="subscriptionsListener">The target IrisListener.</param>
-        </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.UnhookEventsFromListener(Iris.NET.AbstractIrisListener)">
-            <summary>
-            Detaches the handlers from the IrisListener events.
-            </summary>
-            <param name="subscriptionsListener">The target IrisListener.</param>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.IsPeerAlive">
             <summary>
-            Checks if the connection is working properly by sending a meta packet.
+            Checks if the connection is working properly by publishing a meta packet.
             </summary>
             <returns></returns>
         </member>
@@ -731,10 +841,16 @@
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.OnInvalidDataReceived(System.Object)">
             <summary>
-            Handler for invalid data received from the IrisListener.
+            Handler for invalid data received.
             Fires a log event if LogInvalidDataEnable is true.
             </summary>
             <param name="data">The invalid data received.</param>
+        </member>
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnMetaReceived(Iris.NET.IrisMeta)">
+            <summary>
+            Handler for a meta packet received from the network.
+            </summary>
+            <param name="meta">The IrisMeta received.</param>
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.GetLogForException(System.Exception)">
             <summary>
@@ -743,16 +859,16 @@
             <param name="ex">The exception that occurred.</param>
             <returns>A log string.</returns>
         </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.HandleListenerException(System.Exception)">
+        <member name="M:Iris.NET.AbstractIrisNode`1.HandleException(System.Exception)">
             <summary>
-            Handler for exceptions coming from the IrisListener.
-            Checks wether this exception was already caught right before and invokes the method OnListenerException.
+            Handler for exceptions coming from the network.
+            Checks wether this exception was already caught right before and invokes the method OnNetworkException.
             </summary>
             <param name="ex">The exception that occurred.</param>
         </member>
-        <member name="M:Iris.NET.AbstractIrisNode`1.OnListenerException(System.Exception)">
+        <member name="M:Iris.NET.AbstractIrisNode`1.OnNetworkException(System.Exception)">
             <summary>
-            Handler for exceptions coming from the IrisListener.
+            Handler for exceptions coming from the network.
             Fires a OnException event.
             Fires a log event if LogExceptionsEnable is true.
             </summary>
@@ -781,7 +897,7 @@
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.OnClientSubmittedPacketReceived(Iris.NET.IrisPacket)">
             <summary>
-            Handler for a packet received from the IrisListener.
+            Handler for a packet received from the network.
             If the packet is of IrisMessage type, invokes the ContentHandlers subscribed to the reception of the message.
             Fires a log event if LogMessagesEnable is true and the packet is of IrisMessage type.
             </summary>
@@ -795,45 +911,13 @@
         </member>
         <member name="M:Iris.NET.AbstractIrisNode`1.OnNullReceived">
             <summary>
-            Handler for null data received from the IrisListener.
+            Handler for null data received from the network.
             Fires a log event if LogNullsEnable is true.
             </summary>
         </member>
-        <member name="T:Iris.NET.AbstractNetworkIrisListener">
+        <member name="T:Iris.NET.NodeDisconnectedException">
             <summary>
-            Abstract implementation of AbstractIrisListener targeting network communications
-            </summary>
-        </member>
-        <member name="F:Iris.NET.AbstractNetworkIrisListener._networkStream">
-            <summary>
-            The network stream from which listen for incoming data.
-            </summary>
-        </member>
-        <member name="F:Iris.NET.AbstractNetworkIrisListener._memoryStream">
-            <summary>
-            The memory stream for storing the incoming data.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractNetworkIrisListener.#ctor(System.Net.Sockets.NetworkStream)">
-            <summary>
-            Constructor.
-            </summary>
-            <param name="networkStream">The network stream that the node is connected to</param>
-        </member>
-        <member name="M:Iris.NET.AbstractNetworkIrisListener.InitListenCycle">
-            <summary>
-            Initialize the listening cycle.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.AbstractNetworkIrisListener.ReadObject">
-            <summary>
-            Reads the incoming data and return it as object.
-            </summary>
-            <returns>The data as object</returns>
-        </member>
-        <member name="M:Iris.NET.AbstractNetworkIrisListener.OnStop">
-            <summary>
-            Invoked when this listener is stopping.
+            Exception used to indicate that the operation cannot be performed since the node is currently disconnected from the pubsub network.
             </summary>
         </member>
         <member name="T:Iris.NET.IIrisNode">
@@ -843,63 +927,63 @@
         </member>
         <member name="P:Iris.NET.IIrisNode.Id">
             <summary>
-            Guid of this node.
+            Id of this node.
             </summary>
         </member>
-        <member name="M:Iris.NET.IIrisNode.Send(System.String,System.Object,System.Boolean)">
+        <member name="M:Iris.NET.IIrisNode.Publish(System.String,System.Object,System.Boolean)">
             <summary>
-            Submits the content to the pubsub network.
+            Publish the content to the pubsub network asynchronously.
             </summary>
             <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
-            <param name="content">The content to send.</param>
+            <param name="content">The content to publish.</param>
             <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
-        <member name="M:Iris.NET.IIrisNode.SendToBroadcast(System.Object)">
+        <member name="M:Iris.NET.IIrisNode.PublishToBroadcast(System.Object)">
             <summary>
-            Submits the content to every node in the pubsub network.
+            Submits the content to every node in the pubsub network asynchronously.
             </summary>
-            <param name="content">The content to send.</param>
-            <returns>True if the operation succeeded.</returns>
+            <param name="content">The content to publish.</param>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.IIrisNode.Subscribe(System.String,Iris.NET.ContentHandler)">
             <summary>
-            Subscribes this node to a channel.
+            Subscribes this node to a channel asynchronously.
             </summary>
             <param name="channel">The channel to which subscribe.</param>
             <param name="contentHandler">A handler for the content received through this subscription.</param>
-            <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+            <returns>A task which value is an IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
         </member>
         <member name="M:Iris.NET.IIrisNode.SubscribeToBroadcast(Iris.NET.ContentHandler)">
             <summary>
-            Subscribes the conten handler to the broadcast communication.
+            Subscribes the conten handler to the broadcast communication asynchronously.
             </summary>
             <param name="contentHandler">A handler for the content received in broadcast.</param>
-            <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
+            <returns>A task which value is an IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
         </member>
         <member name="M:Iris.NET.IIrisNode.Unsubscribe(System.String,Iris.NET.ContentHandler,System.Boolean)">
             <summary>
-            Removes the content handler from the subscription.
+            Removes the content handler from the subscription asynchronously.
             </summary>
             <param name="channel">The channel from which unsubscribe.</param>
             <param name="contentHandler">The content handler to be removed from this subscription.</param>
             <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.IIrisNode.UnsubscribeFromBroadcast(Iris.NET.ContentHandler)">
             <summary>
-            Removes the content handler from the broadcast communication.
+            Removes the content handler from the broadcast communication asynchronously.
             </summary>
             <param name="contentHandler">The content handler to be removed from the broadcast.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="M:Iris.NET.IIrisNode.Unsubscribe(System.String)">
             <summary>
-            Unsubscribes this node from a channel.
+            Unsubscribes this node from a channel asynchronously.
             All the content handlers subscribed to this channel will be lost.
             </summary>
             <param name="channel">The channel from which unsubscribe.</param>
-            <returns>True if the operation succeeded.</returns>
+            <returns>A task which value is true if the operation succeeded.</returns>
         </member>
         <member name="T:Iris.NET.ContentHandler">
             <summary>
@@ -921,7 +1005,7 @@
         </member>
         <member name="P:Iris.NET.IrisError.Exception">
             <summary>
-            The exception that caused the sending of this packet.
+            The exception that caused this packet.
             </summary>
         </member>
         <member name="P:Iris.NET.IrisError.Log">

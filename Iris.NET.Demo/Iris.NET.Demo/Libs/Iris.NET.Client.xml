@@ -24,33 +24,17 @@
             Network IO stream.
             </summary>
         </member>
+        <member name="M:Iris.NET.Client.IrisClientNode.GetNetworkStream">
+            <summary>
+            Invoked when the node is connecting.
+            </summary>
+            <returns>The network stream used to communicate to the pubsub network.</returns>
+        </member>
         <member name="M:Iris.NET.Client.IrisClientNode.OnConnect(Iris.NET.Client.IrisClientConfig)">
             <summary>
             Invoked when the node is connecting.
             </summary>
             <param name="config">The connection's configuration.</param>
-            <returns>An IrisClientListener instance.</returns>
-        </member>
-        <member name="M:Iris.NET.Client.IrisClientNode.Send(Iris.NET.IrisPacket)">
-            <summary>
-            Sends the packet to the network.
-            </summary>
-            <param name="packet">The packet to send.</param>
-        </member>
-        <member name="M:Iris.NET.Client.IrisClientNode.OnMetaReceived(Iris.NET.IrisMeta)">
-            <summary>
-            Handler for a meta packet received from the network.
-            </summary>
-            <param name="meta">The IrisMeta received.</param>
-        </member>
-        <member name="M:Iris.NET.Client.IrisClientNode.OnListenerException(System.Exception)">
-            <summary>
-            Handler for exceptions coming from the IrisListener.
-            Disposes the node if the connection is down.
-            Fires a OnException event.
-            Fires a log event if LogExceptionsEnable is true.
-            </summary>
-            <param name="ex">The exception that occurred.</param>
         </member>
         <member name="M:Iris.NET.Client.IrisClientNode.OnNullReceived">
             <summary>
@@ -78,17 +62,6 @@
             <summary>
             Server's port.
             </summary>
-        </member>
-        <member name="T:Iris.NET.Client.IrisClientListener">
-            <summary>
-            Network client node listener.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.Client.IrisClientListener.#ctor(System.Net.Sockets.NetworkStream)">
-            <summary>
-            Constructor.
-            </summary>
-            <param name="networkStream">The network stream that the node is connected to</param>
         </member>
     </members>
 </doc>

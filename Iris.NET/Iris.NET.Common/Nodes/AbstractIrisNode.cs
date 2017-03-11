@@ -4,18 +4,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Iris.NET
 {
     /// <summary>
     /// Abstract implementation of IIrisNode, with the addition of events and connection methods.
-    /// Uses a AbstractIrisListener to listen for incoming packets from the network and handles channels subscriptions.
     /// It also provides a method for testing if the connection is working properly: IsPeerAlive().
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public abstract class AbstractIrisNode<T> : IIrisNode
            where T : IrisBaseConfig
     {
+        #region Static
+        static readonly IrisDisposableSubscription _disposedSubscription = new IrisDisposableSubscription();
+
+        static readonly Task<bool> _completedSucceededTask = TaskEx.FromResult(true);
+
+        static readonly Task<bool> _completedFailedTask = TaskEx.FromResult(false);
+        #endregion
+
         #region Properties
         /// <summary>
         /// Guid of this node.
@@ -89,8 +96,6 @@ namespace Iris.NET
         /// </summary>
         public delegate void VoidHandler();
         #endregion
-        
-        private AbstractIrisListener _subscriptionsListener;
 
         /// <summary>
         /// Set of content handlers for the broadcast communication.
@@ -128,8 +133,7 @@ namespace Iris.NET
         /// Invoked when the node is connecting.
         /// </summary>
         /// <param name="config">The connection's configuration.</param>
-        /// <returns>An AbstractIrisListener instance.</returns>
-        protected abstract AbstractIrisListener OnConnect(T config);
+        protected abstract void OnConnect(T config);
 
         /// <summary>
         /// Invoked when the node is disposing.
@@ -137,16 +141,10 @@ namespace Iris.NET
         protected abstract void OnDispose();
 
         /// <summary>
-        /// Sends the packet to the network.
+        /// Publishes the packet to the network.
         /// </summary>
-        /// <param name="packet">The packet to send.</param>
-        protected abstract void Send(IrisPacket packet);
-
-        /// <summary>
-        /// Handler for a meta packet received from the network.
-        /// </summary>
-        /// <param name="meta">The IrisMeta received.</param>
-        protected abstract void OnMetaReceived(IrisMeta meta);
+        /// <param name="packet">The packet to publish.</param>
+        protected abstract Task<bool> Publish(IrisPacket packet);
         #endregion
 
         #region Public
@@ -162,10 +160,7 @@ namespace Iris.NET
                 return false;
 
             _config = config;
-            _subscriptionsListener = OnConnect(_config);
-            HookEventsToListener();
-            _subscriptionsListener?.Start();
-
+            OnConnect(_config);
             OnConnected?.BeginInvoke(null, null);
 
             return true;
@@ -180,8 +175,6 @@ namespace Iris.NET
             if (!_isDisposed)
             {
                 _isDisposed = true;
-                UnhookEventsFromListener();
-                _subscriptionsListener?.Stop();
                 OnDispose();
                 OnDisposed?.BeginInvoke(null, null);
             }
@@ -189,51 +182,49 @@ namespace Iris.NET
 
         #region PubSub
         /// <summary>
-        /// Submits the content to the pubsub network.
+        /// Publish the content to the pubsub network asynchronously.
         /// </summary>
-        /// <param name="targetChannel">The channel targeted by the content.</param>
-        /// <param name="content">The content to send.</param>
+        /// <param name="targetChannel">The channel targeted by the content. If it is "null" the content targets every client (broadcast).</param>
+        /// <param name="content">The content to publish.</param>
         /// <param name="propagateThroughHierarchy">Indicates if the content also targets all the clients who are subscribed to child channels compared to the target channel.</param>
-        /// <returns>True if the operation succeeded.</returns>
-        public virtual bool Send(string targetChannel, object content, bool propagateThroughHierarchy = false)
+        /// <returns>A task which value is true if the operation succeeded.</returns>
+        public virtual Task<bool> Publish(string targetChannel, object content, bool propagateThroughHierarchy = false)
         {
             if (!IsConnected)
-                return false;
+                throw new NodeDisconnectedException();
 
             if (string.IsNullOrWhiteSpace(targetChannel))
                 throw new ArgumentNullException(nameof(targetChannel));
 
-            return SendUnsafe(targetChannel.ToLower(), content, propagateThroughHierarchy);
+            return PublishUnsafe(targetChannel.ToLower(), content, propagateThroughHierarchy);
         }
 
         /// <summary>
-        /// Submits the content to every node in the pubsub network.
+        /// Submits the content to every node in the pubsub network asynchronously.
         /// </summary>
-        /// <param name="content">The content to send.</param>
-        /// <returns>True if the operation succeeded.</returns>
-        public bool SendToBroadcast(object content) => SendUnsafe(null, content, false);
+        /// <param name="content">The content to publish.</param>
+        /// <returns>A task which value is true if the operation succeeded.</returns>
+        public Task<bool> PublishToBroadcast(object content) => PublishUnsafe(null, content, false);
 
-        private bool SendUnsafe(string targetChannel, object content, bool propagateThroughHierarchy)
+        private Task<bool> PublishUnsafe(string targetChannel, object content, bool propagateThroughHierarchy)
         {
-            Send(new IrisMessage(Id, targetChannel, propagateThroughHierarchy)
+            return Publish(new IrisMessage(Id, targetChannel, propagateThroughHierarchy)
             {
                 PublicationDateTime = DateTime.Now,
                 Content = content
             });
-
-            return true;
         }
 
         /// <summary>
-        /// Subscribes this node to a channel.
+        /// Subscribes this node to a channel asynchronously.
         /// </summary>
         /// <param name="channel">The channel to which subscribe.</param>
         /// <param name="contentHandler">A handler for the content received through this subscription.</param>
-        /// <returns>An IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
-        public virtual IDisposableSubscription Subscribe(string channel, ContentHandler contentHandler)
+        /// <returns>A task which value is an IDisposableSubscription which can be used to remove the content handler from the subscription, or null if the operation failed.</returns>
+        public virtual async Task<IDisposableSubscription> Subscribe(string channel, ContentHandler contentHandler)
         {
             if (!IsConnected)
-                return null;
+                throw new NodeDisconnectedException();
 
             if (string.IsNullOrWhiteSpace(channel))
                 throw new ArgumentNullException(nameof(channel));
@@ -243,51 +234,47 @@ namespace Iris.NET
 
             channel = channel.ToLower();
             
-            lock (_channelsSubscriptions)
+            if (_channelsSubscriptions.Add(contentHandler, channel))
             {
-                if (_channelsSubscriptions.Add(contentHandler, channel))
-                {
-                    Send(new IrisSubscribe(Id, channel));
+                if (await Publish(new IrisSubscribe(Id, channel)))
                     return new IrisDisposableSubscription(this, channel, contentHandler);
-                }
             }
 
-            return null; // #Note Return already disposed IrisDisposableSubscription?
+            return _disposedSubscription;
         }
 
         /// <summary>
-        /// Subscribes the conten handler to the broadcast communication.
+        /// Subscribes the conten handler to the broadcast communication asynchronously.
         /// </summary>
         /// <param name="contentHandler">A handler for the content received in broadcast.</param>
-        /// <returns>An IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
-        public IDisposableSubscription SubscribeToBroadcast(ContentHandler contentHandler)
+        /// <returns>A task which value is an IDisposableSubscription which can be used to remove the content handler from the broadcast, or null if the operation failed.</returns>
+        public Task<IDisposableSubscription> SubscribeToBroadcast(ContentHandler contentHandler)
         {
             if (!IsConnected)
-                return null;
+                throw new NodeDisconnectedException();
 
             if (contentHandler == null)
                 throw new ArgumentNullException(nameof(contentHandler));
             
-            lock (_broadcastHandlers)
+            if (_broadcastHandlers.Add(contentHandler))
             {
-                if (_broadcastHandlers.Add(contentHandler))
-                    return new IrisDisposableSubscription(this, null, contentHandler);
+                return TaskEx.FromResult<IDisposableSubscription>(new IrisDisposableSubscription(this, null, contentHandler));
             }
 
-            return null; // #Note Return already disposed IrisDisposableSubscription?
+            return TaskEx.FromResult<IDisposableSubscription>(_disposedSubscription);
         }
 
         /// <summary>
-        /// Removes the content handler from the subscription.
+        /// Removes the content handler from the subscription asynchronously.
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
         /// <param name="contentHandler">The content handler to be removed from this subscription.</param>
         /// <param name="keepUnderlyingSubscription">Indicates if the node should keep the underlying subscription to the channel in order to improve efficiency in future subscriptions to it.</param>
-        /// <returns>True if the operation succeeded.</returns>
-        public virtual bool Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingSubscription = false)
+        /// <returns>A task which value is true if the operation succeeded.</returns>
+        public virtual Task<bool> Unsubscribe(string channel, ContentHandler contentHandler, bool keepUnderlyingSubscription = false)
         {
             if (!IsConnected)
-                return false;
+                throw new NodeDisconnectedException();
 
             if (string.IsNullOrWhiteSpace(channel))
                 throw new ArgumentNullException(nameof(channel));
@@ -296,141 +283,91 @@ namespace Iris.NET
                 throw new ArgumentNullException(nameof(contentHandler));
 
             channel = channel.ToLower();
-
-            bool result = false;
-            lock (_channelsSubscriptions)
+            
+            if (_channelsSubscriptions.Remove(contentHandler, channel))
             {
-                if (result = _channelsSubscriptions.Remove(contentHandler, channel))
-                {
-                    contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
+                contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
                     
-                    // If there aren't any subscriptions and there's no request of keeping the underlying subscription
-                    if (!_channelsSubscriptions.GetSubscriptions(channel, true).Any() && !keepUnderlyingSubscription)
-                    {
-                        Send(new IrisUnsubscribe(Id, channel));
-                    }
+                // If there aren't any subscriptions and there's no request of keeping the underlying subscription
+                if (!_channelsSubscriptions.GetSubscriptions(channel, true).Any() && !keepUnderlyingSubscription)
+                {
+                    return Publish(new IrisUnsubscribe(Id, channel));
                 }
             }
 
-            return result;
+            return _completedFailedTask;
         }
 
         /// <summary>
-        /// Removes the content handler from the broadcast communication.
+        /// Removes the content handler from the broadcast communication asynchronously.
         /// </summary>
         /// <param name="contentHandler">The content handler to be removed from the broadcast.</param>
-        /// <returns>True if the operation succeeded.</returns>
-        public bool UnsubscribeFromBroadcast(ContentHandler contentHandler)
+        /// <returns>A task which value is true if the operation succeeded.</returns>
+        public Task<bool> UnsubscribeFromBroadcast(ContentHandler contentHandler)
         {
             if (!IsConnected)
-                return false;
+                throw new NodeDisconnectedException();
 
             if (contentHandler == null)
                 throw new ArgumentNullException(nameof(contentHandler));
-
-            bool result = false;
-            lock (_broadcastHandlers)
+            
+            if (_broadcastHandlers.Remove(contentHandler))
             {
-                if (result = _broadcastHandlers.Remove(contentHandler))
-                    contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
+                contentHandler.BeginInvoke(null, new IrisContextHook { Unsubscribing = true }, null, null);
+                return _completedSucceededTask;
             }
 
-            return result;
+            return _completedFailedTask;
         }
 
         /// <summary>
-        /// Unsubscribes this node from a channel.
+        /// Unsubscribes this node from a channel asynchronously.
         /// All the content handlers subscribed to this channel will be lost.
         /// </summary>
         /// <param name="channel">The channel from which unsubscribe.</param>
-        /// <returns>True if the operation succeeded.</returns>
-        public virtual bool Unsubscribe(string channel)
+        /// <returns>A task which value is true if the operation succeeded.</returns>
+        public virtual Task<bool> Unsubscribe(string channel)
         {
             if (!IsConnected)
-                return false;
+                throw new NodeDisconnectedException();
 
             if (string.IsNullOrWhiteSpace(channel))
                 throw new ArgumentNullException(nameof(channel));
 
             channel = channel.ToLower();
 
-            lock (_channelsSubscriptions)
+            List<ContentHandler> subs = _channelsSubscriptions.GetSubscriptions(channel);
+            if (subs != null && _channelsSubscriptions.RemoveChannel(channel))
             {
-                List<ContentHandler> subs = _channelsSubscriptions.GetSubscriptions(channel);
-                if (subs != null && _channelsSubscriptions.RemoveChannel(channel))
-                {
-                    Send(new IrisUnsubscribe(Id, channel));
-                    return true;
-                }
+                return Publish(new IrisUnsubscribe(Id, channel));
             }
 
-            return false;
+            return _completedFailedTask;
         }
         #endregion
         #endregion
 
         /// <summary>
-        /// Attaches handlers to the IrisListener events.
-        /// </summary>
-        /// <param name="subscriptionsListener">The target IrisListener.</param>
-        protected void HookEventsToListener(AbstractIrisListener subscriptionsListener = null)
-        {
-            if (subscriptionsListener == null)
-                subscriptionsListener = _subscriptionsListener;
-            
-            if (subscriptionsListener != null)
-            {
-                subscriptionsListener.OnClientSubmittedPacketReceived += OnClientSubmittedPacketReceived;
-                subscriptionsListener.OnMetaReceived += OnMetaReceived;
-                subscriptionsListener.OnErrorReceived += OnError;
-                subscriptionsListener.OnInvalidDataReceived += OnInvalidDataReceived;
-                subscriptionsListener.OnException += HandleListenerException;
-                subscriptionsListener.OnNullReceived += OnNullReceived;
-            }
-        }
-
-        /// <summary>
-        /// Detaches the handlers from the IrisListener events.
-        /// </summary>
-        /// <param name="subscriptionsListener">The target IrisListener.</param>
-        protected void UnhookEventsFromListener(AbstractIrisListener subscriptionsListener = null)
-        {
-            if (subscriptionsListener == null)
-                subscriptionsListener = _subscriptionsListener;
-
-            if (subscriptionsListener != null)
-            {
-                subscriptionsListener.OnClientSubmittedPacketReceived -= OnClientSubmittedPacketReceived;
-                subscriptionsListener.OnMetaReceived -= OnMetaReceived;
-                subscriptionsListener.OnErrorReceived -= OnError;
-                subscriptionsListener.OnInvalidDataReceived -= OnInvalidDataReceived;
-                subscriptionsListener.OnException -= HandleListenerException;
-                subscriptionsListener.OnNullReceived -= OnNullReceived;
-            }
-        }
-
-        /// <summary>
-        /// Checks if the connection is working properly by sending a meta packet.
+        /// Checks if the connection is working properly by publishing a meta packet.
         /// </summary>
         /// <returns></returns>
-        protected bool IsPeerAlive()
+        protected Task<bool> IsPeerAlive()
         {
             try
             {
-                Send(new IrisMeta(Id)
+                return Publish(new IrisMeta(Id)
                 {
                     ACK = null,
                     Request = Request.AreYouAlive
                 });
-                return true;
             }
             catch
             {
-                return false;
+                return _completedFailedTask;
             }
         }
 
-        #region Listener events
+        #region Network communication utils
         /// <summary>
         /// Builds a string for logging the invalid data received.
         /// </summary>
@@ -447,11 +384,12 @@ namespace Iris.NET
             {
                 runtimeType = "could't retrive";
             }
+
             return $"[InvalidDataReceived];{nameof(runtimeType)}: {runtimeType}";
         }
 
         /// <summary>
-        /// Handler for invalid data received from the IrisListener.
+        /// Handler for invalid data received.
         /// Fires a log event if LogInvalidDataEnable is true.
         /// </summary>
         /// <param name="data">The invalid data received.</param>
@@ -462,6 +400,14 @@ namespace Iris.NET
         }
 
         /// <summary>
+        /// Handler for a meta packet received from the network.
+        /// </summary>
+        /// <param name="meta">The IrisMeta received.</param>
+        protected virtual void OnMetaReceived(IrisMeta meta)
+        {
+        }
+
+        /// <summary>
         /// Builds a string for logging the exception that occurred.
         /// </summary>
         /// <param name="ex">The exception that occurred.</param>
@@ -469,26 +415,26 @@ namespace Iris.NET
         protected string GetLogForException(Exception ex) => $"[Exception];{ex.GetFullExceptionMessage()}";
 
         /// <summary>
-        /// Handler for exceptions coming from the IrisListener.
-        /// Checks wether this exception was already caught right before and invokes the method OnListenerException.
+        /// Handler for exceptions coming from the network.
+        /// Checks wether this exception was already caught right before and invokes the method OnNetworkException.
         /// </summary>
         /// <param name="ex">The exception that occurred.</param>
-        private void HandleListenerException(Exception ex)
+        protected void HandleException(Exception ex)
         {
             if (_lastException == null || ex.Message != _lastException.Message)
             {
                 _lastException = ex;
-                OnListenerException(ex);
+                OnNetworkException(ex);
             }
         }
 
         /// <summary>
-        /// Handler for exceptions coming from the IrisListener.
+        /// Handler for exceptions coming from the network.
         /// Fires a OnException event.
         /// Fires a log event if LogExceptionsEnable is true.
         /// </summary>
         /// <param name="ex">The exception that occurred.</param>
-        protected virtual void OnListenerException(Exception ex)
+        protected virtual void OnNetworkException(Exception ex)
         {
             OnException?.BeginInvoke(ex, null, null);
             if (LogExceptionsEnable)
@@ -521,7 +467,7 @@ namespace Iris.NET
         protected virtual string GetLogForMessageReceived(IrisMessage message) => $"[Message];{nameof(message.TargetChannel)}: {message.TargetChannel};{nameof(message.PublicationDateTime)}: {message.PublicationDateTime};{nameof(message.PropagateThroughHierarchy)}: {message.PropagateThroughHierarchy}";
 
         /// <summary>
-        /// Handler for a packet received from the IrisListener.
+        /// Handler for a packet received from the network.
         /// If the packet is of IrisMessage type, invokes the ContentHandlers subscribed to the reception of the message.
         /// Fires a log event if LogMessagesEnable is true and the packet is of IrisMessage type.
         /// </summary>
@@ -537,12 +483,9 @@ namespace Iris.NET
                     handlers = _channelsSubscriptions.GetSubscriptions(message.TargetChannel, message.PropagateThroughHierarchy);
                 else
                 {
-                    lock (_broadcastHandlers)
-                    {
-                        var broadcastHandlers = new List<ContentHandler>();
-                        broadcastHandlers.AddRange(_broadcastHandlers);
-                        handlers = broadcastHandlers;
-                    }
+                    var broadcastHandlers = new List<ContentHandler>();
+                    broadcastHandlers.AddRange(_broadcastHandlers);
+                    handlers = broadcastHandlers;
                 }
 
                 if (handlers != null)
@@ -576,7 +519,7 @@ namespace Iris.NET
         protected virtual string GetLogForNullReceived() => $"[NullReceived] Node: {Id}";
 
         /// <summary>
-        /// Handler for null data received from the IrisListener.
+        /// Handler for null data received from the network.
         /// Fires a log event if LogNullsEnable is true.
         /// </summary>
         protected virtual void OnNullReceived()
@@ -585,5 +528,12 @@ namespace Iris.NET
                 OnLog?.BeginInvoke(GetLogForNullReceived(), null, null);
         }
         #endregion
+    }
+
+    /// <summary>
+    /// Exception used to indicate that the operation cannot be performed since the node is currently disconnected from the pubsub network.
+    /// </summary>
+    public class NodeDisconnectedException : Exception
+    {
     }
 }

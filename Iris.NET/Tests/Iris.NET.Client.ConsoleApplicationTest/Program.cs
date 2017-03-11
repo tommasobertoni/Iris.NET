@@ -5,198 +5,117 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Iris.NET.Client.ConsoleApplicationTest
 {
     public class Program
     {
-        static string sep = "------------------------";
-        static string mainChannel = "main";
-
         public static void Main(string[] args)
         {
-#if FULL
-            ClientFull();
-#else
-            if (args != null && args.Length > 0 && args[0].ToLower() == "full")
-                ClientFull();
-            else
-                ClientBase(args);
-#endif
+            PerfTest();
+            while (true)
+            {
+                var cmd = Console.ReadLine();
+                if (cmd.ToUpper() == "A")
+                {
+                    PerfAnalysis(receivedMessagesCount, start.Value, DateTime.Now);
+                }
+                else if (cmd.ToUpper() == "S")
+                {
+                    var task = actorNode.Publish(channel, "TEST");
+                }
+                else
+                {
+                    Console.WriteLine($"{nameof(receivedMessagesCount)}: {receivedMessagesCount}");
+                }
+
+                Console.WriteLine($"{receivedMessagesCount * 100.0 / messagesCount}% received");
+            }
         }
 
-        private static void ClientBase(string[] args)
+        static string channel;
+        static IrisClientNode actorNode;
+        static volatile int messagesCount;
+        static volatile int receivedMessagesCount;
+        static volatile object sync = new object();
+        static DateTime? start = null;
+
+        private static async void PerfTest()
         {
-            Console.WriteLine($"{typeof(Program).Namespace}");
-            Console.WriteLine("Press Enter to start (or insert parameters below)");
+            channel = "perf";
 
-            var parametersString = Console.ReadLine();
-            string[] @params = parametersString.Split('\t');
-            Console.WriteLine("Started\n");
-
-            IrisClientNode client = new IrisClientNode();
-            IrisClientConfig config = new IrisClientConfig()
+            await TaskEx.Delay(1000); // Delay for the server to spawn.
+            
+            IrisClientConfig config = new IrisClientConfig
             {
                 Hostname = "127.0.0.1",
-                Port = 22000
-            };
-            Console.WriteLine($"Client and config created {client.Id} <=> {config.Hostname}:{config.Port}");
-
-            try
-            {
-                client.Connect(config);
-                Console.WriteLine($"Is client connected? {client.IsConnected} (Press Enter)");
-
-                client.OnDisposed += () => Console.WriteLine("Client disposed");
-                client.OnException += ExceptionHandler;
-                Console.WriteLine("Exception/Log events hooked");
-
-                if (client.Subscribe(mainChannel, ContentHandler) != null)
-                {
-                    Console.WriteLine($"Client subscribed to \"{"main"}\" channel\n");
-                }
-                else
-                {
-                    Console.WriteLine($"Client FAILED TO subscribe to \"{"main"}\" channel");
-                }
-
-                if (args?.Length > 0 && args?.First()?.ToUpper() == "CUSTOM")
-                {
-                    Thread.Sleep(500);
-                    string message;
-                    do
-                    {
-                        Console.WriteLine("Write your message:");
-                        message = Console.ReadLine();
-                        client.Send(mainChannel, message);
-                    } while (message.ToUpper() != "QUIT" && message.ToUpper() != "Q");
-                }
-                else
-                {
-                    Thread.Sleep(1000);
-                    string[] messages = { "HELLO", "PING" };
-                    foreach (var message in messages)
-                    {
-                        client.Send(mainChannel, message);
-                        Console.WriteLine($"Sent {message} to {mainChannel}");
-                        Thread.Sleep(1000);
-                    }
-                }
-
-                Console.Write("Tests completed");
-                Console.ReadLine();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"\n{sep}\nException:\n{ex.GetFullExceptionMessage()}\n{sep}\n");
-            }
-            finally
-            {
-                Console.WriteLine("Closing");
-
-                if (@params != null && !@params.Contains("NU")) // Not Unsubscribe
-                {
-                    if (client.Unsubscribe(mainChannel))
-                    {
-                        Console.WriteLine($"Client unsubscribed from \"{mainChannel}\" channel");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Client FAILED TO unsubscribe from \"{mainChannel}\" channel");
-                    }
-                }
-                else
-                    Console.WriteLine("Skip \"Unsubscribe\"");
-
-                client.OnException -= ExceptionHandler;
-                Console.WriteLine("Exception/Log events UNhooked");
-            }
-
-            client.Dispose();
-            Console.Write("\n\nTerminate...");
-            Console.ReadLine();
-        }
-
-        private static void ContentHandler(object content, IrisContextHook hook)
-        {
-            if (content != null)
-                Console.WriteLine($"Content received! {content}\n");
-            else if (hook != null)
-                Console.WriteLine($"{nameof(IrisContextHook)} => {nameof(hook.Unsubscribing)}: {hook.Unsubscribing}");
-        }
-
-        private static void ExceptionHandler(Exception ex)
-        {
-            Console.WriteLine($"\n{sep}\nEXCEPTION: {ex.GetFullExceptionMessage()}\n{sep}\n");
-        }
-
-        private static void ClientFull()
-        {
-            IrisClientNode client = new IrisClientNode();
-            IrisClientConfig config = new IrisClientConfig()
-            {
-                Hostname = "127.0.0.1",
-                Port = 22000
+                Port = 22000,
             };
 
-            client.OnDisposed += () => Console.WriteLine("Client disposed");
-            client.OnException += ExceptionHandler;
-            client.Connect(config);
-            var subscriptionToBroadcast = client.SubscribeToBroadcast((c, h) => Console.WriteLine($"Content: {c} [received from broadcast]"));
+            actorNode = new IrisClientNode();
+            actorNode.Connect(config);
+            Console.WriteLine("Actor node connected");
 
-            Console.WriteLine($"- Client connected (id {client.Id})");
-            Console.WriteLine();
-            Console.WriteLine("- Write \"SUB {channel}\" to subscribe to a channel");
-            Console.WriteLine("- Write \"UNSUB {channel}\" to unsubscribe from a channel");
-            Console.WriteLine("- Write \"SEND {message} {channel}\" to send a message to a channel");
-            Console.WriteLine("- Use \"SEND-F\" to send a message to the whole hierarchy");
-            Console.WriteLine("- Write \"SEND {message}\" to send a message in broadcast");
-            Console.WriteLine("- Write \"QUIT\" or \"Q\" to quit and dispose the server");
-            Console.WriteLine();
+            messagesCount = 20000;
+            start = null;
 
-            string input;
-            do
+            receivedMessagesCount = 0;
+            Task<IDisposableSubscription> asyncSubscription = null;
+            asyncSubscription = actorNode.Subscribe(channel, (c, h) =>
             {
-                input = Console.ReadLine();
-                string[] command = input.ToUpper().Split(' ');
-                bool handled = false;
-
-                if (command.Length > 0)
+                if (!h.Unsubscribing)
                 {
-                    switch (command[0])
+                    var rmc = Interlocked.Increment(ref receivedMessagesCount);
+
+                    if (messagesCount > 10 && rmc % (messagesCount / 10) == 0)
+                        Console.WriteLine($"Received: {c} ({rmc * 100.0 / messagesCount}%)");
+
+                    if (rmc == messagesCount)
                     {
-                        case "SUB":
-                            if (handled = command.Length == 2 && client.Subscribe(command[1], GenericContentHandler) != null)
-                                Console.WriteLine("- Subscribed");
-                            break;
+                        var end = DateTime.Now;
+                        var sub = asyncSubscription.Result; // Brutal!
+                        sub.Dispose();
 
-                        case "UNSUB":
-                            if (handled = command.Length == 2 && client.Unsubscribe(command[1], GenericContentHandler))
-                                Console.WriteLine("- Unsubscribed");
-                            break;
+                        Task.Factory.StartNew(async () =>
+                        {
+                            await actorNode.Publish(channel, new Test());
+                            actorNode.Dispose();
+                        });
 
-                        case "SEND":
-                        case "SEND-F":
-                            if (handled = (command.Length == 3 && client.Send(command[2], command[1], command[0] == "SEND-F")) ||
-                                            (command.Length == 2 && client.SendToBroadcast(command[1])))
-                                Console.WriteLine("- Message sent");
-                            break;
-
-                        case "Q":
-                        case "QUIT":
-                            handled = command.Length == 1;
-                            break;
+                        PerfAnalysis(messagesCount, start.Value, end);
+                        actorNode.Dispose();
                     }
                 }
+            });
 
-                if (!handled)
-                    Console.WriteLine($"- Unrecognized command \"{input}\"");
-                Console.WriteLine();
+            IDisposableSubscription subscription = await asyncSubscription;
+            
+            Task[] publishTasks = new Task[messagesCount];
+            
+            object bigload = new byte[1000000];
+            start = DateTime.Now;
 
-            } while (input.ToUpper() != "QUIT" && input.ToUpper() != "Q");
+            Console.WriteLine($"Started sending {messagesCount} messages");
 
-            subscriptionToBroadcast.Dispose();
-            client.Dispose();
+            for (int i = 0; i < messagesCount; i++)
+            {
+                var message = $"message#{i + 1}";
+                var task = actorNode.Publish(channel, new Test { Message = message, Data = bigload });
+                publishTasks[i] = task;
+            }
+
+            await TaskEx.WhenAll(publishTasks);
+
+            Console.WriteLine($"Sent {messagesCount} messages");
+        }
+
+        private static void PerfAnalysis(int messagesCount, DateTime start, DateTime end)
+        {
+            var msLapsed = (end - start).TotalMilliseconds;
+            var avg = msLapsed / messagesCount * 1.0;
+            Console.WriteLine($"Results: {messagesCount} messages, started at {start}, finished at {end}");
+            Console.WriteLine($"Average bidirectional time: {avg} milliseconds");
         }
 
         static void GenericContentHandler(object content, IrisContextHook hook)

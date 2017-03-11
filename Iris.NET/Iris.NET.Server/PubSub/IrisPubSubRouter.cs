@@ -73,7 +73,7 @@ namespace Iris.NET.Server
         /// <returns>True if the operation succeeded.</returns>
         public bool SubmitMessage(IMessageSubscriber sender, IrisMessage message)
         {
-            if (message.Content == null || message.PublisherId == null || !_nodes.ContainsKey(sender))
+            if (message.PublisherId == null || !_nodes.ContainsKey(sender))
                 return false;
 
             IrisConcurrentHashSet<Guid> _deliveryNodes = new IrisConcurrentHashSet<Guid>();

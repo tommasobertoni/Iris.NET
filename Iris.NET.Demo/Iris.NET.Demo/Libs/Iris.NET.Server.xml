@@ -4,17 +4,6 @@
         <name>Iris.NET.Server</name>
     </assembly>
     <members>
-        <member name="T:Iris.NET.Server.IrisServerNetworkListener">
-            <summary>
-            Network server node listener.
-            </summary>
-        </member>
-        <member name="M:Iris.NET.Server.IrisServerNetworkListener.#ctor(System.Net.Sockets.NetworkStream)">
-            <summary>
-            Constructor.
-            </summary>
-            <param name="networkStream">The network stream that the node is connected to</param>
-        </member>
         <member name="T:Iris.NET.Server.IPubSubRouter">
             <summary>
             Interface for pub/sub routing operations.
@@ -59,43 +48,30 @@
             <param name="channel">The channel from which unsubscribe.</param>
             <returns>True if the operation succeeded.</returns>
         </member>
-        <member name="T:Iris.NET.Server.IrisClientRemoteNode">
+        <member name="T:Iris.NET.Server.IrisRemoteClientNode">
             <summary>
-            Network client remote node.
-            Represents the connection to a remote client node.
+            Network remote client node: represents the connection to a remote node.
             </summary>
         </member>
-        <member name="P:Iris.NET.Server.IrisClientRemoteNode.IsConnected">
+        <member name="P:Iris.NET.Server.IrisRemoteClientNode.IsConnected">
             <summary>
             Indicates if this node is connected.
             </summary>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.#ctor(System.Net.Sockets.TcpClient)">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.#ctor(System.Net.Sockets.TcpClient)">
             <summary>
             Constructor.
             </summary>
             <param name="clientSocket">The tcp socket connection to the remote client.</param>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnConnect(Iris.NET.Server.IrisServerConfig)">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.OnConnect(Iris.NET.Server.IrisServerConfig)">
             <summary>
             Invoked when the node is connecting.
             </summary>
             <param name="config">The connection's configuration.</param>
             <returns>An IrisServerListener instance.</returns>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.Send(Iris.NET.IrisPacket)">
-            <summary>
-            Sends the packet to the remote client.
-            </summary>
-            <param name="packet">The packet to send.</param>
-        </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnMetaReceived(Iris.NET.IrisMeta)">
-            <summary>
-            Handler for a meta packet received from the network.
-            </summary>
-            <param name="meta">The IrisMeta received.</param>
-        </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnClientSubmittedPacketReceived(Iris.NET.IrisPacket)">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.OnClientSubmittedPacketReceived(Iris.NET.IrisPacket)">
             <summary>
             Handler for a packet received from the IrisListener.
             If the data is valid, it's given to the IPubSubRouter to be handled.
@@ -103,14 +79,14 @@
             </summary>
             <param name="packet">The packet received.</param>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnInvalidDataReceived(System.Object)">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.OnInvalidDataReceived(System.Object)">
             <summary>
             Handler for invalid data received from the IrisListener.
             Sends an IrisMeta packet with a "Resend" request.
             </summary>
             <param name="data">The invalid data received.</param>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnListenerException(System.Exception)">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.OnNetworkException(System.Exception)">
             <summary>
             Handler for exceptions coming from the IrisListener.
             Checks if the peer is alive: if it's not it disposes.
@@ -119,14 +95,14 @@
             </summary>
             <param name="ex">The exception that occurred.</param>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnNullReceived">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.OnNullReceived">
             <summary>
             Handler for null data received from the IrisListener.
             Checks if the peer is alive: if it's not it disposes.
             Fires a log event if LogNullsEnable is true.
             </summary>
         </member>
-        <member name="M:Iris.NET.Server.IrisClientRemoteNode.OnDispose">
+        <member name="M:Iris.NET.Server.IrisRemoteClientNode.OnDispose">
             <summary>
             Invoked when the node is disposing.
             Closes all network streams and unregister this node from the IPubSubRouter instance.
@@ -215,7 +191,7 @@
         </member>
         <member name="M:Iris.NET.Server.IrisServer.Stop">
             <summary>
-            Stops the server and 
+            Stops the server
             </summary>
         </member>
         <member name="T:Iris.NET.Server.IrisServerConfig">
@@ -234,41 +210,41 @@
             </summary>
             <param name="pubSubRouter">An implementation of IPubSubRouter.</param>
         </member>
-        <member name="T:Iris.NET.Server.IrisServerLocalNode">
+        <member name="T:Iris.NET.Server.IrisLocalNode">
             <summary>
             Local client node.
             </summary>
         </member>
-        <member name="P:Iris.NET.Server.IrisServerLocalNode.IsConnected">
+        <member name="P:Iris.NET.Server.IrisLocalNode.IsConnected">
             <summary>
             Indicates if this node is connected.
             </summary>
         </member>
-        <member name="M:Iris.NET.Server.IrisServerLocalNode.OnConnect(Iris.NET.Server.IrisServerConfig)">
+        <member name="M:Iris.NET.Server.IrisLocalNode.OnConnect(Iris.NET.Server.IrisServerConfig)">
             <summary>
             Invoked when the node is connecting.
             </summary>
             <param name="config">The connection's configuration.</param>
             <returns>An AbstractIrisListener instance.</returns>
         </member>
-        <member name="M:Iris.NET.Server.IrisServerLocalNode.OnDispose">
+        <member name="M:Iris.NET.Server.IrisLocalNode.OnDispose">
             <summary>
             Invoked when the node is disposing.
             </summary>
         </member>
-        <member name="M:Iris.NET.Server.IrisServerLocalNode.OnMetaReceived(Iris.NET.IrisMeta)">
+        <member name="M:Iris.NET.Server.IrisLocalNode.OnMetaReceived(Iris.NET.IrisMeta)">
             <summary>
             Handler for a meta packet received from the network.
             </summary>
             <param name="meta">The IrisMeta received.</param>
         </member>
-        <member name="M:Iris.NET.Server.IrisServerLocalNode.Send(Iris.NET.IrisPacket)">
+        <member name="M:Iris.NET.Server.IrisLocalNode.Publish(Iris.NET.IrisPacket)">
             <summary>
             Sends the packet to the network.
             </summary>
             <param name="packet">The packet to send.</param>
         </member>
-        <member name="M:Iris.NET.Server.IrisServerLocalNode.ReceiveMessage(Iris.NET.IrisMessage)">
+        <member name="M:Iris.NET.Server.IrisLocalNode.ReceiveMessage(Iris.NET.IrisMessage)">
             <summary>
             Invoked when a new message is sent to this subscriber.
             </summary>
@@ -345,7 +321,7 @@
         </member>
         <member name="P:Iris.NET.Server.IMessageSubscriber.Id">
             <summary>
-            Guid of this message subscriber.
+            Id of this message subscriber.
             </summary>
         </member>
         <member name="M:Iris.NET.Server.IMessageSubscriber.ReceiveMessage(Iris.NET.IrisMessage)">
