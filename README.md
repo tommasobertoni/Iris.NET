@@ -1,18 +1,18 @@
 # Iris.NET
 [![Iris.NET on SourceBrowser](https://img.shields.io/badge/source-browser-2B9CC6.svg?style=flat-square)](http://sourcebrowser.io/Browse/tommasobertoni/Iris.NET)
-[![Iris.NET on NuGet](https://img.shields.io/badge/nuget-v0.1.0-blue.svg?style=flat-square)](https://www.nuget.org/packages/Iris.NET/)
+[![Iris.NET on NuGet](https://img.shields.io/badge/nuget-v0.2.0-blue.svg?style=flat-square)](https://www.nuget.org/packages/Iris.NET/)
 <br><br>
 Iris.NET is a TCP-based, Pub/Sub C# library. It was developed to allow an easy-to-use, channel-separated communication on a LAN infrastructure.
 <br><br>
 The library provides a server and two client types: one for network communication and one for local communication.
 <br>
-The client types are also called *nodes* and they implement the [**IIrisNode**](/Iris.NET/Iris.NET.Common/Nodes/IIrisNode.cs) interface, which defines the pub/sub methods (basically: *Subscribe*, *Unsubscribe* and *Send*).
+The client types are also called *nodes* and they implement the [**IIrisNode**](/Iris.NET/Iris.NET.Common/Nodes/IIrisNode.cs) interface, which defines the pub/sub methods (basically: *Publish*, *Subscribe* and *Unsubscribe*).
 <br><br>
 The **IrisClientNode** type is responsible for the network communication and talks to the **IrisServer** through a socket connection. It can be found in the *Iris.NET.Client* namespace.
 <br><br>
-The **IrisServerLocalNode** type, instead, is used to communicate locally (without sockets) with the same pub/sub infrastructure.
+The **IrisLocalNode** type, instead, is used to communicate locally (without sockets) with the same pub/sub infrastructure of the server.
 <br>
-The **IrisServer** type handles the connections coming from the client nodes. This and IrisServerLocalNode can be found in the *Iris.NET.Server* namespace.
+The **IrisServer** type handles the connections coming from the client nodes. This and *IrisLocalNode* can be found in the *Iris.NET.Server* namespace.
 <br><br>
 ## *How To*
 ### Create and start a server:<br>
@@ -28,16 +28,20 @@ node.Connect(config);
 ```
 ### Subscribe to a channel
 ```csharp
-IDisposableSubscription subscription = node.Subscribe("worldnews", MyContentHandler);
+Task<IDisposableSubscription> asyncSubscriptionRequest = node.Subscribe("worldnews", MyContentHandler);
+// The task is resolved when the subscription request is sent over the network stream
+IDisposableSubscription subscription = await asyncSubscriptionRequest;
 ```
-### Send a message
+### Publish a message
 ```csharp
-node.Send("worldnews", "something good happened");
+await node.Publish("worldnews", "something good happened");
 ```
 <br>
 A broader documentation is available in the ***[How-To](https://github.com/tommasobertoni/Iris.NET/wiki/How-To)*** page in the wiki.
 <br>
 To see the new features that are being developed and the breaking changes head over to the ***[Changelog](https://github.com/tommasobertoni/Iris.NET/wiki/Changelog)*** in the wiki.
+<br>
+New features proposals and bug reports are displayed in the ***[Issues](https://github.com/tommasobertoni/Iris.NET/issues)*** section.
 <br><br><br>
 ## Technology info
 This project was developed using *Visual Studio 2015* and *C# 6*.<br>
