@@ -11,7 +11,7 @@ The client types are also called *nodes* and they implement the [**IIrisNode**](
 The **IrisClientNode** type is responsible for the network communication and talks to the **IrisServer** through a socket connection. It can be found in the *Iris.NET.Client* namespace.
 <br><br>
 The **IrisLocalNode** type, instead, is used to communicate locally (without sockets) with the same pub/sub infrastructure of the server.
-<br>
+
 The **IrisServer** type handles the connections coming from the client nodes. This and *IrisLocalNode* can be found in the *Iris.NET.Server* namespace.
 <br><br>
 ## *How To*
@@ -36,15 +36,16 @@ IDisposableSubscription subscription = await asyncSubscriptionRequest;
 ```csharp
 await node.Publish("worldnews", "something good happened");
 ```
-<br>
-A broader documentation is available in the ***[How-To](https://github.com/tommasobertoni/Iris.NET/wiki/How-To)*** page in the wiki.
-<br>
+
+A broader documentation is available in the [How-To](https://github.com/tommasobertoni/Iris.NET/wiki/How-To) page in the wiki.
+
 To see the new features that are being developed and the breaking changes head over to the ***[Changelog](https://github.com/tommasobertoni/Iris.NET/wiki/Changelog)*** in the wiki.
 <br>
 New features proposals and bug reports are displayed in the ***[Issues](https://github.com/tommasobertoni/Iris.NET/issues)*** section.
 <br><br><br>
 ## Technology info
 This project was developed using *Visual Studio 2015* and *C# 6*.<br>
+
 **The library targets the .NET Framework 4.0.**
 <br><br>
 ## License
